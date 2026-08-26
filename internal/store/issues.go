@@ -113,10 +113,12 @@ func (s *Store) GetIssue(id string) (IssueRow, error) {
 	return r, errRow(err)
 }
 
-// QueueCount reports remaining untriaged issues, optionally per team.
+// QueueCount reports remaining untriaged issues (excluding active snoozes),
+// optionally per team.
 func (s *Store) QueueCount(teamID string) (int, error) {
-	q := `SELECT COUNT(*) FROM issues WHERE triaged_at IS NULL`
-	args := []any{}
+	q := `SELECT COUNT(*) FROM issues WHERE triaged_at IS NULL
+	  AND (snoozed_until IS NULL OR snoozed_until < ?)`
+	args := []any{now()}
 	if teamID != "" {
 		q += ` AND team_id = ?`
 		args = append(args, teamID)
@@ -207,7 +209,8 @@ func (s *Store) UnenrichedQueueHeads(limit int) ([]string, error) {
 
 func (s *Store) TeamCounts() (map[string]int, error) {
 	rows, err := s.db.Query(`SELECT COALESCE(team_id, ''), COUNT(*) FROM issues
-	  WHERE triaged_at IS NULL GROUP BY team_id`)
+	  WHERE triaged_at IS NULL AND (snoozed_until IS NULL OR snoozed_until < ?)
+	  GROUP BY team_id`, now())
 	if err != nil {
 		return nil, err
 	}

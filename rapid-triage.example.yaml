@@ -1,0 +1,39 @@
+# Rapid Triage configuration. Copy to ./rapid-triage.yaml or
+# ~/.config/rapid-triage/config.yaml. Every field is optional.
+
+# Listen address for the local web UI.
+addr: 127.0.0.1:7333
+
+# Where the sqlite index lives.
+db_path: ~/.rapid-triage/triage.db
+
+# Which issues count as "untriaged". This is a raw Linear GraphQL IssueFilter,
+# passed through verbatim — anything Linear supports works.
+# Docs: https://developers.linear.app/docs/graphql/filtering
+#
+# Default: everything in a Triage-type workflow state.
+filter:
+  state:
+    type:
+      eq: triage
+
+# Example: backlog issues missing your "triaged" label:
+# filter:
+#   state:
+#     type:
+#       eq: backlog
+#   labels:
+#     every:
+#       name:
+#         neq: "infra:triaged"
+
+sync:
+  interval: 10m   # background refresh cadence; UI serves stale data while syncing
+  page_size: 50
+
+ai:
+  enabled: true   # shells out to Claude Code (no API key needed)
+  command: claude
+  model: ""       # optional --model override
+  timeout: 3m
+  prefetch: 0     # enrich up to N upcoming queue items in the background

@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Rapid Triage design system (ported from the Lovable "Triage Dash" design).
+ * All colors are oklch tokens. Never hardcode colors in components.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+
+  --color-prio-urgent: var(--prio-urgent);
+  --color-prio-high: var(--prio-high);
+  --color-prio-medium: var(--prio-medium);
+  --color-prio-low: var(--prio-low);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --shadow-card: var(--shadow-card-value);
+  --shadow-pop: var(--shadow-pop-value);
+  --shadow-glow: var(--shadow-glow-value);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(0.985 0.003 250);
+  --foreground: oklch(0.19 0.02 260);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.005 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.02 260);
+
+  --primary: oklch(0.56 0.19 258);
+  --primary-foreground: oklch(0.99 0.002 250);
+  --secondary: oklch(0.955 0.006 255);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.958 0.005 255);
+  --muted-foreground: oklch(0.52 0.017 260);
+  --accent: oklch(0.94 0.02 255);
+  --accent-foreground: oklch(0.26 0.02 260);
+
+  --destructive: oklch(0.58 0.2 20);
+  --destructive-foreground: oklch(0.99 0.002 250);
+  --success: oklch(0.6 0.14 158);
+  --success-foreground: oklch(0.99 0.002 250);
+  --warning: oklch(0.75 0.15 72);
+  --warning-foreground: oklch(0.24 0.03 70);
+  --info: oklch(0.62 0.13 232);
+  --info-foreground: oklch(0.99 0.002 250);
+
+  --border: oklch(0.912 0.008 255);
+  --input: oklch(0.9 0.008 255);
+  --ring: oklch(0.56 0.19 258);
+
+  --prio-urgent: oklch(0.58 0.2 20);
+  --prio-high: oklch(0.68 0.17 45);
+  --prio-medium: oklch(0.75 0.15 85);
+  --prio-low: oklch(0.62 0.06 250);
+
+  --chart-1: oklch(0.6 0.14 158);
+  --chart-2: oklch(0.58 0.2 20);
+  --chart-3: oklch(0.75 0.15 72);
+  --chart-4: oklch(0.62 0.13 232);
+  --chart-5: oklch(0.56 0.19 258);
+
+  /* Outcome palette (donut) — validated for CVD separation & contrast. */
+  --outcome-accepted: oklch(0.6 0.14 158);
+  --outcome-snoozed: oklch(0.75 0.15 72);
+  --outcome-cancelled: oklch(0.58 0.2 20);
+  --outcome-skipped: oklch(0.62 0.13 232);
+
+  --shadow-card-value:
+    0 1px 2px oklch(0.19 0.02 260 / 0.05), 0 12px 32px -12px oklch(0.19 0.02 260 / 0.16);
+  --shadow-pop-value: 0 8px 30px -8px oklch(0.19 0.02 260 / 0.22);
+  --shadow-glow-value: 0 0 0 4px color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+.dark {
+  --background: oklch(0.165 0.014 265);
+  --foreground: oklch(0.955 0.005 250);
+  --surface: oklch(0.205 0.016 265);
+  --surface-2: oklch(0.243 0.017 265);
+  --card: oklch(0.205 0.016 265);
+  --card-foreground: oklch(0.955 0.005 250);
+  --popover: oklch(0.223 0.016 265);
+  --popover-foreground: oklch(0.955 0.005 250);
+
+  --primary: oklch(0.68 0.16 258);
+  --primary-foreground: oklch(0.17 0.02 265);
+  --secondary: oklch(0.263 0.017 265);
+  --secondary-foreground: oklch(0.95 0.005 250);
+  --muted: oklch(0.253 0.016 265);
+  --muted-foreground: oklch(0.68 0.02 260);
+  --accent: oklch(0.29 0.022 265);
+  --accent-foreground: oklch(0.96 0.005 250);
+
+  --destructive: oklch(0.66 0.19 22);
+  --destructive-foreground: oklch(0.17 0.02 265);
+  --success: oklch(0.72 0.15 158);
+  --success-foreground: oklch(0.17 0.02 265);
+  --warning: oklch(0.82 0.15 78);
+  --warning-foreground: oklch(0.2 0.03 70);
+  --info: oklch(0.72 0.13 232);
+  --info-foreground: oklch(0.17 0.02 265);
+
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.16 258);
+
+  --prio-urgent: oklch(0.68 0.19 22);
+  --prio-high: oklch(0.76 0.16 48);
+  --prio-medium: oklch(0.84 0.14 88);
+  --prio-low: oklch(0.7 0.05 250);
+
+  --chart-1: oklch(0.72 0.15 158);
+  --chart-2: oklch(0.66 0.19 22);
+  --chart-3: oklch(0.82 0.15 78);
+  --chart-4: oklch(0.72 0.13 232);
+  --chart-5: oklch(0.68 0.16 258);
+
+  --outcome-accepted: oklch(0.64 0.14 160);
+  --outcome-snoozed: oklch(0.66 0.13 85);
+  --outcome-cancelled: oklch(0.6 0.19 22);
+  --outcome-skipped: oklch(0.63 0.13 232);
+
+  --shadow-card-value:
+    0 1px 2px oklch(0 0 0 / 0.4), 0 18px 40px -16px oklch(0 0 0 / 0.6);
+  --shadow-pop-value: 0 10px 34px -10px oklch(0 0 0 / 0.65);
+  --shadow-glow-value: 0 0 0 4px color-mix(in oklab, var(--primary) 24%, transparent);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 26%, transparent);
+  }
+}
+
+/* --- utilities --- */
+
+@utility kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1;
+  font-weight: 500;
+}
+
+@utility surface-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+@utility grid-backdrop {
+  background-image: radial-gradient(
+    circle at 50% -10%,
+    color-mix(in oklab, var(--primary) 12%, transparent),
+    transparent 55%
+  );
+}
+
+/* --- animations --- */
+
+@keyframes swipe-left {
+  to {
+    transform: translateX(-58vw) rotate(-9deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-right {
+  to {
+    transform: translateX(58vw) rotate(9deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-down {
+  to {
+    transform: translateY(28vh) scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes card-in {
+  from {
+    transform: translateY(14px) scale(0.985);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx), 78vh, 0) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@utility anim-swipe-left {
+  animation: swipe-left 0.32s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+@utility anim-swipe-right {
+  animation: swipe-right 0.32s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+@utility anim-swipe-down {
+  animation: swipe-down 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+@utility anim-card-in {
+  animation: card-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@utility anim-pop-in {
+  animation: pop-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
