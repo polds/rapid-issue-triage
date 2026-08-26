@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -99,9 +100,38 @@ func Load(path string) (Config, error) {
 }
 
 func (c Config) APIKey() (string, error) {
-	k := os.Getenv("LINEAR_API_KEY")
-	if k == "" {
-		return "", fmt.Errorf("LINEAR_API_KEY is not set; create a personal API key at linear.app → Settings → Security & access → API keys")
+	if k := os.Getenv("LINEAR_API_KEY"); k != "" {
+		return k, nil
 	}
-	return k, nil
+	// Fall back to .env files: ./.env, then ~/.rapid-triage/.env.
+	home, _ := os.UserHomeDir()
+	for _, p := range []string{".env", filepath.Join(home, ".rapid-triage", ".env")} {
+		if k := envFileValue(p, "LINEAR_API_KEY"); k != "" {
+			return k, nil
+		}
+	}
+	return "", fmt.Errorf("LINEAR_API_KEY is not set (env or .env); create a personal API key at linear.app → Settings → Security & access → API keys")
+}
+
+// envFileValue reads KEY=value lines from a dotenv-style file. Comments and
+// optional surrounding quotes are handled; anything else is ignored.
+func envFileValue(path, key string) string {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "export "))
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		k, v, ok := strings.Cut(line, "=")
+		if !ok || strings.TrimSpace(k) != key {
+			continue
+		}
+		v = strings.TrimSpace(v)
+		v = strings.Trim(v, `"'`)
+		return v
+	}
+	return ""
 }
