@@ -5,7 +5,7 @@ Think *Tinder for backlog triage*: one issue at a time as a card, one keystroke
 per decision, with user-defined macros, AI enrichment via Claude Code, and a
 gamified report page.
 
-- **Go binary with the web UI embedded** — no services, no deplots, runs on
+- **Go binary with the web UI embedded** — no services, no deploys, runs on
   `127.0.0.1` only.
 - **sqlite index** — issues sync in the background; the UI always serves
   instantly from the local index and shows a stale/fresh indicator.
