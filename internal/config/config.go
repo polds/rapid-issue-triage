@@ -49,8 +49,11 @@ func Default() Config {
 	return Config{
 		Addr:   "127.0.0.1:7333",
 		DBPath: filepath.Join(home, ".rapid-triage", "triage.db"),
+		// Workspaces without a Triage-type state (Linear's triage feature is
+		// opt-in per team) triage straight from Backlog, so the default queue
+		// covers both.
 		Filter: map[string]any{
-			"state": map[string]any{"type": map[string]any{"eq": "triage"}},
+			"state": map[string]any{"type": map[string]any{"in": []any{"triage", "backlog"}}},
 		},
 		Sync: SyncConfig{Interval: 10 * time.Minute, PageSize: 50},
 		AI:   AIConfig{Enabled: true, Command: "claude", Timeout: 3 * time.Minute},

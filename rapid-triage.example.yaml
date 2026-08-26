@@ -11,11 +11,11 @@ db_path: ~/.rapid-triage/triage.db
 # passed through verbatim — anything Linear supports works.
 # Docs: https://developers.linear.app/docs/graphql/filtering
 #
-# Default: everything in a Triage-type workflow state.
+# Default: everything in a Triage- or Backlog-type workflow state.
 filter:
   state:
     type:
-      eq: triage
+      in: [triage, backlog]
 
 # Example: backlog issues missing your "triaged" label:
 # filter:
