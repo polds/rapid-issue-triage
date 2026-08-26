@@ -62,8 +62,8 @@ func scanIssue(sc interface{ Scan(...any) error }) (IssueRow, error) {
 	r.Description, r.TeamID, r.StateID, r.AssigneeID = desc.String, team.String, state.String, assignee.String
 	r.ProjectID, r.CycleID, r.CreatorName, r.URL = project.String, cycle.String, creator.String, url.String
 	r.CreatedAt, r.UpdatedAt = created.String, updated.String
-	if err := json.Unmarshal([]byte(labels), &r.Labels); err != nil {
-		r.Labels = nil
+	if err := json.Unmarshal([]byte(labels), &r.Labels); err != nil || r.Labels == nil {
+		r.Labels = []LabelChip{}
 	}
 	return r, nil
 }
@@ -96,7 +96,7 @@ func (s *Store) Queue(teamID string, exclude []string, limit int) ([]IssueRow, e
 		return nil, err
 	}
 	defer rows.Close()
-	var out []IssueRow
+	out := []IssueRow{}
 	for rows.Next() {
 		r, err := scanIssue(rows)
 		if err != nil {

@@ -59,7 +59,7 @@ func (s *Store) Metadata() (map[string]any, error) {
 			return err
 		}
 		defer rows.Close()
-		var list []map[string]any
+		list := []map[string]any{}
 		vals := make([]any, len(cols))
 		ptrs := make([]any, len(cols))
 		for i := range vals {

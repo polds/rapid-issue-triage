@@ -226,7 +226,7 @@ export function IssueCard({
             {state.name}
           </span>
         )}
-        {issue.labels.map((l) => (
+        {(issue.labels ?? []).map((l) => (
           <span
             key={l.id}
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-[11px] text-muted-foreground"

@@ -40,7 +40,7 @@ export function QuickEditRow({
             id: l.id,
             label: l.name,
             color: labelColor(l.color),
-            selected: issue.labels.some((x) => x.id === l.id),
+            selected: (issue.labels ?? []).some((x) => x.id === l.id),
           }));
       case "estimate":
         return [
@@ -107,7 +107,7 @@ export function QuickEditRow({
     let desc: string;
     switch (key) {
       case "labels": {
-        const has = issue.labels.some((x) => x.id === id);
+        const has = (issue.labels ?? []).some((x) => x.id === id);
         const name = meta.labels.find((l) => l.id === id)?.name ?? "label";
         op = { type: has ? "remove_label" : "add_label", labelId: id };
         desc = `${has ? "−" : "+"} ${name}`;

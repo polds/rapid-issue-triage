@@ -250,6 +250,7 @@ func refID(r *linear.Ref) any {
 // ToRow converts a Linear issue into the local row shape.
 func toRow(is linear.Issue) store.IssueRow {
 	r := store.IssueRow{
+		Labels: []store.LabelChip{},
 		ID: is.ID, Identifier: is.Identifier, Title: is.Title, Description: is.Description,
 		CreatorName: creatorName(is), Priority: int(is.Priority), Estimate: is.Estimate,
 		URL: is.URL, CreatedAt: is.CreatedAt, UpdatedAt: is.UpdatedAt,

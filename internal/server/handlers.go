@@ -213,9 +213,12 @@ func (s *Server) handleEnrich(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 404, err)
 		return
 	}
-	comments := s.commentsText(r.Context(), id)
-	enr, err := s.enricher.Enrich(r.Context(), issue, comments)
+	// Detached context: an enrichment keeps running (and is stored) even if
+	// the client navigates away mid-run.
+	comments := s.commentsText(bgCtx(), id)
+	enr, err := s.enricher.Enrich(bgCtx(), issue, comments)
 	if err != nil {
+		log.Printf("enrich %s: %v", issue.Identifier, err)
 		writeErr(w, 502, err)
 		return
 	}
