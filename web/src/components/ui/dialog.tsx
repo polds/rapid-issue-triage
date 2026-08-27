@@ -20,6 +20,8 @@ export function Dialog({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // A picker overlay stacked above this dialog owns Escape.
+        if (document.querySelector("[data-picker-open]")) return;
         e.stopPropagation();
         onClose();
       }

@@ -84,7 +84,7 @@ export function Picker({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[16vh]" onKeyDown={onKey}>
+    <div data-picker-open className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[16vh]" onKeyDown={onKey}>
       <div className="fixed inset-0 bg-black/25 dark:bg-black/50" onClick={onClose} />
       <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-border bg-popover shadow-pop anim-pop-in">
         <input

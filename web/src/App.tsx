@@ -6,10 +6,11 @@ import { TopBar } from "@/components/triage/TopBar";
 import { TriagePage } from "@/pages/Triage";
 import { MacrosPage } from "@/pages/Macros";
 import { ReportsPage } from "@/pages/Reports";
+import { SettingsPage } from "@/pages/Settings";
 
 function pageFromHash(): string {
   const h = window.location.hash.replace(/^#\/?/, "");
-  return h === "macros" || h === "reports" ? h : "triage";
+  return h === "macros" || h === "reports" || h === "settings" ? h : "triage";
 }
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
         {page === "triage" && <TriagePage />}
         {page === "macros" && <MacrosPage />}
         {page === "reports" && <ReportsPage />}
+        {page === "settings" && <SettingsPage />}
       </div>
     </TriageProvider>
   );

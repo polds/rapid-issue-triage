@@ -38,8 +38,12 @@ func Open(path string) (*Store, error) {
 func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) migrate() error {
-	_, err := s.db.Exec(schema)
-	return err
+	if _, err := s.db.Exec(schema); err != nil {
+		return err
+	}
+	// Additive migrations for existing databases; duplicate-column errors are fine.
+	_, _ = s.db.Exec(`ALTER TABLE enrichments ADD COLUMN report_json TEXT`)
+	return nil
 }
 
 const schema = `
@@ -118,6 +122,32 @@ CREATE TABLE IF NOT EXISTS activity (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_activity_created ON activity (created_at);
+
+-- Deep enrichment: one row per run, plus its full action log.
+CREATE TABLE IF NOT EXISTS enrich_runs (
+  id TEXT PRIMARY KEY,
+  issue_id TEXT NOT NULL,
+  issue_identifier TEXT NOT NULL,
+  mode TEXT NOT NULL,              -- fast | deep
+  status TEXT NOT NULL,            -- running | done | error | cancelled
+  sources_json TEXT,               -- enabled sources snapshot
+  report_json TEXT,                -- final structured report
+  error TEXT,
+  started_at TEXT NOT NULL,
+  finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_enrich_runs_issue ON enrich_runs (issue_id, started_at);
+
+CREATE TABLE IF NOT EXISTS enrich_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL,
+  seq INTEGER NOT NULL,
+  agent TEXT,                      -- orchestrator | repo | github | linear | datadog | gcloud | synthesis
+  kind TEXT NOT NULL,              -- status | prompt | thought | tool_call | tool_result | result | report | error
+  payload TEXT NOT NULL,           -- JSON
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_enrich_events_run ON enrich_events (run_id, seq);
 `
 
 func now() string { return time.Now().UTC().Format(time.RFC3339) }

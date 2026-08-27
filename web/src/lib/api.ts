@@ -1,5 +1,5 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun } from "./types";
 
 class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -60,6 +60,12 @@ export const api = {
       body: JSON.stringify({ hours, durationMs }),
     }),
   enrich: (id: string) => req<{ enrichment: Enrichment }>(`/api/issues/${id}/enrich`, { method: "POST" }),
+  deepEnrich: (id: string) => req<{ runId: string }>(`/api/issues/${id}/enrich/deep`, { method: "POST" }),
+  latestRun: (issueId: string) => req<{ run: EnrichRun | null }>(`/api/issues/${issueId}/runs/latest`),
+  getRun: (runId: string) => req<EnrichRun>(`/api/enrich/runs/${runId}`),
+  enrichSettings: () => req<EnrichSettingsInfo>("/api/enrich/settings"),
+  putEnrichSettings: (s: EnrichSettings) =>
+    req<EnrichSettingsInfo>("/api/enrich/settings", { method: "PUT", body: JSON.stringify(s) }),
   undo: (activityId: number) =>
     req<{ ok: boolean; issue?: Issue }>(`/api/activity/${activityId}/undo`, { method: "POST" }),
   macros: () => req<{ macros: Macro[] }>("/api/macros"),

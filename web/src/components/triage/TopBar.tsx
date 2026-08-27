@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, TriangleAlert, Zap } from "lucide-react";
+import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
@@ -114,6 +114,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
         <div className="ml-auto flex items-center gap-1">
           {navBtn("macros", <Zap className="size-4" />, "Macros")}
           {navBtn("reports", <BarChart3 className="size-4" />, "Reports")}
+          {navBtn("settings", <Settings className="size-4" />, "Settings")}
           <ThemeToggle />
         </div>
       </div>

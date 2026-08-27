@@ -4,9 +4,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +22,7 @@ import (
 	webui "github.com/polds/rapid-issue-triage"
 	"github.com/polds/rapid-issue-triage/internal/ai"
 	"github.com/polds/rapid-issue-triage/internal/config"
+	"github.com/polds/rapid-issue-triage/internal/deep"
 	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/server"
 	"github.com/polds/rapid-issue-triage/internal/store"
@@ -26,6 +30,11 @@ import (
 )
 
 func main() {
+	// `triage tool <tool> <args...>`: the shim scouts call. Talks to the
+	// running server's toolbox endpoint; never touches anything directly.
+	if len(os.Args) > 1 && os.Args[1] == "tool" {
+		os.Exit(toolClient(os.Args[2:]))
+	}
 	var (
 		configPath = flag.String("config", "", "path to config file (default: ./rapid-triage.yaml, ~/.config/rapid-triage/config.yaml)")
 		addr       = flag.String("addr", "", "listen address override (default from config, 127.0.0.1:7333)")
@@ -62,15 +71,21 @@ func run(configPath, addrOverride string, noOpen bool) error {
 	sy := syncer.New(lc, st, cfg.Filter, cfg.Sync.Interval, cfg.Sync.PageSize)
 
 	var enricher *ai.Enricher
+	var orch *deep.Orchestrator
 	if cfg.AI.Enabled {
 		if _, err := exec.LookPath(cfg.AI.Command); err != nil {
 			log.Printf("ai: %q not found in PATH; AI enrichment disabled", cfg.AI.Command)
 		} else {
 			enricher = &ai.Enricher{Command: cfg.AI.Command, Model: cfg.AI.Model, Timeout: cfg.AI.Timeout}
+			toolbox := &deep.Toolbox{Linear: lc, Store: st}
+			orch, err = deep.NewOrchestrator(st, toolbox, cfg.AI.Command, cfg.AI.Model, cfg.AI.Timeout, cfg.Addr)
+			if err != nil {
+				log.Printf("deep enrichment disabled: %v", err)
+			}
 		}
 	}
 
-	srv := server.New(st, lc, sy, enricher)
+	srv := server.New(st, lc, sy, enricher, orch)
 	ui, err := webui.Dist()
 	if err != nil {
 		return fmt.Errorf("embedded ui: %w", err)
@@ -100,6 +115,40 @@ func run(configPath, addrOverride string, noOpen bool) error {
 	case err := <-errCh:
 		return err
 	}
+}
+
+// toolClient implements the `triage tool` shim: POST the call to the local
+// server's toolbox and print the JSON result.
+func toolClient(args []string) int {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "usage: triage-tool <tool> [args...] (e.g. triage-tool linear.search foo)")
+		return 2
+	}
+	url := os.Getenv("RT_TOOLBOX_URL")
+	token := os.Getenv("RT_RUN_TOKEN")
+	if url == "" || token == "" {
+		fmt.Fprintln(os.Stderr, "triage-tool: RT_TOOLBOX_URL/RT_RUN_TOKEN not set (must run inside an enrichment)")
+		return 2
+	}
+	body, _ := json.Marshal(map[string]any{
+		"token": token,
+		"agent": os.Getenv("RT_AGENT"),
+		"tool":  args[0],
+		"args":  args[1:],
+	})
+	resp, err := http.Post(url, "application/json", bytes.NewReader(body))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "triage-tool: %v\n", err)
+		return 1
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	os.Stdout.Write(out)
+	fmt.Println()
+	if resp.StatusCode >= 400 {
+		return 1
+	}
+	return 0
 }
 
 func openBrowser(url string) {

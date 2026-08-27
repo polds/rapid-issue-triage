@@ -1,5 +1,7 @@
 package store
 
+import "encoding/json"
+
 // View models served to the frontend.
 
 type LabelChip struct {
@@ -32,13 +34,14 @@ type IssueRow struct {
 }
 
 type Enrichment struct {
-	IssueID    string  `json:"issueId"`
-	Summary    string  `json:"summary"`
-	Verdict    string  `json:"verdict"`
-	Reasoning  string  `json:"reasoning"`
-	Confidence float64 `json:"confidence"`
-	Model      string  `json:"model,omitempty"`
-	CreatedAt  string  `json:"createdAt"`
+	IssueID    string          `json:"issueId"`
+	Summary    string          `json:"summary"`
+	Verdict    string          `json:"verdict"`
+	Reasoning  string          `json:"reasoning"`
+	Confidence float64         `json:"confidence"`
+	Model      string          `json:"model,omitempty"`
+	CreatedAt  string          `json:"createdAt"`
+	Report     json.RawMessage `json:"report,omitempty"` // deep-enrichment structured report
 }
 
 type Macro struct {
@@ -57,6 +60,7 @@ type MacroStep struct {
 	Type       string   `json:"type"` // add_label|remove_label|set_state|set_estimate|set_project|set_cycle|set_assignee
 	LabelID    string   `json:"labelId,omitempty"`
 	LabelName  string   `json:"labelName,omitempty"`
+	LabelNames []string `json:"labelNames,omitempty"` // multi-label form of add_label/remove_label
 	StateID    string   `json:"stateId,omitempty"`
 	StateName  string   `json:"stateName,omitempty"`
 	StateType  string   `json:"stateType,omitempty"` // fallback: first state of this type for the team

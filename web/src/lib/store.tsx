@@ -57,6 +57,7 @@ interface TriageCtx {
   canUndo: boolean;
   enrich: () => Promise<void>;
   enriching: boolean;
+  setIssueEnrichment: (issueId: string, e: Enrichment) => void;
 }
 
 const Ctx = createContext<TriageCtx | null>(null);
@@ -365,6 +366,15 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     }
   }, [current, enriching, updateCard, toast]);
 
+  const setIssueEnrichment = useCallback(
+    (issueId: string, e: Enrichment) => {
+      setCards((prev) =>
+        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
+      );
+    },
+    [],
+  );
+
   const refreshSync = useCallback(() => {
     api.syncRefresh().then(() => {
       setSync((s) => (s ? { ...s, state: "syncing" } : s));
@@ -379,11 +389,13 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
+      setIssueEnrichment,
     }),
     [
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
+      setIssueEnrichment,
     ],
   );
 

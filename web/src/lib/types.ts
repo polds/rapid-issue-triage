@@ -14,6 +14,66 @@ export interface Enrichment {
   confidence: number;
   model?: string;
   createdAt: string;
+  report?: DeepReport | null;
+}
+
+export interface DeepReport {
+  schemaVersion: number;
+  verdict: Enrichment["verdict"];
+  confidence: number;
+  summary: string;
+  reasoning: string;
+  recommendation: string;
+  evidence: { source: string; finding: string; link?: string }[];
+  relatedIssues: { identifier: string; title: string; state: string; relation?: string }[];
+  relatedPRs: { repo: string; number: number; title: string; state: string; url?: string }[];
+  sources?: Record<string, { status: string; elapsed: string; error?: string }>;
+}
+
+export type SourceKey = "repo" | "github" | "linear" | "datadog" | "gcloud";
+
+export interface EnrichSettings {
+  mode: "fast" | "deep";
+  sources: {
+    repo: { enabled: boolean; paths: string[] };
+    github: { enabled: boolean };
+    linear: { enabled: boolean };
+    datadog: { enabled: boolean; site: string };
+    gcloud: { enabled: boolean };
+  };
+}
+
+export interface SourceAvail {
+  available: boolean;
+  detail: string;
+}
+
+export interface EnrichSettingsInfo {
+  settings: EnrichSettings;
+  availability: Record<SourceKey, SourceAvail>;
+  deepReady?: boolean;
+}
+
+export interface EnrichRun {
+  id: string;
+  issueId: string;
+  issueIdentifier: string;
+  mode: string;
+  status: "running" | "done" | "error" | "cancelled";
+  report?: string;
+  error?: string;
+  startedAt: string;
+  finishedAt?: string;
+}
+
+export interface EnrichEvent {
+  id: number;
+  runId: string;
+  seq: number;
+  agent: string;
+  kind: string;
+  payload: any;
+  at: string;
 }
 
 export interface Issue {
@@ -101,6 +161,7 @@ export interface Op {
   type: OpType;
   labelId?: string;
   labelName?: string;
+  labelNames?: string[];
   stateId?: string;
   stateName?: string;
   stateType?: string;

@@ -28,23 +28,35 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 	for _, op := range ops {
 		switch op.Type {
 		case "add_label", "remove_label":
-			id := op.LabelID
-			if id == "" && op.LabelName != "" {
-				var err error
-				id, err = s.store.LabelIDByName(issue.TeamID, op.LabelName)
-				if err != nil {
-					return nil, nil, fmt.Errorf("label %q not found for this team", op.LabelName)
-				}
+			// Collect every referenced label: explicit id, single name, or the
+			// multi-name list.
+			type ref struct{ id, display string }
+			var refs []ref
+			if op.LabelID != "" {
+				refs = append(refs, ref{op.LabelID, op.LabelID})
 			}
-			if id == "" {
+			names := op.LabelNames
+			if op.LabelName != "" {
+				names = append(names, op.LabelName)
+			}
+			for _, name := range names {
+				id, err := s.store.LabelIDByName(issue.TeamID, name)
+				if err != nil {
+					return nil, nil, fmt.Errorf("label %q not found for this team", name)
+				}
+				refs = append(refs, ref{id, name})
+			}
+			if len(refs) == 0 {
 				return nil, nil, fmt.Errorf("%s: label reference missing", op.Type)
 			}
-			if op.Type == "add_label" {
-				labelSet[id] = true
-				trace = append(trace, "add label "+labelDisplay(op))
-			} else {
-				delete(labelSet, id)
-				trace = append(trace, "remove label "+labelDisplay(op))
+			for _, rf := range refs {
+				if op.Type == "add_label" {
+					labelSet[rf.id] = true
+					trace = append(trace, "add label "+rf.display)
+				} else {
+					delete(labelSet, rf.id)
+					trace = append(trace, "remove label "+rf.display)
+				}
 			}
 			labelsChanged = true
 		case "set_state":
@@ -130,13 +142,6 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 		return nil, nil, fmt.Errorf("no operations to apply")
 	}
 	return input, trace, nil
-}
-
-func labelDisplay(op Op) string {
-	if op.LabelName != "" {
-		return op.LabelName
-	}
-	return op.LabelID
 }
 
 // prevSnapshot captures the fields undo needs to restore.

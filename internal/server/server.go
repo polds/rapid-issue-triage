@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/polds/rapid-issue-triage/internal/ai"
+	"github.com/polds/rapid-issue-triage/internal/deep"
 	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/store"
 	"github.com/polds/rapid-issue-triage/internal/syncer"
@@ -21,7 +22,8 @@ type Server struct {
 	store    *store.Store
 	linear   *linear.Client
 	syncer   *syncer.Syncer
-	enricher *ai.Enricher // nil when AI is disabled
+	enricher *ai.Enricher       // nil when AI is disabled
+	orch     *deep.Orchestrator // nil when deep enrichment is unavailable
 
 	// enriching guards against duplicate concurrent enrichments per issue.
 	mu        sync.Mutex
@@ -31,8 +33,8 @@ type Server struct {
 	viewsCacheAt time.Time
 }
 
-func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher) *Server {
-	return &Server{store: st, linear: lc, syncer: sy, enricher: en, enriching: map[string]bool{}}
+func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator) *Server {
+	return &Server{store: st, linear: lc, syncer: sy, enricher: en, orch: orch, enriching: map[string]bool{}}
 }
 
 func (s *Server) Handler(ui fs.FS) http.Handler {
@@ -45,6 +47,14 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("POST /api/issues/{id}/skip", s.handleSkip)
 	mux.HandleFunc("POST /api/issues/{id}/snooze", s.handleSnooze)
 	mux.HandleFunc("POST /api/issues/{id}/enrich", s.handleEnrich)
+	mux.HandleFunc("POST /api/issues/{id}/enrich/deep", s.handleDeepEnrich)
+	mux.HandleFunc("GET /api/issues/{id}/runs/latest", s.handleIssueLatestRun)
+	mux.HandleFunc("GET /api/enrich/settings", s.handleGetEnrichSettings)
+	mux.HandleFunc("PUT /api/enrich/settings", s.handlePutEnrichSettings)
+	mux.HandleFunc("GET /api/enrich/runs/{id}", s.handleRunGet)
+	mux.HandleFunc("GET /api/enrich/runs/{id}/events", s.handleRunEvents)
+	mux.HandleFunc("GET /api/enrich/runs/{id}/log", s.handleRunLog)
+	mux.HandleFunc("POST /api/toolbox", s.handleToolbox)
 	mux.HandleFunc("POST /api/activity/{id}/undo", s.handleUndo)
 	mux.HandleFunc("GET /api/macros", s.handleListMacros)
 	mux.HandleFunc("POST /api/macros", s.handleCreateMacro)

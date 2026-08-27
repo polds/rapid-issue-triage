@@ -1,6 +1,9 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 func (s *Store) SaveEnrichment(e Enrichment) error {
 	_, err := s.db.Exec(`INSERT INTO enrichments (issue_id, summary, verdict, reasoning, confidence, model, created_at)
@@ -14,10 +17,14 @@ func (s *Store) SaveEnrichment(e Enrichment) error {
 
 func (s *Store) GetEnrichment(issueID string) (*Enrichment, error) {
 	var e Enrichment
+	var report sql.NullString
 	err := s.db.QueryRow(`SELECT issue_id, COALESCE(summary,''), COALESCE(verdict,''),
-	  COALESCE(reasoning,''), COALESCE(confidence,0), COALESCE(model,''), created_at
+	  COALESCE(reasoning,''), COALESCE(confidence,0), COALESCE(model,''), created_at, report_json
 	  FROM enrichments WHERE issue_id = ?`, issueID).
-		Scan(&e.IssueID, &e.Summary, &e.Verdict, &e.Reasoning, &e.Confidence, &e.Model, &e.CreatedAt)
+		Scan(&e.IssueID, &e.Summary, &e.Verdict, &e.Reasoning, &e.Confidence, &e.Model, &e.CreatedAt, &report)
+	if report.Valid && report.String != "" {
+		e.Report = json.RawMessage(report.String)
+	}
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

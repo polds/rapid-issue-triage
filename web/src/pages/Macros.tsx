@@ -1,6 +1,8 @@
 // Macro management: user-defined one-key action sequences.
 import { useMemo, useRef, useState } from "react";
-import { ArrowRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, ChevronDown, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { Picker } from "@/components/ui/picker";
+import { labelColor } from "@/lib/colors";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
@@ -19,8 +21,7 @@ const TONE_RING: Record<string, string> = {
 };
 
 const STEP_KINDS = [
-  { kind: "add_label", label: "Add label" },
-  { kind: "remove_label", label: "Remove label" },
+  { kind: "add_label", label: "Add labels" },
   { kind: "set_state", label: "Set status" },
   { kind: "set_project", label: "Move to project" },
   { kind: "set_estimate", label: "Set estimate" },
@@ -31,9 +32,9 @@ const STEP_KINDS = [
 function describeOp(op: Op, projectName: (id: string) => string): string {
   switch (op.type) {
     case "add_label":
-      return `+ ${op.labelName ?? op.labelId}`;
+      return `+ ${(op.labelNames ?? (op.labelName ? [op.labelName] : [])).join(", ") || op.labelId}`;
     case "remove_label":
-      return `− ${op.labelName ?? op.labelId}`;
+      return `− ${(op.labelNames ?? (op.labelName ? [op.labelName] : [])).join(", ") || op.labelId}`;
     case "set_state":
       return `status → ${op.stateName ?? op.stateType ?? op.stateId}`;
     case "set_estimate":
@@ -119,7 +120,7 @@ export function MacrosPage() {
     switch (kind) {
       case "add_label":
       case "remove_label":
-        return { type: kind, labelName: labelNames[0] ?? "" };
+        return { type: kind, labelNames: [] };
       case "set_state":
         return { type: kind, stateName: stateNames[0] ?? "" };
       case "set_project":
@@ -132,6 +133,22 @@ export function MacrosPage() {
         return { type: kind, assigneeId: "me" };
     }
   };
+
+  // Which step's value picker is open, and what it selects.
+  const [pickerAt, setPickerAt] = useState<{ index: number; kind: "labels" | "status" | "project" } | null>(null);
+
+  const labelColorOf = (name: string) =>
+    labelColor(meta?.labels.find((l) => l.name === name)?.color ?? "");
+
+  const chipButton = (label: React.ReactNode, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      className="flex h-8 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 text-left text-xs transition-colors hover:bg-accent"
+    >
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+    </button>
+  );
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-10">
@@ -258,45 +275,34 @@ export function MacrosPage() {
                     ))}
                   </Select>
 
-                  {(a.type === "add_label" || a.type === "remove_label") && (
-                    <Select
-                      value={a.labelName}
-                      onChange={(e) => setStep(i, { ...a, labelName: e.target.value })}
-                      className="flex-1"
-                    >
-                      {labelNames.map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                  {a.type === "set_state" && (
-                    <Select
-                      value={a.stateName}
-                      onChange={(e) => setStep(i, { ...a, stateName: e.target.value })}
-                      className="flex-1"
-                    >
-                      {stateNames.map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                  {a.type === "set_project" && (
-                    <Select
-                      value={a.projectId}
-                      onChange={(e) => setStep(i, { ...a, projectId: e.target.value })}
-                      className="flex-1"
-                    >
-                      {(meta?.projects ?? []).map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
+                  {(a.type === "add_label" || a.type === "remove_label") &&
+                    chipButton(
+                      (a.labelNames ?? []).length ? (
+                        <span className="flex min-w-0 flex-wrap items-center gap-1">
+                          {(a.labelNames ?? []).map((n) => (
+                            <span
+                              key={n}
+                              className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10px]"
+                            >
+                              <span className="size-1.5 rounded-full" style={{ background: labelColorOf(n) }} />
+                              {n}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Pick labels…</span>
+                      ),
+                      () => setPickerAt({ index: i, kind: "labels" }),
+                    )}
+                  {a.type === "set_state" &&
+                    chipButton(a.stateName || <span className="text-muted-foreground">Pick a status…</span>, () =>
+                      setPickerAt({ index: i, kind: "status" }),
+                    )}
+                  {a.type === "set_project" &&
+                    chipButton(
+                      projectName(a.projectId ?? "") || <span className="text-muted-foreground">Pick a project…</span>,
+                      () => setPickerAt({ index: i, kind: "project" }),
+                    )}
                   {a.type === "set_estimate" && (
                     <Select
                       value={String(a.estimate)}
@@ -346,6 +352,59 @@ export function MacrosPage() {
               </Button>
             </div>
           </div>
+        )}
+        {draft && pickerAt && pickerAt.kind === "labels" && (
+          <Picker
+            title="Labels"
+            multi
+            options={labelNames.map((n) => ({
+              id: n,
+              label: n,
+              color: labelColorOf(n),
+              selected: (draft.steps[pickerAt.index]?.labelNames ?? []).includes(n),
+            }))}
+            onPick={(id) => {
+              const step = draft.steps[pickerAt.index];
+              if (!step) return;
+              const cur = step.labelNames ?? [];
+              setStep(pickerAt.index, {
+                ...step,
+                labelNames: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+              });
+            }}
+            onClose={() => setPickerAt(null)}
+          />
+        )}
+        {draft && pickerAt && pickerAt.kind === "status" && (
+          <Picker
+            title="Status"
+            options={stateNames.map((n) => ({
+              id: n,
+              label: n,
+              selected: draft.steps[pickerAt.index]?.stateName === n,
+            }))}
+            onPick={(id) => {
+              const step = draft.steps[pickerAt.index];
+              if (step) setStep(pickerAt.index, { ...step, stateName: id });
+            }}
+            onClose={() => setPickerAt(null)}
+          />
+        )}
+        {draft && pickerAt && pickerAt.kind === "project" && (
+          <Picker
+            title="Project"
+            options={(meta?.projects ?? []).map((p) => ({
+              id: p.id,
+              label: p.name,
+              hint: p.state,
+              selected: draft.steps[pickerAt.index]?.projectId === p.id,
+            }))}
+            onPick={(id) => {
+              const step = draft.steps[pickerAt.index];
+              if (step) setStep(pickerAt.index, { ...step, projectId: id });
+            }}
+            onClose={() => setPickerAt(null)}
+          />
         )}
       </Dialog>
     </main>
