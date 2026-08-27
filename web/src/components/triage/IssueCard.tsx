@@ -15,7 +15,7 @@ import type { Card } from "@/lib/store";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import type { Comment, DeepReport, Enrichment } from "@/lib/types";
-import { LiveRun, ReportView } from "./DeepPanel";
+import { formatReportComment, LiveRun, ReportView } from "./DeepPanel";
 
 import { Markdown } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
@@ -41,7 +41,7 @@ const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string 
 };
 
 function AIPanel({ card }: { card: Card }) {
-  const { enrich, enriching, meta, activeRunFor, getRunEvents, eventsTick } = useTriage();
+  const { enrich, enriching, meta, activeRunFor, getRunEvents, eventsTick, applyOps } = useTriage();
   const [open, setOpen] = useState(true);
   const [logRunId, setLogRunId] = useState<string | null>(null);
   const e = card.issue.enrichment;
@@ -69,7 +69,17 @@ function AIPanel({ card }: { card: Card }) {
   }
 
   if (e?.report) {
-    return <ReportView report={e.report} runId={logRunId} stale={e.stale} onReenrich={startEnrich} />;
+    return (
+      <ReportView
+        report={e.report}
+        runId={logRunId}
+        stale={e.stale}
+        onReenrich={startEnrich}
+        onPost={() =>
+          applyOps([{ type: "add_comment", body: formatReportComment(e.report!) }], "AI report posted")
+        }
+      />
+    );
   }
 
   if (!e) {
