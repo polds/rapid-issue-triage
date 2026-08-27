@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "./api";
+import { getEnrichInfo } from "./enrichmode";
 import { useToast } from "@/components/ui/toast";
 import { EMPTY_FILTER, type Enrichment, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
 
@@ -58,6 +59,9 @@ interface TriageCtx {
   enrich: () => Promise<void>;
   enriching: boolean;
   setIssueEnrichment: (issueId: string, e: Enrichment) => void;
+  // Active deep run for an issue (set by enrich() when mode is deep).
+  deepRun: { issueId: string; runId: string } | null;
+  clearDeepRun: () => void;
 }
 
 const Ctx = createContext<TriageCtx | null>(null);
@@ -97,6 +101,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [sessionTriaged, setSessionTriaged] = useState(0);
   const [milestone, setMilestone] = useState(0);
   const [enriching, setEnriching] = useState(false);
+  const [deepRun, setDeepRun] = useState<{ issueId: string; runId: string } | null>(null);
 
   // Undo stack of activity ids in the order actions happened this session.
   const undoStack = useRef<{ activityId: number; issueId: string; wasTriage: boolean }[]>([]);
@@ -350,11 +355,19 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     undoRef.current = undo;
   }, [undo]);
 
+  // enrich is mode-aware: every entry point (button, keyboard) goes through
+  // here, so fast vs deep is decided in exactly one place.
   const enrich = useCallback(async () => {
     const card = current;
     if (!card || enriching) return;
     setEnriching(true);
     try {
+      const info = await getEnrichInfo();
+      if (info.settings.mode === "deep") {
+        const r = await api.deepEnrich(card.issue.id);
+        setDeepRun({ issueId: card.issue.id, runId: r.runId });
+        return;
+      }
       const r = await api.enrich(card.issue.id);
       updateCard(card.issue.id, {
         issue: { ...card.issue, enrichment: r.enrichment as Enrichment },
@@ -365,6 +378,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       setEnriching(false);
     }
   }, [current, enriching, updateCard, toast]);
+
+  const clearDeepRun = useCallback(() => setDeepRun(null), []);
 
   const setIssueEnrichment = useCallback(
     (issueId: string, e: Enrichment) => {
@@ -389,13 +404,13 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      setIssueEnrichment,
+      setIssueEnrichment, deepRun, clearDeepRun,
     }),
     [
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      setIssueEnrichment,
+      setIssueEnrichment, deepRun, clearDeepRun,
     ],
   );
 

@@ -16,8 +16,7 @@ import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import type { Comment, DeepReport, Enrichment } from "@/lib/types";
 import { LiveRun, ReportView, useEnrichRun } from "./DeepPanel";
-import { getEnrichInfo } from "@/lib/enrichmode";
-import { useToast } from "@/components/ui/toast";
+
 import { Markdown } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
 import { Button } from "@/components/ui/button";
@@ -42,13 +41,13 @@ const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string 
 };
 
 function AIPanel({ card }: { card: Card }) {
-  const { enrich, enriching, meta, setIssueEnrichment } = useTriage();
-  const { toast } = useToast();
+  const { enrich, enriching, meta, setIssueEnrichment, deepRun, clearDeepRun } = useTriage();
   const [open, setOpen] = useState(true);
-  const [runId, setRunId] = useState<string | null>(null);
   const [logRunId, setLogRunId] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
   const e = card.issue.enrichment;
+
+  // The store owns the run; this panel renders it when it belongs to this card.
+  const runId = deepRun?.issueId === card.issue.id ? deepRun.runId : null;
 
   // When a deep run finishes, pull the stored report onto the card.
   const { events, running } = useEnrichRun(runId, () => {
@@ -70,16 +69,9 @@ function AIPanel({ card }: { card: Card }) {
           /* leave panel showing the error event */
         }
       }
-      setRunId(null);
+      clearDeepRun();
     });
   });
-
-  // Reset live state when the card changes.
-  useEffect(() => {
-    setRunId(null);
-    setLogRunId(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card.issue.id]);
 
   // Lazily resolve the run id backing a stored report (for the action log).
   useEffect(() => {
@@ -89,22 +81,7 @@ function AIPanel({ card }: { card: Card }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [e?.report, card.issue.id]);
 
-  const startEnrich = async () => {
-    setStarting(true);
-    try {
-      const info = await getEnrichInfo();
-      if (info.settings.mode === "deep") {
-        const r = await api.deepEnrich(card.issue.id);
-        setRunId(r.runId);
-      } else {
-        await enrich();
-      }
-    } catch (err) {
-      toast(`Enrichment failed to start: ${(err as Error).message}`, { tone: "error" });
-    } finally {
-      setStarting(false);
-    }
-  };
+  const startEnrich = enrich;
 
   if (!meta?.aiEnabled && !e) return null;
 
@@ -120,9 +97,9 @@ function AIPanel({ card }: { card: Card }) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-surface-2/60 p-4 text-center">
         <p className="text-xs text-muted-foreground">No AI context yet for this issue.</p>
-        <Button size="sm" className="mt-3" onClick={startEnrich} disabled={enriching || starting}>
-          {enriching || starting ? <Loader2 className="animate-spin" /> : <Sparkles />}
-          {enriching || starting ? "Enriching…" : "Enrich with AI"}
+        <Button size="sm" className="mt-3" onClick={startEnrich} disabled={enriching}>
+          {enriching ? <Loader2 className="animate-spin" /> : <Sparkles />}
+          {enriching ? "Enriching…" : "Enrich with AI"}
         </Button>
       </div>
     );
