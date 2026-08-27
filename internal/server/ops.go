@@ -16,10 +16,18 @@ type Op = store.MacroStep
 
 // resolveOps turns ops (possibly name-based, from macros) into a single Linear
 // IssueUpdateInput map for the given issue, plus a human-readable trace.
-func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []string, []string, error) {
+type resolved struct {
+	input       map[string]any
+	trace       []string
+	comments    []string
+	duplicateOf string // canonical issue id when entering a duplicate-type state
+}
+
+func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (*resolved, error) {
 	input := map[string]any{}
 	trace := []string{}
 	comments := []string{}
+	duplicateOf := ""
 
 	labelSet := map[string]bool{}
 	for _, l := range issue.Labels {
@@ -44,12 +52,12 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 			for _, name := range names {
 				id, err := s.store.LabelIDByName(issue.TeamID, name)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("label %q not found for this team", name)
+					return nil, fmt.Errorf("label %q not found for this team", name)
 				}
 				refs = append(refs, ref{id, name})
 			}
 			if len(refs) == 0 {
-				return nil, nil, nil, fmt.Errorf("%s: label reference missing", op.Type)
+				return nil, fmt.Errorf("%s: label reference missing", op.Type)
 			}
 			for _, rf := range refs {
 				if op.Type == "add_label" {
@@ -67,19 +75,22 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 			if id == "" && op.StateName != "" {
 				id, err = s.store.StateIDByName(issue.TeamID, op.StateName)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("state %q not found for this team", op.StateName)
+					return nil, fmt.Errorf("state %q not found for this team", op.StateName)
 				}
 			}
 			if id == "" && op.StateType != "" {
 				id, err = s.store.StateIDByType(issue.TeamID, op.StateType)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("no %q state for this team", op.StateType)
+					return nil, fmt.Errorf("no %q state for this team", op.StateType)
 				}
 			}
 			if id == "" {
-				return nil, nil, nil, fmt.Errorf("set_state: state reference missing")
+				return nil, fmt.Errorf("set_state: state reference missing")
 			}
 			input["stateId"] = id
+			if op.DuplicateOfID != "" {
+				duplicateOf = op.DuplicateOfID
+			}
 			trace = append(trace, "set state")
 		case "set_estimate":
 			if op.Clear {
@@ -103,7 +114,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				var err error
 				id, err = s.store.ActiveCycleID(issue.TeamID, time.Now().UTC().Format(time.RFC3339))
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("no active cycle for this team")
+					return nil, fmt.Errorf("no active cycle for this team")
 				}
 			}
 			if op.Clear || id == "" {
@@ -116,18 +127,18 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 		case "post_ai_report":
 			e, gerr := s.store.GetEnrichment(issue.ID)
 			if gerr != nil {
-				return nil, nil, nil, gerr
+				return nil, gerr
 			}
 			body, ferr := formatEnrichmentComment(e)
 			if ferr != nil {
-				return nil, nil, nil, ferr
+				return nil, ferr
 			}
 			comments = append(comments, body)
 			trace = append(trace, "post AI report comment")
 		case "add_comment":
 			body := strings.TrimSpace(op.Body)
 			if body == "" {
-				return nil, nil, nil, fmt.Errorf("add_comment: empty comment body")
+				return nil, fmt.Errorf("add_comment: empty comment body")
 			}
 			comments = append(comments, body)
 			trace = append(trace, "comment: "+truncateTrace(body))
@@ -137,7 +148,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				var err error
 				id, err = s.store.MyUserID()
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("viewer not synced yet")
+					return nil, fmt.Errorf("viewer not synced yet")
 				}
 			}
 			if op.Clear || id == "" {
@@ -148,7 +159,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				trace = append(trace, "assign")
 			}
 		default:
-			return nil, nil, nil, fmt.Errorf("unknown op type %q", op.Type)
+			return nil, fmt.Errorf("unknown op type %q", op.Type)
 		}
 	}
 	if labelsChanged {
@@ -159,9 +170,9 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 		input["labelIds"] = ids
 	}
 	if len(input) == 0 && len(comments) == 0 {
-		return nil, nil, nil, fmt.Errorf("no operations to apply")
+		return nil, fmt.Errorf("no operations to apply")
 	}
-	return input, trace, comments, nil
+	return &resolved{input: input, trace: trace, comments: comments, duplicateOf: duplicateOf}, nil
 }
 
 func truncateTrace(s string) string {
@@ -180,14 +191,35 @@ func prevSnapshot(issue store.IssueRow) string {
 // applyOps resolves and executes ops against Linear, updates the local row,
 // and logs activity. Returns the refreshed issue and the activity id.
 func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, kind, outcome string, durationMS *int64) (store.IssueRow, int64, error) {
-	input, trace, comments, err := s.resolveOps(issue, ops)
+	r, err := s.resolveOps(issue, ops)
 	if err != nil {
 		return issue, 0, err
+	}
+	input, trace, comments := r.input, r.trace, r.comments
+
+	// Linear requires a duplicate relation before an issue can enter a
+	// duplicate-type state; create it first and roll it back on failure.
+	relationIDs := []string{}
+	if sid, ok := input["stateId"].(string); ok {
+		if t, terr := s.store.StateType(sid); terr == nil && t == "duplicate" {
+			if r.duplicateOf == "" {
+				return issue, 0, fmt.Errorf("moving to a Duplicate state needs the canonical issue — pick which issue this duplicates")
+			}
+			relID, rerr := s.linear.CreateDuplicateRelation(ctx, issue.ID, r.duplicateOf)
+			if rerr != nil {
+				return issue, 0, fmt.Errorf("duplicate relation: %w", rerr)
+			}
+			relationIDs = append(relationIDs, relID)
+			trace = append(trace, "mark duplicate of "+r.duplicateOf)
+		}
 	}
 	row := issue
 	if len(input) > 0 {
 		updated, err := s.linear.UpdateIssue(ctx, issue.ID, input)
 		if err != nil {
+			for _, rid := range relationIDs {
+				_ = s.linear.DeleteIssueRelation(ctx, rid)
+			}
 			return issue, 0, err
 		}
 		row = syncer.ToRow(updated)
@@ -218,7 +250,7 @@ func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, k
 	}
 	_ = terminal
 
-	detail, _ := json.Marshal(map[string]any{"ops": trace, "commentIds": commentIDs})
+	detail, _ := json.Marshal(map[string]any{"ops": trace, "commentIds": commentIDs, "relationIds": relationIDs})
 	actID, err := s.store.LogActivity(store.Activity{
 		IssueID: issue.ID, IssueIdentifier: issue.Identifier, IssueTitle: issue.Title,
 		Kind: kind, Outcome: outcome, DetailJSON: string(detail),
@@ -259,9 +291,10 @@ func (s *Server) undoActivity(ctx context.Context, act store.Activity) error {
 		if err := json.Unmarshal([]byte(act.PrevJSON), &prev); err != nil {
 			return err
 		}
-		// Remove comments this action created.
+		// Remove comments and duplicate relations this action created.
 		var detail struct {
-			CommentIDs []string `json:"commentIds"`
+			CommentIDs  []string `json:"commentIds"`
+			RelationIDs []string `json:"relationIds"`
 		}
 		if act.DetailJSON != "" {
 			_ = json.Unmarshal([]byte(act.DetailJSON), &detail)
@@ -269,6 +302,11 @@ func (s *Server) undoActivity(ctx context.Context, act store.Activity) error {
 		for _, cid := range detail.CommentIDs {
 			if err := s.linear.DeleteComment(ctx, cid); err != nil {
 				return fmt.Errorf("undo: delete comment: %w", err)
+			}
+		}
+		for _, rid := range detail.RelationIDs {
+			if err := s.linear.DeleteIssueRelation(ctx, rid); err != nil {
+				return fmt.Errorf("undo: delete duplicate relation: %w", err)
 			}
 		}
 		ids := make([]string, 0, len(prev.Labels))

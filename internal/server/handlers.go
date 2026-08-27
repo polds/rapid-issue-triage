@@ -198,6 +198,22 @@ func (s *Server) pushRecentSyncFilter(raw string) {
 	_ = s.store.SetMeta(recentSyncFiltersKey, string(b))
 }
 
+// handleLinearSearch searches Linear issues live (for the duplicate-of
+// picker; canonical issues are usually not in the local untriaged index).
+func (s *Server) handleLinearSearch(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" {
+		writeJSON(w, 200, map[string]any{"issues": []any{}})
+		return
+	}
+	res, err := s.orch.Toolbox.Call(r.Context(), "linear.search", []string{q})
+	if err != nil {
+		writeErr(w, 502, err)
+		return
+	}
+	writeJSON(w, 200, res)
+}
+
 // handleGetIssue returns one issue row with its enrichment attached.
 func (s *Server) handleGetIssue(w http.ResponseWriter, r *http.Request) {
 	issue, err := s.store.GetIssue(r.PathValue("id"))
@@ -276,7 +292,8 @@ func (s *Server) handleRunMacro(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		DurationMS *int64 `json:"durationMs"`
+		DurationMS    *int64 `json:"durationMs"`
+		DuplicateOfID string `json:"duplicateOfId"`
 	}
 	_ = decodeBody(r, &req)
 	macro, err := s.store.GetMacro(macroID)
@@ -289,7 +306,17 @@ func (s *Server) handleRunMacro(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 404, err)
 		return
 	}
-	row, actID, err := s.applyOps(bgCtx(), issue, macro.Steps, "macro", macro.Outcome, req.DurationMS)
+	steps := macro.Steps
+	if req.DuplicateOfID != "" {
+		steps = make([]store.MacroStep, len(macro.Steps))
+		copy(steps, macro.Steps)
+		for i := range steps {
+			if steps[i].Type == "set_state" {
+				steps[i].DuplicateOfID = req.DuplicateOfID
+			}
+		}
+	}
+	row, actID, err := s.applyOps(bgCtx(), issue, steps, "macro", macro.Outcome, req.DurationMS)
 	if err != nil {
 		writeErr(w, 502, err)
 		return

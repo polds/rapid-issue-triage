@@ -67,6 +67,9 @@ type MacroStep struct {
 	StateID    string   `json:"stateId,omitempty"`
 	StateName  string   `json:"stateName,omitempty"`
 	StateType  string   `json:"stateType,omitempty"` // fallback: first state of this type for the team
+	// DuplicateOfID names the canonical issue when moving into a
+	// duplicate-type state (Linear requires the relation to exist first).
+	DuplicateOfID string `json:"duplicateOfId,omitempty"`
 	Estimate   *float64 `json:"estimate,omitempty"`
 	ProjectID  string   `json:"projectId,omitempty"`
 	CycleID    string   `json:"cycleId,omitempty"`   // or "active" for the team's current cycle

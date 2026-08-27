@@ -52,7 +52,11 @@ interface TriageCtx {
   prev: () => void;
   skip: () => void;
   snooze: () => void;
-  applyMacro: (m: Macro) => void;
+  applyMacro: (m: Macro, duplicateOfId?: string) => void;
+  // Set when a macro needs the canonical issue before entering a
+  // duplicate-type state; TriagePage renders the picker.
+  duplicatePrompt: Macro | null;
+  cancelDuplicatePrompt: () => void;
   applyOps: (ops: Op[], description: string) => Promise<void>;
   undo: () => void;
   canUndo: boolean;
@@ -118,6 +122,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [sessionTriaged, setSessionTriaged] = useState(0);
   const [milestone, setMilestone] = useState(0);
   const [enriching, setEnriching] = useState(false);
+  const [duplicatePrompt, setDuplicatePrompt] = useState<Macro | null>(null);
   const [notices, setNotices] = useState<EnrichNotice[]>([]);
   const [eventsTick, setEventsTick] = useState(0);
   const runEvents = useRef<Map<string, EnrichEvent[]>>(new Map());
@@ -300,13 +305,38 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     });
   }, [current, duration, swipeAway, updateCard, pushUndo, toast]);
 
+  // needsDuplicateOf: does this macro move the issue into a duplicate-type
+  // state? (Linear requires the canonical issue for that.)
+  const needsDuplicateOf = useCallback(
+    (m: Macro, teamId: string) => {
+      const states = meta?.states ?? [];
+      return m.steps.some((st) => {
+        if (st.type !== "set_state") return false;
+        if (st.stateType === "duplicate") return true;
+        if (st.stateId) return states.find((x) => x.id === st.stateId)?.type === "duplicate";
+        if (st.stateName)
+          return (
+            states.find((x) => x.teamId === teamId && x.name.toLowerCase() === st.stateName!.toLowerCase())?.type ===
+            "duplicate"
+          );
+        return false;
+      });
+    },
+    [meta],
+  );
+
   const applyMacro = useCallback(
-    (m: Macro) => {
+    (m: Macro, duplicateOfId?: string) => {
       const card = current;
       if (!card || card.status !== "pending") return;
+      if (!duplicateOfId && needsDuplicateOf(m, card.issue.teamId)) {
+        setDuplicatePrompt(m);
+        return;
+      }
+      setDuplicatePrompt(null);
       const d = duration();
       swipeAway("right", async () => {
-        const r = await api.runMacro(card.issue.id, m.id, d);
+        const r = await api.runMacro(card.issue.id, m.id, d, duplicateOfId);
         updateCard(card.issue.id, {
           status: "triaged",
           outcome: m.outcome,
@@ -323,8 +353,10 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         toast(`${m.name} → ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       });
     },
-    [current, duration, swipeAway, updateCard, pushUndo, toast],
+    [current, duration, swipeAway, updateCard, pushUndo, toast, needsDuplicateOf],
   );
+
+  const cancelDuplicatePrompt = useCallback(() => setDuplicatePrompt(null), []);
 
   // Quick edits: apply ops in place without advancing the deck.
   const applyOps = useCallback(
@@ -550,6 +582,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
+      duplicatePrompt, cancelDuplicatePrompt,
     }),
     [
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
@@ -557,6 +590,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
+      duplicatePrompt, cancelDuplicatePrompt,
     ],
   );
 

@@ -6,6 +6,7 @@ import { ActionBar } from "@/components/triage/ActionBar";
 import { QuickEditRow, type PickerKey } from "@/components/triage/QuickEditRow";
 import { HelpOverlay } from "@/components/triage/HelpOverlay";
 import { Confetti } from "@/components/triage/Confetti";
+import { DuplicateOfPicker } from "@/components/triage/DuplicateOfPicker";
 import { Button } from "@/components/ui/button";
 import { Undo2 as UndoIcon } from "lucide-react";
 
@@ -14,6 +15,7 @@ export function TriagePage() {
     current, cards, index, remaining, loading, metaError,
     macros, applyMacro, skip, snooze, next, prev, undo, canUndo,
     milestone, sessionTriaged, enrich, sync, refreshSync,
+    duplicatePrompt, cancelDuplicatePrompt,
   } = useTriage();
 
   const [expanded, setExpanded] = useState(false);
@@ -158,6 +160,14 @@ export function TriagePage() {
         )}
       </main>
 
+      {duplicatePrompt && current && (
+        <DuplicateOfPicker
+          identifier={current.issue.identifier}
+          report={current.issue.enrichment?.report}
+          onPick={(canonicalId) => applyMacro(duplicatePrompt, canonicalId)}
+          onClose={cancelDuplicatePrompt}
+        />
+      )}
       <HelpOverlay open={help} onClose={() => setHelp(false)} />
       <Confetti trigger={milestone} />
     </>

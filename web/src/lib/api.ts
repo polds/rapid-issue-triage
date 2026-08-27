@@ -1,5 +1,5 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun, LinearSearchHit } from "./types";
 
 class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -45,11 +45,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ ops, outcome, durationMs }),
     }),
-  runMacro: (id: string, macroId: number, durationMs?: number) =>
+  runMacro: (id: string, macroId: number, durationMs?: number, duplicateOfId?: string) =>
     req<{ issue: Issue; activityId: number; macro: string }>(`/api/issues/${id}/macro/${macroId}`, {
       method: "POST",
-      body: JSON.stringify({ durationMs }),
+      body: JSON.stringify({ durationMs, duplicateOfId }),
     }),
+  linearSearch: async (q: string): Promise<LinearSearchHit[]> => {
+    const r = await req<any>(`/api/linear/search?q=${encodeURIComponent(q)}`);
+    if (Array.isArray(r.issues)) return r.issues;
+    if (r.identifier) return [r as LinearSearchHit];
+    return [];
+  },
   skip: (id: string, durationMs?: number) =>
     req<{ activityId: number }>(`/api/issues/${id}/skip`, {
       method: "POST",

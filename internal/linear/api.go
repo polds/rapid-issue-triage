@@ -255,3 +255,47 @@ func (c *Client) DeleteComment(ctx context.Context, commentID string) error {
 	}
 	return nil
 }
+
+// CreateDuplicateRelation links issueID as a duplicate of canonicalID and
+// returns the relation id (required before entering a duplicate-type state).
+func (c *Client) CreateDuplicateRelation(ctx context.Context, issueID, canonicalID string) (string, error) {
+	var out struct {
+		IssueRelationCreate struct {
+			Success       bool `json:"success"`
+			IssueRelation struct {
+				ID string `json:"id"`
+			} `json:"issueRelation"`
+		} `json:"issueRelationCreate"`
+	}
+	q := `mutation ($input: IssueRelationCreateInput!) {
+	  issueRelationCreate(input: $input) { success issueRelation { id } }
+	}`
+	err := c.Do(ctx, q, map[string]any{"input": map[string]any{
+		"issueId": issueID, "relatedIssueId": canonicalID, "type": "duplicate",
+	}}, &out)
+	if err != nil {
+		return "", err
+	}
+	if !out.IssueRelationCreate.Success {
+		return "", fmt.Errorf("linear: issueRelationCreate reported failure")
+	}
+	return out.IssueRelationCreate.IssueRelation.ID, nil
+}
+
+// DeleteIssueRelation removes a relation (undo path).
+func (c *Client) DeleteIssueRelation(ctx context.Context, relationID string) error {
+	var out struct {
+		IssueRelationDelete struct {
+			Success bool `json:"success"`
+		} `json:"issueRelationDelete"`
+	}
+	err := c.Do(ctx, `mutation ($id: String!) { issueRelationDelete(id: $id) { success } }`,
+		map[string]any{"id": relationID}, &out)
+	if err != nil {
+		return err
+	}
+	if !out.IssueRelationDelete.Success {
+		return fmt.Errorf("linear: issueRelationDelete reported failure")
+	}
+	return nil
+}

@@ -166,6 +166,7 @@ export interface Op {
   stateId?: string;
   stateName?: string;
   stateType?: string;
+  duplicateOfId?: string;
   estimate?: number;
   projectId?: string;
   cycleId?: string;
@@ -224,4 +225,13 @@ export interface CustomView {
   modelName: string;
   filterData: Record<string, unknown>;
   team?: { id: string } | null;
+}
+
+export interface LinearSearchHit {
+  id: string;
+  identifier: string;
+  title: string;
+  state: string;
+  updatedAt: string;
+  url: string;
 }

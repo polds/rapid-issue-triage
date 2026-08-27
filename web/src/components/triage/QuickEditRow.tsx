@@ -4,6 +4,8 @@ import { Hash, Layers, Repeat, Tag, User, Workflow } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Picker, type PickerOption } from "@/components/ui/picker";
+import { DuplicateOfPicker } from "./DuplicateOfPicker";
+import { useState } from "react";
 import { labelColor } from "@/lib/colors";
 import type { Op } from "@/lib/types";
 
@@ -30,6 +32,7 @@ export function QuickEditRow({
   vertical?: boolean;
 }) {
   const { current, meta, applyOps } = useTriage();
+  const [duplicateState, setDuplicateState] = useState<string | null>(null);
   if (!current || !meta) return null;
   const issue = current.issue;
 
@@ -130,10 +133,16 @@ export function QuickEditRow({
             ? "Project cleared"
             : `Project → ${meta.projects.find((p) => p.id === id)?.name ?? ""}`;
         break;
-      case "status":
+      case "status": {
+        // Duplicate-type states need the canonical issue first.
+        if (meta.states.find((s) => s.id === id)?.type === "duplicate") {
+          setDuplicateState(id);
+          return;
+        }
         op = { type: "set_state", stateId: id };
         desc = `Status → ${meta.states.find((s) => s.id === id)?.name ?? ""}`;
         break;
+      }
       case "assignee":
         op = id === "clear" ? { type: "set_assignee", clear: true } : { type: "set_assignee", assigneeId: id };
         desc = id === "clear" ? "Unassigned" : "Assigned";
@@ -170,6 +179,20 @@ export function QuickEditRow({
           multi={open === "labels"}
           onPick={(id) => pick(open, id)}
           onClose={() => setOpen(null)}
+        />
+      )}
+      {duplicateState && (
+        <DuplicateOfPicker
+          identifier={issue.identifier}
+          report={issue.enrichment?.report}
+          onPick={(canonicalId) => {
+            applyOps(
+              [{ type: "set_state", stateId: duplicateState, duplicateOfId: canonicalId }],
+              `Status → ${meta.states.find((s) => s.id === duplicateState)?.name ?? "Duplicate"}`,
+            );
+            setDuplicateState(null);
+          }}
+          onClose={() => setDuplicateState(null)}
         />
       )}
     </>

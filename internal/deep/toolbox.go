@@ -144,6 +144,7 @@ func (t *Toolbox) linearSearch(ctx context.Context, term string) (any, error) {
 	}
 	filter = map[string]any{"title": map[string]any{"containsIgnoreCase": term}}
 	type hit struct {
+		ID         string `json:"id"`
 		Identifier string `json:"identifier"`
 		Title      string `json:"title"`
 		State      string `json:"state"`
@@ -159,7 +160,7 @@ func (t *Toolbox) linearSearch(ctx context.Context, term string) (any, error) {
 					stateName = n
 				}
 			}
-			out = append(out, hit{is.Identifier, is.Title, stateName, is.UpdatedAt, is.URL})
+			out = append(out, hit{is.ID, is.Identifier, is.Title, stateName, is.UpdatedAt, is.URL})
 		}
 		return fmt.Errorf("stop") // one page of 15 is enough
 	})
@@ -171,7 +172,7 @@ func (t *Toolbox) linearSearch(ctx context.Context, term string) (any, error) {
 
 func (t *Toolbox) linearIssue(ctx context.Context, identifier string) (any, error) {
 	q := `query($id: String!) { issue(id: $id) {
-	  identifier title description url createdAt updatedAt
+	  id identifier title description url createdAt updatedAt
 	  state { name type } assignee { displayName }
 	  comments(first: 20) { nodes { body createdAt user { displayName } } }
 	} }`
