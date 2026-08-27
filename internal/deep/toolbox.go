@@ -182,8 +182,18 @@ func (t *Toolbox) linearIssue(ctx context.Context, identifier string) (any, erro
 	if err := t.Linear.Do(ctx, q, map[string]any{"id": identifier}, &out); err != nil {
 		return nil, err
 	}
+	if out.Issue == nil {
+		return map[string]any{"issues": []any{}}, nil
+	}
 	if d, ok := out.Issue["description"].(string); ok && len(d) > 4000 {
 		out.Issue["description"] = d[:4000] + "…"
+	}
+	// Flatten state to a name so consumers see one shape whether they searched
+	// by identifier (this path) or by text (the list path).
+	if st, ok := out.Issue["state"].(map[string]any); ok {
+		if name, ok := st["name"].(string); ok {
+			out.Issue["state"] = name
+		}
 	}
 	return out.Issue, nil
 }

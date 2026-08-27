@@ -52,9 +52,19 @@ export const api = {
     }),
   linearSearch: async (q: string): Promise<LinearSearchHit[]> => {
     const r = await req<any>(`/api/linear/search?q=${encodeURIComponent(q)}`);
-    if (Array.isArray(r.issues)) return r.issues;
-    if (r.identifier) return [r as LinearSearchHit];
-    return [];
+    const raw: any[] = Array.isArray(r.issues) ? r.issues : r.identifier ? [r] : [];
+    // Normalize: an identifier lookup and a text search take different code
+    // paths in Linear, so coerce every field to the primitive the UI renders.
+    return raw
+      .filter((h) => h && h.id && h.identifier)
+      .map((h) => ({
+        id: String(h.id),
+        identifier: String(h.identifier),
+        title: String(h.title ?? ""),
+        state: typeof h.state === "string" ? h.state : (h.state?.name ?? ""),
+        updatedAt: String(h.updatedAt ?? ""),
+        url: String(h.url ?? ""),
+      }));
   },
   skip: (id: string, durationMs?: number) =>
     req<{ activityId: number }>(`/api/issues/${id}/skip`, {
