@@ -7,6 +7,7 @@ import { QuickEditRow, type PickerKey } from "@/components/triage/QuickEditRow";
 import { HelpOverlay } from "@/components/triage/HelpOverlay";
 import { Confetti } from "@/components/triage/Confetti";
 import { Button } from "@/components/ui/button";
+import { Undo2 as UndoIcon } from "lucide-react";
 
 export function TriagePage() {
   const {
@@ -95,7 +96,8 @@ export function TriagePage() {
         {current ? (
           <>
             <IssueCard card={current} expanded={expanded} setExpanded={setExpanded} />
-            <div className="mt-6 space-y-4">
+            {/* Narrow screens: actions below the card, as before. */}
+            <div className="mt-6 space-y-4 xl:hidden">
               <ActionBar />
               <QuickEditRow open={picker} setOpen={setPicker} />
               <div className="flex justify-center">
@@ -105,6 +107,28 @@ export function TriagePage() {
                 </Button>
               </div>
             </div>
+            {/* Wide screens: floating action rail that stays with the viewport,
+                so long cards never hide the actions. */}
+            <aside className="fixed right-6 top-24 z-20 hidden max-h-[calc(100vh-8.5rem)] w-60 flex-col gap-3 overflow-y-auto xl:flex">
+              <div className="surface-card flex flex-col gap-2 rounded-xl p-3">
+                <ActionBar vertical />
+              </div>
+              <div className="surface-card rounded-xl p-3">
+                <QuickEditRow open={picker} setOpen={setPicker} vertical />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className="mt-2 w-full justify-between"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <UndoIcon className="size-4" /> Undo
+                  </span>
+                  <kbd className="kbd h-5">U</kbd>
+                </Button>
+              </div>
+            </aside>
           </>
         ) : loading || sync?.state === "syncing" ? (
           <div className="surface-card mt-10 rounded-2xl p-12 text-center">

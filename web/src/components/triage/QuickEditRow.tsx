@@ -23,9 +23,11 @@ const ESTIMATES = [0, 1, 2, 3, 5, 8];
 export function QuickEditRow({
   open,
   setOpen,
+  vertical = false,
 }: {
   open: PickerKey | null;
   setOpen: (k: PickerKey | null) => void;
+  vertical?: boolean;
 }) {
   const { current, meta, applyOps } = useTriage();
   if (!current || !meta) return null;
@@ -142,12 +144,22 @@ export function QuickEditRow({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div
+        className={vertical ? "flex flex-col gap-1.5" : "flex flex-wrap items-center justify-center gap-2"}
+      >
         {(Object.keys(META) as PickerKey[]).map((key) => (
-          <Button key={key} variant="quiet" size="sm" className="gap-1.5" onClick={() => setOpen(key)}>
-            {META[key].icon}
-            {META[key].label}
-            <kbd className="kbd ml-0.5 h-4 min-w-4 text-[10px]">{META[key].hint}</kbd>
+          <Button
+            key={key}
+            variant="quiet"
+            size="sm"
+            className={vertical ? "w-full justify-between gap-1.5" : "gap-1.5"}
+            onClick={() => setOpen(key)}
+          >
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              {META[key].icon}
+              <span className="truncate">{META[key].label}</span>
+            </span>
+            <kbd className="kbd ml-0.5 h-4 min-w-4 shrink-0 text-[10px]">{META[key].hint}</kbd>
           </Button>
         ))}
       </div>
