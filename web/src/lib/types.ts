@@ -151,3 +151,14 @@ export interface Report {
   fastestMs: number;
   recent: ActivityItem[];
 }
+
+export interface CustomView {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  modelName: string;
+  filterData: Record<string, unknown>;
+  team?: { id: string } | null;
+}

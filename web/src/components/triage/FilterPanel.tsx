@@ -3,13 +3,13 @@
 // index-filter editor. View filters are instant (local index); the index
 // filter triggers a background reindex.
 import { useEffect, useMemo, useState } from "react";
-import { Check, Filter as FilterIcon, Loader2, Minus, RotateCcw, X } from "lucide-react";
+import { Check, Eye, Filter as FilterIcon, Link2, Loader2, Minus, RotateCcw, X } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { EMPTY_FILTER, filterIsEmpty, type IndexFilterInfo, type ViewFilter } from "@/lib/types";
+import { EMPTY_FILTER, filterIsEmpty, type CustomView, type IndexFilterInfo, type ViewFilter } from "@/lib/types";
 import { cn, PRIORITY_NAMES } from "@/lib/utils";
 
 type Tri = "none" | "include" | "exclude";
@@ -46,6 +46,92 @@ function TriRow({ label, state, onClick, color }: { label: string; state: Tri; o
       {state === "include" && <Check className="size-4" />}
       {state === "exclude" && <Minus className="size-4" />}
     </button>
+  );
+}
+
+// decodeLinearFilterURL extracts and decodes the base64url `filter` param
+// from a linear.app view/filter URL into IssueFilter JSON.
+export function decodeLinearFilterURL(input: string): Record<string, unknown> {
+  let raw = input.trim();
+  try {
+    const u = new URL(raw);
+    raw = u.searchParams.get("filter") ?? "";
+  } catch {
+    /* not a URL — treat as the bare base64 payload */
+  }
+  if (!raw) throw new Error("no ?filter= parameter found in that URL");
+  const b64 = raw.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (raw.length % 4)) % 4);
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const parsed = JSON.parse(new TextDecoder().decode(bytes));
+  if (typeof parsed !== "object" || parsed === null) throw new Error("decoded payload is not a filter object");
+  return parsed as Record<string, unknown>;
+}
+
+// ViewsColumn lists saved Linear views; picking one makes its filter the
+// index filter (validated server-side, background reindex).
+function ViewsColumn({ onClose }: { onClose: () => void }) {
+  const { toast } = useToast();
+  const [views, setViews] = useState<CustomView[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [applying, setApplying] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .views()
+      .then((r) => setViews(r.views ?? []))
+      .catch((e) => setError((e as Error).message));
+  }, []);
+
+  const applyView = async (v: CustomView) => {
+    setApplying(v.id);
+    try {
+      await api.putIndexFilter(v.filterData);
+      toast(`Queue is now “${v.name}” — reindexing from Linear`);
+      onClose();
+    } catch (e) {
+      toast((e as Error).message, { tone: "error" });
+    } finally {
+      setApplying(null);
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Use a Linear view
+      </h3>
+      <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+        Makes the view's filter the whole queue (reindexes in the background).
+      </p>
+      <div className="grid max-h-[380px] gap-1 overflow-y-auto rounded-lg border border-border p-1">
+        {error && <p className="px-2 py-4 text-xs text-destructive">Couldn't load views: {error}</p>}
+        {!views && !error && (
+          <p className="inline-flex items-center gap-2 px-2 py-4 text-xs text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin" /> Loading views…
+          </p>
+        )}
+        {views?.length === 0 && (
+          <p className="px-2 py-4 text-xs text-muted-foreground">No saved views in this workspace.</p>
+        )}
+        {(views ?? []).map((v) => (
+          <button
+            key={v.id}
+            onClick={() => applyView(v)}
+            disabled={applying !== null}
+            className="group flex w-full cursor-pointer items-start gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent/60 disabled:opacity-60"
+          >
+            <Eye className="mt-0.5 size-3.5 shrink-0" style={{ color: v.color || "var(--muted-foreground)" }} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{v.name}</span>
+              {v.description && (
+                <span className="block truncate text-[11px] text-muted-foreground">{v.description}</span>
+              )}
+            </span>
+            {applying === v.id && <Loader2 className="mt-0.5 size-3.5 animate-spin text-primary" />}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -98,8 +184,33 @@ function IndexFilterEditor({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const [urlInput, setUrlInput] = useState("");
+  const convert = () => {
+    try {
+      const parsed = decodeLinearFilterURL(urlInput);
+      setText(JSON.stringify(parsed, null, 2));
+      toast("Converted — review, then Validate & reindex. App-only fields (if any) will be rejected by validation with Linear's error.");
+    } catch (e) {
+      toast(`Convert failed: ${(e as Error).message}`, { tone: "error" });
+    }
+  };
+
   return (
     <div className="grid gap-3">
+      <div className="grid gap-1.5">
+        <span className="text-xs font-medium text-muted-foreground">Convert a Linear filter URL</span>
+        <div className="flex gap-2">
+          <input
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="Paste a linear.app view URL with ?filter=…"
+            className="h-9 flex-1 rounded-md border border-input bg-surface px-3 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+          <Button variant="quiet" size="sm" className="h-9" onClick={convert} disabled={!urlInput.trim()}>
+            <Link2 /> Convert
+          </Button>
+        </div>
+      </div>
       <p className="text-xs leading-relaxed text-muted-foreground">
         This is the raw{" "}
         <a
@@ -185,19 +296,21 @@ export function FilterPanel({ open, onClose }: { open: boolean; onClose: () => v
       open={open}
       onClose={onClose}
       title={advanced ? "Index filter (advanced)" : "Filter the queue"}
-      className="sm:max-w-2xl"
+      className="sm:max-w-3xl"
     >
       {advanced ? (
         <IndexFilterEditor onClose={onClose} />
       ) : (
         <div className="grid gap-4">
           <p className="text-xs text-muted-foreground">
-            Click a team or label to cycle: <span className="text-success">include</span> →{" "}
-            <span className="text-destructive">exclude</span> → neutral. Filters apply instantly to the
-            local index.
+            Pick a saved Linear view — or build a local filter: click a team or label to cycle{" "}
+            <span className="text-success">include</span> →{" "}
+            <span className="text-destructive">exclude</span> → neutral. Built filters apply instantly.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <ViewsColumn onClose={onClose} />
+            <div className="grid content-start gap-4 sm:border-l sm:border-border sm:pl-5">
             <div>
               <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Teams
@@ -277,6 +390,7 @@ export function FilterPanel({ open, onClose }: { open: boolean; onClose: () => v
                   />
                 ))}
               </div>
+            </div>
             </div>
           </div>
 

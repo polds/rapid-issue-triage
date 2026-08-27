@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/polds/rapid-issue-triage/internal/ai"
 	"github.com/polds/rapid-issue-triage/internal/linear"
@@ -25,6 +26,9 @@ type Server struct {
 	// enriching guards against duplicate concurrent enrichments per issue.
 	mu        sync.Mutex
 	enriching map[string]bool
+
+	viewsCache   []linear.CustomView
+	viewsCacheAt time.Time
 }
 
 func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher) *Server {
@@ -46,6 +50,7 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("POST /api/macros", s.handleCreateMacro)
 	mux.HandleFunc("PUT /api/macros/{id}", s.handleUpdateMacro)
 	mux.HandleFunc("DELETE /api/macros/{id}", s.handleDeleteMacro)
+	mux.HandleFunc("GET /api/views", s.handleViews)
 	mux.HandleFunc("GET /api/filter", s.handleGetFilter)
 	mux.HandleFunc("PUT /api/filter", s.handlePutFilter)
 	mux.HandleFunc("DELETE /api/filter", s.handleDeleteFilter)

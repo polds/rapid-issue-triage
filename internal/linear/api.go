@@ -144,6 +144,34 @@ func (c *Client) Issues(ctx context.Context, filter map[string]any, pageSize int
 	}
 }
 
+// CustomView is a saved Linear view; FilterData is IssueFilter-shaped JSON.
+type CustomView struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Icon        string         `json:"icon"`
+	Color       string         `json:"color"`
+	ModelName   string         `json:"modelName"`
+	FilterData  map[string]any `json:"filterData"`
+	Team        *Ref           `json:"team"`
+}
+
+// CustomViews lists the workspace's saved views.
+func (c *Client) CustomViews(ctx context.Context) ([]CustomView, error) {
+	var out struct {
+		CustomViews struct {
+			Nodes    []CustomView `json:"nodes"`
+			PageInfo PageInfo     `json:"pageInfo"`
+		} `json:"customViews"`
+	}
+	q := `query { customViews(first: 100) {
+	  nodes { id name description icon color modelName filterData team { id } }
+	  pageInfo { hasNextPage endCursor }
+	} }`
+	err := c.Do(ctx, q, nil, &out)
+	return out.CustomViews.Nodes, err
+}
+
 // IssueComments fetches the comment thread for one issue.
 func (c *Client) IssueComments(ctx context.Context, issueID string) ([]Comment, error) {
 	var out struct {

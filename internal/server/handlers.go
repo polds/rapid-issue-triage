@@ -90,6 +90,37 @@ func (s *Server) handleQueue(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{"issues": rows, "remaining": count})
 }
 
+// handleViews lists Linear custom views (cached for 5 minutes).
+func (s *Server) handleViews(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	cached, at := s.viewsCache, s.viewsCacheAt
+	s.mu.Unlock()
+	if cached != nil && time.Since(at) < 5*time.Minute && r.URL.Query().Get("refresh") == "" {
+		writeJSON(w, 200, map[string]any{"views": cached})
+		return
+	}
+	views, err := s.linear.CustomViews(r.Context())
+	if err != nil {
+		if cached != nil {
+			writeJSON(w, 200, map[string]any{"views": cached})
+			return
+		}
+		writeErr(w, 502, err)
+		return
+	}
+	// Only issue views are usable as an issue queue filter.
+	filtered := views[:0]
+	for _, v := range views {
+		if v.ModelName == "" || strings.EqualFold(v.ModelName, "issue") {
+			filtered = append(filtered, v)
+		}
+	}
+	s.mu.Lock()
+	s.viewsCache, s.viewsCacheAt = filtered, time.Now()
+	s.mu.Unlock()
+	writeJSON(w, 200, map[string]any{"views": filtered})
+}
+
 // --- index (sync) filter management ---
 
 const recentSyncFiltersKey = "recent_sync_filters"

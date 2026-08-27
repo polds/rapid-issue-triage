@@ -1,5 +1,5 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView } from "./types";
 
 class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -33,6 +33,7 @@ export const api = {
     p.set("limit", String(limit));
     return req<{ issues: Issue[] | null; remaining: number }>(`/api/queue?${p}`);
   },
+  views: () => req<{ views: CustomView[] | null }>("/api/views"),
   getIndexFilter: () => req<IndexFilterInfo>("/api/filter"),
   putIndexFilter: (filter: Record<string, unknown>) =>
     req<{ ok: boolean }>("/api/filter", { method: "PUT", body: JSON.stringify({ filter }) }),
