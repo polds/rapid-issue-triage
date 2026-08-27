@@ -4,7 +4,9 @@
 import type { ReactNode } from "react";
 
 function inline(text: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|https?:\/\/\S+)/g).filter(Boolean);
+  const parts = text
+    .split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|https?:\/\/\S+|(?<![\w*])\*[^*\n]+\*(?![\w*])|(?<![\w_])_[^_\n]+_(?![\w_]))/g)
+    .filter(Boolean);
   return parts.map((p, i) => {
     if (p.startsWith("**") && p.endsWith("**"))
       return (
@@ -18,11 +20,23 @@ function inline(text: string): ReactNode[] {
           {p.slice(1, -1)}
         </code>
       );
+    if ((p.startsWith("*") && p.endsWith("*")) || (p.startsWith("_") && p.endsWith("_")))
+      return (
+        <em key={i} className="italic">
+          {p.slice(1, -1)}
+        </em>
+      );
     const link = p.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (link)
       return (
-        <a key={i} href={link[2]} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-          {link[1]}
+        <a
+          key={i}
+          href={link[2].replace(/^<|>$/g, "")}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary hover:underline"
+        >
+          {inline(link[1])}
         </a>
       );
     if (/^https?:\/\//.test(p))
@@ -38,19 +52,72 @@ function inline(text: string): ReactNode[] {
 export function Markdown({ source }: { source: string }) {
   const lines = (source ?? "").split("\n");
   const blocks: ReactNode[] = [];
-  let list: { ordered: boolean; items: string[] } | null = null;
+  let list: { ordered: boolean; items: { text: string; task: "" | "todo" | "done" }[] } | null = null;
   let code: string[] | null = null;
+  let table: string[][] | null = null;
+
+  const flushTable = () => {
+    if (!table) return;
+    const [head, ...rest] = table;
+    const body = rest.filter((r) => !r.every((c) => /^:?-{2,}:?$/.test(c.trim())));
+    blocks.push(
+      <div key={`t${blocks.length}`} className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              {head.map((c, i) => (
+                <th key={i} className="border-b border-border px-2 py-1.5 text-left text-xs font-semibold text-foreground/80">
+                  {inline(c.trim())}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {body.map((r, i) => (
+              <tr key={i} className="border-b border-border/50 last:border-0">
+                {r.map((c, j) => (
+                  <td key={j} className="px-2 py-1.5 align-top text-muted-foreground">
+                    {inline(c.trim())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>,
+    );
+    table = null;
+  };
 
   const flushList = () => {
     if (!list) return;
     const L = list.ordered ? "ol" : "ul";
+    const allTasks = list.items.every((it) => it.task);
     blocks.push(
       <L
         key={`l${blocks.length}`}
-        className={`ml-5 space-y-1 text-sm text-muted-foreground ${list.ordered ? "list-decimal" : "list-disc"}`}
+        className={`space-y-1 text-sm text-muted-foreground ${
+          allTasks ? "ml-0 list-none" : `ml-5 ${list.ordered ? "list-decimal" : "list-disc"}`
+        }`}
       >
         {list.items.map((item, i) => (
-          <li key={i}>{inline(item)}</li>
+          <li key={i} className={item.task ? "flex items-start gap-2" : undefined}>
+            {item.task && (
+              <span
+                aria-hidden
+                className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border text-[10px] ${
+                  item.task === "done"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-surface-2"
+                }`}
+              >
+                {item.task === "done" ? "✓" : ""}
+              </span>
+            )}
+            <span className={item.task === "done" ? "line-through opacity-70" : undefined}>
+              {inline(item.text)}
+            </span>
+          </li>
         ))}
       </L>,
     );
@@ -75,22 +142,41 @@ export function Markdown({ source }: { source: string }) {
     }
     if (line.startsWith("```")) {
       flushList();
+      flushTable();
       code = [];
       return;
     }
-    const ol = line.match(/^\d+\.\s+(.*)/);
-    const ul = line.match(/^[-*]\s+(.*)/);
+    if (/^\s*\|.*\|\s*$/.test(line)) {
+      flushList();
+      const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|");
+      (table ??= []).push(cells);
+      return;
+    }
+    flushTable();
+    const ol = line.match(/^\s*\d+\.\s+(.*)/);
+    const ul = line.match(/^\s*[-*]\s+(.*)/);
     if (ol || ul) {
       const ordered = !!ol;
       if (!list || list.ordered !== ordered) {
         flushList();
         list = { ordered, items: [] };
       }
-      list.items.push((ol ?? ul)![1]);
+      let text = (ol ?? ul)![1];
+      let task: "" | "todo" | "done" = "";
+      const t = text.match(/^\[( |x|X)\]\s*(.*)/);
+      if (t) {
+        task = t[1] === " " ? "todo" : "done";
+        text = t[2];
+      }
+      list.items.push({ text, task });
       return;
     }
     flushList();
     if (!line.trim()) return;
+    if (/^\s*([-*_])\s*(\1\s*){2,}$/.test(line)) {
+      blocks.push(<hr key={i} className="border-border" />);
+      return;
+    }
     if (/^#{1,4}\s/.test(line)) {
       blocks.push(
         <h4 key={i} className="pt-1 text-xs font-semibold uppercase tracking-wider text-foreground/80">
@@ -114,6 +200,7 @@ export function Markdown({ source }: { source: string }) {
     );
   });
   flushList();
+  flushTable();
 
   return <div className="space-y-2.5">{blocks}</div>;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -145,8 +145,70 @@ function Comments({ issueId }: { issueId: string }) {
   );
 }
 
-const stripMd = (s: string) => s.replace(/[#*`>]/g, "");
-const truncate = (s: string, n = 280) => (s.length <= n ? s : `${s.slice(0, n).trimEnd()}…`);
+// Collapsed descriptions render full markdown, clamped by CSS with a fade —
+// the fade and "Show more" only appear when content actually overflows.
+function Description({
+  source,
+  expanded,
+  setExpanded,
+  issueId,
+}: {
+  source: string;
+  expanded: boolean;
+  setExpanded: (v: boolean) => void;
+  issueId: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+  const empty = !source?.trim();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setOverflowing(el.scrollHeight > el.clientHeight + 4);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [issueId, expanded, source]);
+
+  if (empty) {
+    return (
+      <>
+        <p className="text-sm italic text-muted-foreground/70">No description.</p>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          {expanded ? "Hide comments" : "Show comments"}
+          <kbd className="kbd ml-1 h-4 text-[10px]">Space</kbd>
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <div ref={ref} className={cn("relative", !expanded && "max-h-32 overflow-hidden")}>
+        <Markdown source={source} />
+        {!expanded && overflowing && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
+            style={{ background: "linear-gradient(to top, var(--card), transparent)" }}
+          />
+        )}
+      </div>
+      {(overflowing || expanded) && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          {expanded ? "Show less" : "Show more"}
+          <kbd className="kbd ml-1 h-4 text-[10px]">Space</kbd>
+        </button>
+      )}
+    </>
+  );
+}
 
 export function IssueCard({
   card,
@@ -262,21 +324,12 @@ export function IssueCard({
       </div>
 
       <div className="mt-5 border-t border-border pt-5">
-        {expanded ? (
-          <Markdown source={issue.description || "_No description._"} />
-        ) : (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {issue.description ? truncate(stripMd(issue.description)) : "No description."}
-          </p>
-        )}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-primary hover:underline"
-        >
-          {expanded ? "Show less" : "Show more"}
-          <kbd className="kbd ml-1 h-4 text-[10px]">Space</kbd>
-        </button>
-
+        <Description
+          source={issue.description}
+          expanded={expanded}
+          setExpanded={setExpanded}
+          issueId={issue.id}
+        />
         {expanded && <Comments issueId={issue.id} />}
       </div>
 
