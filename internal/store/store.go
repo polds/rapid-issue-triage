@@ -43,6 +43,7 @@ func (s *Store) migrate() error {
 	}
 	// Additive migrations for existing databases; duplicate-column errors are fine.
 	_, _ = s.db.Exec(`ALTER TABLE enrichments ADD COLUMN report_json TEXT`)
+	_, _ = s.db.Exec(`ALTER TABLE enrichments ADD COLUMN issue_hash TEXT`)
 	return nil
 }
 

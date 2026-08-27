@@ -219,7 +219,17 @@ const SOURCE_TONE: Record<string, string> = {
 
 // ReportView renders the fixed-schema deep report. Sections render only when
 // their data exists, in a stable order across executions.
-export function ReportView({ report, runId }: { report: DeepReport; runId?: string | null }) {
+export function ReportView({
+  report,
+  runId,
+  stale,
+  onReenrich,
+}: {
+  report: DeepReport;
+  runId?: string | null;
+  stale?: boolean;
+  onReenrich?: () => void;
+}) {
   const [open, setOpen] = useState(true);
   const [logOpen, setLogOpen] = useState(false);
   const v = VERDICT_META[report.verdict] ?? VERDICT_META.actionable;
@@ -246,6 +256,19 @@ export function ReportView({ report, runId }: { report: DeepReport; runId?: stri
       </button>
       {open && (
         <div className="space-y-3 border-t border-primary/15 px-4 py-3">
+          {stale && (
+            <div className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-foreground dark:text-warning">
+              <TriangleAlert className="size-3.5 shrink-0" />
+              <span className="flex-1">
+                Possibly out-of-date — the issue's title or description changed after this analysis.
+              </span>
+              {onReenrich && (
+                <button onClick={onReenrich} className="shrink-0 cursor-pointer font-semibold hover:underline">
+                  Re-enrich
+                </button>
+              )}
+            </div>
+          )}
           <p className="text-sm leading-relaxed text-muted-foreground">{report.summary}</p>
           {report.reasoning && (
             <p className="text-xs leading-relaxed text-muted-foreground/85">{report.reasoning}</p>

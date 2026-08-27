@@ -15,6 +15,7 @@ export interface Enrichment {
   model?: string;
   createdAt: string;
   report?: DeepReport | null;
+  stale?: boolean;
 }
 
 export interface DeepReport {

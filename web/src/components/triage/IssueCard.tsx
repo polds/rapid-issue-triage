@@ -8,6 +8,7 @@ import {
   Loader2,
   MessageSquare,
   Sparkles,
+  TriangleAlert,
   User,
 } from "lucide-react";
 import type { Card } from "@/lib/store";
@@ -111,7 +112,7 @@ function AIPanel({ card }: { card: Card }) {
   }
 
   if (e?.report) {
-    return <ReportView report={e.report} runId={logRunId} />;
+    return <ReportView report={e.report} runId={logRunId} stale={e.stale} onReenrich={startEnrich} />;
   }
 
   if (!e) {
@@ -149,6 +150,15 @@ function AIPanel({ card }: { card: Card }) {
       </button>
       {open && (
         <div className="border-t border-primary/15 px-4 py-3">
+          {e.stale && (
+            <div className="mb-2 flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-foreground dark:text-warning">
+              <TriangleAlert className="size-3.5 shrink-0" />
+              <span className="flex-1">Possibly out-of-date — the issue changed after this analysis.</span>
+              <button onClick={startEnrich} className="shrink-0 cursor-pointer font-semibold hover:underline">
+                Re-enrich
+              </button>
+            </div>
+          )}
           <p className="text-sm leading-relaxed text-muted-foreground">{e.summary}</p>
           {e.reasoning && (
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">

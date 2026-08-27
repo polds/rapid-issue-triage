@@ -42,6 +42,9 @@ type Enrichment struct {
 	Model      string          `json:"model,omitempty"`
 	CreatedAt  string          `json:"createdAt"`
 	Report     json.RawMessage `json:"report,omitempty"` // deep-enrichment structured report
+	// Stale is true when the issue's content changed after this enrichment
+	// was computed (content-hash mismatch) — the analysis may be out of date.
+	Stale bool `json:"stale,omitempty"`
 }
 
 type Macro struct {
