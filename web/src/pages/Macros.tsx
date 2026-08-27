@@ -28,6 +28,7 @@ const STEP_KINDS = [
   { kind: "set_cycle", label: "Set cycle" },
   { kind: "set_assignee", label: "Assign to me" },
   { kind: "add_comment", label: "Add comment" },
+  { kind: "post_ai_report", label: "Post AI report comment" },
 ] as const;
 
 function describeOp(op: Op, projectName: (id: string) => string): string {
@@ -48,6 +49,8 @@ function describeOp(op: Op, projectName: (id: string) => string): string {
       return op.assigneeId === "me" ? "assign to me" : op.clear ? "unassign" : "assign";
     case "add_comment":
       return `comment: "${(op.body ?? "").slice(0, 40)}${(op.body ?? "").length > 40 ? "…" : ""}"`;
+    case "post_ai_report":
+      return "post AI report";
   }
 }
 
@@ -136,6 +139,8 @@ export function MacrosPage() {
         return { type: kind, assigneeId: "me" };
       case "add_comment":
         return { type: kind, body: "" };
+      case "post_ai_report":
+        return { type: kind };
     }
   };
 
@@ -326,6 +331,11 @@ export function MacrosPage() {
                   )}
                   {a.type === "set_assignee" && (
                     <span className="flex-1 text-sm text-muted-foreground">Assigns the issue to you</span>
+                  )}
+                  {a.type === "post_ai_report" && (
+                    <span className="flex-1 text-sm text-muted-foreground">
+                      Posts the stored AI report/summary; fails if the issue isn't enriched yet
+                    </span>
                   )}
                   {a.type === "add_comment" && (
                     <input

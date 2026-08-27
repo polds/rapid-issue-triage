@@ -113,6 +113,17 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				input["cycleId"] = id
 				trace = append(trace, "set cycle")
 			}
+		case "post_ai_report":
+			e, gerr := s.store.GetEnrichment(issue.ID)
+			if gerr != nil {
+				return nil, nil, nil, gerr
+			}
+			body, ferr := formatEnrichmentComment(e)
+			if ferr != nil {
+				return nil, nil, nil, ferr
+			}
+			comments = append(comments, body)
+			trace = append(trace, "post AI report comment")
 		case "add_comment":
 			body := strings.TrimSpace(op.Body)
 			if body == "" {
