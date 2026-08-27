@@ -465,7 +465,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
             }
             finish("done", { verdict });
             toast(`Enrichment finished: ${identifier}`, {
-              action: { label: "View", onClick: () => void focusIssueRef.current(issueId) },
+              action: {
+                label: "View",
+                onClick: () => {
+                  // Jump works from any page: hash-route back to triage first.
+                  window.location.hash = "/";
+                  void focusIssueRef.current(issueId);
+                },
+              },
             });
           });
         }

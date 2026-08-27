@@ -11,6 +11,7 @@ import {
   FileSearch,
   Loader2,
   MessageSquarePlus,
+  RefreshCw,
   ScrollText,
   Sparkles,
   TriangleAlert,
@@ -231,12 +232,14 @@ export function ReportView({
   stale,
   onReenrich,
   onPost,
+  onRegenerate,
 }: {
   report: DeepReport;
   runId?: string | null;
   stale?: boolean;
   onReenrich?: () => void;
   onPost?: () => Promise<void>;
+  onRegenerate?: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [logOpen, setLogOpen] = useState(false);
@@ -376,6 +379,15 @@ export function ReportView({
               </span>
             )}
             <span className="ml-auto flex items-center gap-3">
+              {onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                  title="Re-run enrichment with the mode configured in Settings"
+                >
+                  <RefreshCw className="size-3" /> Regenerate
+                </button>
+              )}
               {onPost && (
                 <button
                   onClick={post}

@@ -7,6 +7,7 @@ import {
   Hash,
   Loader2,
   MessageSquare,
+  RefreshCw,
   Sparkles,
   TriangleAlert,
   User,
@@ -78,6 +79,7 @@ function AIPanel({ card }: { card: Card }) {
         onPost={() =>
           applyOps([{ type: "add_comment", body: formatReportComment(e.report!) }], "AI report posted")
         }
+        onRegenerate={startEnrich}
       />
     );
   }
@@ -135,6 +137,17 @@ function AIPanel({ card }: { card: Card }) {
               )}
             </p>
           )}
+          <div className="mt-2 flex justify-end border-t border-primary/10 pt-2">
+            <button
+              onClick={startEnrich}
+              disabled={enriching}
+              className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline disabled:opacity-50"
+              title="Re-run enrichment with the mode configured in Settings"
+            >
+              {enriching ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+              Regenerate
+            </button>
+          </div>
         </div>
       )}
     </div>
