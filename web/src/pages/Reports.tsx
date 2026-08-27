@@ -24,7 +24,7 @@ function Tile({ label, value, hint, icon }: { label: string; value: string; hint
         {icon}
         {label}
       </div>
-      <div className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+      <div className="font-display mt-3 text-3xl font-bold tracking-tight tabular-nums">{value}</div>
       {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
@@ -174,7 +174,7 @@ export function ReportsPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight">Reports</h1>
       <p className="mt-1 text-sm text-muted-foreground">Momentum beats perfection. Keep the streak alive.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

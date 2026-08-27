@@ -154,7 +154,7 @@ export function MacrosPage() {
     <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-10">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Macros</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Macros</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             One keystroke, a whole sequence of actions. Keys 1–9 fire from the triage view in the
             order below — drag to reorder. Labels and statuses are matched by name per team, so one

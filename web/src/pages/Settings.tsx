@@ -64,7 +64,7 @@ export function SettingsPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Enrichment settings</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight">Enrichment settings</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         How “Enrich with AI” investigates an issue before rendering its verdict.
       </p>

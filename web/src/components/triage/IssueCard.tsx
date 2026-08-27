@@ -358,7 +358,7 @@ export function IssueCard({
         )}
       </div>
 
-      <h2 className="mt-4 text-2xl font-semibold leading-snug tracking-tight text-balance">
+      <h2 className="font-display mt-4 text-2xl font-bold leading-snug tracking-tight text-balance">
         {issue.title}
       </h2>
 

@@ -75,7 +75,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
           <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Zap className="size-4" />
           </span>
-          <span className="text-sm font-semibold tracking-tight">Rapid Triage</span>
+          <span className="font-display text-sm font-extrabold tracking-tight">Rapid Triage</span>
         </button>
 
         <Select

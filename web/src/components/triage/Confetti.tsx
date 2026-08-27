@@ -16,8 +16,8 @@ export function Confetti({ trigger }: { trigger: number }) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 rounded-full border border-primary/30 bg-surface px-4 py-2 text-sm font-semibold shadow-pop anim-pop-in">
-        🎉 {burst} triaged this session!
+      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 rounded-full border border-primary/30 bg-surface px-4 py-2 text-sm shadow-pop anim-pop-in">
+        <span className="font-display font-bold">{burst}</span>&nbsp;triaged this session
       </div>
       {Array.from({ length: 60 }).map((_, i) => (
         <span

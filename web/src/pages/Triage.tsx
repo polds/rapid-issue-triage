@@ -110,10 +110,10 @@ export function TriagePage() {
             {/* Wide screens: floating action rail that stays with the viewport,
                 so long cards never hide the actions. */}
             <aside className="fixed right-6 top-24 z-20 hidden max-h-[calc(100vh-8.5rem)] w-60 flex-col gap-3 overflow-y-auto xl:flex">
-              <div className="surface-card flex flex-col gap-2 rounded-xl p-3">
+              <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
                 <ActionBar vertical />
               </div>
-              <div className="surface-card rounded-xl p-3">
+              <div className="rounded-lg border border-border bg-card p-3">
                 <QuickEditRow open={picker} setOpen={setPicker} vertical />
                 <Button
                   variant="ghost"

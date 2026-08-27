@@ -1,12 +1,12 @@
 {
   "version": 1,
   "meta": {
-    "lastScanned": "2026-08-26T22:30:31.429Z",
-    "fileCount": 49,
+    "lastScanned": "2026-08-27T13:00:00.070Z",
+    "fileCount": 79,
     "hits": 0,
     "misses": 0,
-    "renderedHash": "dd65118c1b99aaa2cfd699c04d6e16454f5df8abd710ea293d2597c2a8f6f897",
-    "storeUpdatedAt": "2026-08-26T22:30:31.430Z"
+    "renderedHash": "b25cbb3a7ac3491bbe69d9f13176d6f64e5e5ca2a3932e843a7b5b15f0728767",
+    "storeUpdatedAt": "2026-08-27T13:00:00.071Z"
   },
   "files": {
     ".claude/commands/reframe.md": {
@@ -15,7 +15,7 @@
       "hash": "17a75695be5d4629",
       "size": 2221,
       "mtimeMs": 1787783431405.2104,
-      "updatedAt": "2026-08-26T22:30:31.412Z",
+      "updatedAt": "2026-08-27T13:00:00.032Z",
       "source": "scan"
     },
     ".claude/commands/security-audit.md": {
@@ -24,7 +24,7 @@
       "hash": "e6f7e0b7337c9c86",
       "size": 2060,
       "mtimeMs": 1787783431404.8481,
-      "updatedAt": "2026-08-26T22:30:31.412Z",
+      "updatedAt": "2026-08-27T13:00:00.033Z",
       "source": "scan"
     },
     ".claude/rules/openwolf.md": {
@@ -33,7 +33,7 @@
       "hash": "6d735b2c1c54a916",
       "size": 1323,
       "mtimeMs": 1787783430306.5273,
-      "updatedAt": "2026-08-26T22:30:31.412Z",
+      "updatedAt": "2026-08-27T13:00:00.034Z",
       "source": "scan"
     },
     ".claude/settings.json": {
@@ -42,7 +42,7 @@
       "hash": "f68759bb50af5ee4",
       "size": 1799,
       "mtimeMs": 1787783430306.0537,
-      "updatedAt": "2026-08-26T22:30:31.413Z",
+      "updatedAt": "2026-08-27T13:00:00.035Z",
       "source": "scan"
     },
     ".codex/config.toml": {
@@ -51,7 +51,7 @@
       "hash": "d37497c327812159",
       "size": 24,
       "mtimeMs": 1787783431402.9058,
-      "updatedAt": "2026-08-26T22:30:31.413Z",
+      "updatedAt": "2026-08-27T13:00:00.036Z",
       "source": "scan"
     },
     ".codex/hooks.json": {
@@ -60,7 +60,7 @@
       "hash": "c761ad07e3d79652",
       "size": 2551,
       "mtimeMs": 1787783431402.7969,
-      "updatedAt": "2026-08-26T22:30:31.413Z",
+      "updatedAt": "2026-08-27T13:00:00.036Z",
       "source": "scan"
     },
     ".codex/prompts/reframe.md": {
@@ -69,7 +69,7 @@
       "hash": "17a75695be5d4629",
       "size": 2221,
       "mtimeMs": 1787783431405.6353,
-      "updatedAt": "2026-08-26T22:30:31.413Z",
+      "updatedAt": "2026-08-27T13:00:00.037Z",
       "source": "scan"
     },
     ".codex/prompts/security-audit.md": {
@@ -78,7 +78,7 @@
       "hash": "e6f7e0b7337c9c86",
       "size": 2060,
       "mtimeMs": 1787783431405.4966,
-      "updatedAt": "2026-08-26T22:30:31.413Z",
+      "updatedAt": "2026-08-27T13:00:00.037Z",
       "source": "scan"
     },
     ".cursor/rules/openwolf.mdc": {
@@ -87,16 +87,16 @@
       "hash": "25a895da2047ef4d",
       "size": 323,
       "mtimeMs": 1787783431403.7473,
-      "updatedAt": "2026-08-26T22:30:31.414Z",
+      "updatedAt": "2026-08-27T13:00:00.038Z",
       "source": "scan"
     },
     ".gitignore": {
       "description": "Git ignore rules",
-      "tokens": 8,
-      "hash": "f57b502b42239b00",
-      "size": 27,
-      "mtimeMs": 1787783070037.3457,
-      "updatedAt": "2026-08-26T22:30:31.414Z",
+      "tokens": 14,
+      "hash": "1a90f3336a11665e",
+      "size": 50,
+      "mtimeMs": 1787784603395.6875,
+      "updatedAt": "2026-08-27T13:00:00.038Z",
       "source": "scan"
     },
     "AGENTS.md": {
@@ -105,7 +105,7 @@
       "hash": "8c90778623bf50ac",
       "size": 271,
       "mtimeMs": 1787783431403.3347,
-      "updatedAt": "2026-08-26T22:30:31.414Z",
+      "updatedAt": "2026-08-27T13:00:00.039Z",
       "source": "scan"
     },
     "CLAUDE.md": {
@@ -114,37 +114,44 @@
       "hash": "b1ca356fa9d5f3a6",
       "size": 225,
       "mtimeMs": 1787783430306.9114,
-      "updatedAt": "2026-08-26T22:30:31.414Z",
+      "updatedAt": "2026-08-27T13:00:00.039Z",
       "source": "scan"
     },
     "cmd/triage/main.go": {
       "description": "rapid-issue-triage: a local-only, keyboard-first rapid triaging tool for",
-      "tokens": 862,
-      "hash": "90cbee95a6a31573",
-      "size": 3017,
-      "mtimeMs": 1787782984480.5632,
-      "updatedAt": "2026-08-26T22:30:31.415Z",
+      "tokens": 1304,
+      "hash": "4cc310367b0422d6",
+      "size": 4563,
+      "mtimeMs": 1787796977351.3052,
+      "updatedAt": "2026-08-27T13:00:00.040Z",
       "source": "scan",
       "symbols": [
         {
           "name": "main",
           "kind": "fn",
-          "startLine": 28,
-          "endLine": 41,
-          "tokens": 135
+          "startLine": 32,
+          "endLine": 50,
+          "tokens": 200
         },
         {
           "name": "run",
           "kind": "fn",
-          "startLine": 42,
-          "endLine": 104,
-          "tokens": 452
+          "startLine": 51,
+          "endLine": 121,
+          "tokens": 564
+        },
+        {
+          "name": "toolClient",
+          "kind": "fn",
+          "startLine": 122,
+          "endLine": 153,
+          "tokens": 241
         },
         {
           "name": "openBrowser",
           "kind": "fn",
-          "startLine": 105,
-          "endLine": 119,
+          "startLine": 154,
+          "endLine": 168,
           "tokens": 80
         }
       ]
@@ -155,7 +162,7 @@
       "hash": "200ce0dffd8be1fb",
       "size": 563,
       "mtimeMs": 1787783055072.5898,
-      "updatedAt": "2026-08-26T22:30:31.415Z",
+      "updatedAt": "2026-08-27T13:00:00.041Z",
       "source": "scan"
     },
     "go.sum": {
@@ -164,7 +171,7 @@
       "hash": "b169d454eb9814db",
       "size": 4495,
       "mtimeMs": 1787783055072.1785,
-      "updatedAt": "2026-08-26T22:30:31.415Z",
+      "updatedAt": "2026-08-27T13:00:00.041Z",
       "source": "scan"
     },
     "internal/ai/enrich.go": {
@@ -173,7 +180,7 @@
       "hash": "25d797b6266b55a6",
       "size": 4773,
       "mtimeMs": 1787782867925.7786,
-      "updatedAt": "2026-08-26T22:30:31.416Z",
+      "updatedAt": "2026-08-27T13:00:00.042Z",
       "source": "scan",
       "symbols": [
         {
@@ -229,64 +236,430 @@
     },
     "internal/config/config.go": {
       "description": "loads rapid-triage configuration from YAML with sane",
-      "tokens": 844,
-      "hash": "eb700d76b4664692",
-      "size": 2957,
-      "mtimeMs": 1787782626632.8257,
-      "updatedAt": "2026-08-26T22:30:31.416Z",
+      "tokens": 1157,
+      "hash": "2eb4178e70acec17",
+      "size": 4054,
+      "mtimeMs": 1787784603392.333,
+      "updatedAt": "2026-08-27T13:00:00.042Z",
       "source": "scan",
       "symbols": [
         {
           "name": "Config",
           "kind": "class",
-          "startLine": 15,
-          "endLine": 27,
+          "startLine": 16,
+          "endLine": 28,
           "tokens": 137
         },
         {
           "name": "SyncConfig",
           "kind": "class",
-          "startLine": 28,
-          "endLine": 34,
+          "startLine": 29,
+          "endLine": 35,
           "tokens": 52
         },
         {
           "name": "AIConfig",
           "kind": "class",
-          "startLine": 35,
-          "endLine": 46,
+          "startLine": 36,
+          "endLine": 47,
           "tokens": 119
         },
         {
           "name": "Default",
           "kind": "fn",
-          "startLine": 47,
-          "endLine": 62,
-          "tokens": 166
+          "startLine": 48,
+          "endLine": 66,
+          "tokens": 217
         },
         {
           "name": "Load",
           "kind": "fn",
-          "startLine": 63,
-          "endLine": 97,
+          "startLine": 67,
+          "endLine": 101,
           "tokens": 214
         },
         {
           "name": "APIKey",
           "kind": "fn",
-          "startLine": 98,
-          "endLine": 105,
-          "tokens": 71
+          "startLine": 102,
+          "endLine": 117,
+          "tokens": 190
+        },
+        {
+          "name": "envFileValue",
+          "kind": "fn",
+          "startLine": 118,
+          "endLine": 138,
+          "tokens": 140
+        }
+      ]
+    },
+    "internal/deep/claude.go": {
+      "description": "streamOpts (46 fields)",
+      "tokens": 1047,
+      "hash": "78d6deaa72f02bd0",
+      "size": 3666,
+      "mtimeMs": 1787796801554.46,
+      "updatedAt": "2026-08-27T13:00:00.043Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "streamOpts",
+          "kind": "class",
+          "startLine": 18,
+          "endLine": 28,
+          "tokens": 66
+        },
+        {
+          "name": "claudeStream",
+          "kind": "fn",
+          "startLine": 29,
+          "endLine": 137,
+          "tokens": 842
+        },
+        {
+          "name": "capRaw",
+          "kind": "fn",
+          "startLine": 138,
+          "endLine": 148,
+          "tokens": 54
+        }
+      ]
+    },
+    "internal/deep/orchestrator.go": {
+      "description": "Orchestrator (85 fields); methods: ValidateToken, Subscribe, LogToolCall, Start",
+      "tokens": 2952,
+      "hash": "c4cce20e426e60ac",
+      "size": 10332,
+      "mtimeMs": 1787797322683.936,
+      "updatedAt": "2026-08-27T13:00:00.044Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Orchestrator",
+          "kind": "class",
+          "startLine": 20,
+          "endLine": 33,
+          "tokens": 94
+        },
+        {
+          "name": "run",
+          "kind": "class",
+          "startLine": 34,
+          "endLine": 43,
+          "tokens": 50
+        },
+        {
+          "name": "NewOrchestrator",
+          "kind": "fn",
+          "startLine": 44,
+          "endLine": 70,
+          "tokens": 275
+        },
+        {
+          "name": "timeout",
+          "kind": "fn",
+          "startLine": 71,
+          "endLine": 78,
+          "tokens": 56
+        },
+        {
+          "name": "ValidateToken",
+          "kind": "fn",
+          "startLine": 79,
+          "endLine": 91,
+          "tokens": 102
+        },
+        {
+          "name": "Subscribe",
+          "kind": "fn",
+          "startLine": 92,
+          "endLine": 109,
+          "tokens": 98
+        },
+        {
+          "name": "emit",
+          "kind": "fn",
+          "startLine": 110,
+          "endLine": 129,
+          "tokens": 164
+        },
+        {
+          "name": "LogToolCall",
+          "kind": "fn",
+          "startLine": 130,
+          "endLine": 146,
+          "tokens": 146
+        },
+        {
+          "name": "Start",
+          "kind": "fn",
+          "startLine": 147,
+          "endLine": 165,
+          "tokens": 193
+        },
+        {
+          "name": "scoutResult",
+          "kind": "class",
+          "startLine": 166,
+          "endLine": 173,
+          "tokens": 80
+        },
+        {
+          "name": "execute",
+          "kind": "fn",
+          "startLine": 174,
+          "endLine": 282,
+          "tokens": 982
+        },
+        {
+          "name": "finish",
+          "kind": "fn",
+          "startLine": 283,
+          "endLine": 308,
+          "tokens": 312
+        },
+        {
+          "name": "commentsFor",
+          "kind": "fn",
+          "startLine": 309,
+          "endLine": 319,
+          "tokens": 91
+        },
+        {
+          "name": "extractJSON",
+          "kind": "fn",
+          "startLine": 320,
+          "endLine": 332,
+          "tokens": 67
+        },
+        {
+          "name": "stampSources",
+          "kind": "fn",
+          "startLine": 333,
+          "endLine": 347,
+          "tokens": 116
+        },
+        {
+          "name": "randHex",
+          "kind": "fn",
+          "startLine": 348,
+          "endLine": 353,
+          "tokens": 30
+        }
+      ]
+    },
+    "internal/deep/scouts.go": {
+      "description": "scoutDef (30 fields)",
+      "tokens": 2158,
+      "hash": "0a14e333457a83ae",
+      "size": 7577,
+      "mtimeMs": 1787796893805.21,
+      "updatedAt": "2026-08-27T13:00:00.044Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "scoutDef",
+          "kind": "class",
+          "startLine": 10,
+          "endLine": 14,
+          "tokens": 22
+        },
+        {
+          "name": "enabledScouts",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 35,
+          "tokens": 212
+        },
+        {
+          "name": "issueContext",
+          "kind": "fn",
+          "startLine": 36,
+          "endLine": 65,
+          "tokens": 344
+        },
+        {
+          "name": "repoPrompt",
+          "kind": "fn",
+          "startLine": 66,
+          "endLine": 78,
+          "tokens": 195
+        },
+        {
+          "name": "githubPrompt",
+          "kind": "fn",
+          "startLine": 79,
+          "endLine": 95,
+          "tokens": 239
+        },
+        {
+          "name": "linearPrompt",
+          "kind": "fn",
+          "startLine": 96,
+          "endLine": 111,
+          "tokens": 234
+        },
+        {
+          "name": "datadogPrompt",
+          "kind": "fn",
+          "startLine": 112,
+          "endLine": 127,
+          "tokens": 235
+        },
+        {
+          "name": "gcloudPrompt",
+          "kind": "fn",
+          "startLine": 128,
+          "endLine": 142,
+          "tokens": 225
+        },
+        {
+          "name": "synthesisPrompt",
+          "kind": "fn",
+          "startLine": 143,
+          "endLine": 164,
+          "tokens": 426
+        }
+      ]
+    },
+    "internal/deep/toolbox.go": {
+      "description": "implements deep AI enrichment: a fanout of read-only scout",
+      "tokens": 2857,
+      "hash": "cc29cd6a2bad77d4",
+      "size": 10002,
+      "mtimeMs": 1787796775773.1816,
+      "updatedAt": "2026-08-27T13:00:00.045Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Toolbox",
+          "kind": "class",
+          "startLine": 27,
+          "endLine": 32,
+          "tokens": 40
+        },
+        {
+          "name": "Availability",
+          "kind": "class",
+          "startLine": 33,
+          "endLine": 40,
+          "tokens": 61
+        },
+        {
+          "name": "SourceAvail",
+          "kind": "class",
+          "startLine": 41,
+          "endLine": 45,
+          "tokens": 29
+        },
+        {
+          "name": "Probe",
+          "kind": "fn",
+          "startLine": 46,
+          "endLine": 85,
+          "tokens": 416
+        },
+        {
+          "name": "expand",
+          "kind": "fn",
+          "startLine": 86,
+          "endLine": 94,
+          "tokens": 59
+        },
+        {
+          "name": "Call",
+          "kind": "fn",
+          "startLine": 95,
+          "endLine": 135,
+          "tokens": 394
+        },
+        {
+          "name": "linearSearch",
+          "kind": "fn",
+          "startLine": 136,
+          "endLine": 171,
+          "tokens": 314
+        },
+        {
+          "name": "linearIssue",
+          "kind": "fn",
+          "startLine": 172,
+          "endLine": 190,
+          "tokens": 190
+        },
+        {
+          "name": "gh",
+          "kind": "fn",
+          "startLine": 191,
+          "endLine": 204,
+          "tokens": 146
+        },
+        {
+          "name": "ddSite",
+          "kind": "fn",
+          "startLine": 205,
+          "endLine": 214,
+          "tokens": 58
+        },
+        {
+          "name": "datadogLogs",
+          "kind": "fn",
+          "startLine": 215,
+          "endLine": 234,
+          "tokens": 191
+        },
+        {
+          "name": "datadogMonitors",
+          "kind": "fn",
+          "startLine": 235,
+          "endLine": 249,
+          "tokens": 239
+        },
+        {
+          "name": "gcloudRun",
+          "kind": "fn",
+          "startLine": 250,
+          "endLine": 279,
+          "tokens": 264
+        },
+        {
+          "name": "doJSON",
+          "kind": "fn",
+          "startLine": 280,
+          "endLine": 296,
+          "tokens": 123
+        },
+        {
+          "name": "firstLine",
+          "kind": "fn",
+          "startLine": 297,
+          "endLine": 304,
+          "tokens": 39
+        },
+        {
+          "name": "truncateStr",
+          "kind": "fn",
+          "startLine": 305,
+          "endLine": 312,
+          "tokens": 50
+        },
+        {
+          "name": "truncateJSON",
+          "kind": "fn",
+          "startLine": 313,
+          "endLine": 320,
+          "tokens": 52
         }
       ]
     },
     "internal/linear/api.go": {
-      "description": "Declares issueFields",
-      "tokens": 1530,
-      "hash": "c4218b6cf8be8762",
-      "size": 5355,
-      "mtimeMs": 1787782680219.6052,
-      "updatedAt": "2026-08-26T22:30:31.417Z",
+      "description": "CustomView (61 fields); methods: Viewer, Teams, WorkflowStates, Labels",
+      "tokens": 1806,
+      "hash": "62c315fb5213e9d5",
+      "size": 6321,
+      "mtimeMs": 1787795274823.3538,
+      "updatedAt": "2026-08-27T13:00:00.046Z",
       "source": "scan",
       "symbols": [
         {
@@ -357,20 +730,34 @@
           "kind": "fn",
           "startLine": 115,
           "endLine": 147,
-          "tokens": 259
+          "tokens": 264
+        },
+        {
+          "name": "CustomView",
+          "kind": "class",
+          "startLine": 148,
+          "endLine": 159,
+          "tokens": 123
+        },
+        {
+          "name": "CustomViews",
+          "kind": "fn",
+          "startLine": 160,
+          "endLine": 175,
+          "tokens": 148
         },
         {
           "name": "IssueComments",
           "kind": "fn",
-          "startLine": 148,
-          "endLine": 166,
+          "startLine": 176,
+          "endLine": 194,
           "tokens": 170
         },
         {
           "name": "UpdateIssue",
           "kind": "fn",
-          "startLine": 167,
-          "endLine": 189,
+          "startLine": 195,
+          "endLine": 217,
           "tokens": 187
         }
       ]
@@ -381,7 +768,7 @@
       "hash": "3ba995a8aa448a47",
       "size": 2484,
       "mtimeMs": 1787782650781.9373,
-      "updatedAt": "2026-08-26T22:30:31.417Z",
+      "updatedAt": "2026-08-27T13:00:00.046Z",
       "source": "scan",
       "symbols": [
         {
@@ -427,7 +814,7 @@
       "hash": "d65a564cf4a46c35",
       "size": 2192,
       "mtimeMs": 1787782680213.8323,
-      "updatedAt": "2026-08-26T22:30:31.418Z",
+      "updatedAt": "2026-08-27T13:00:00.046Z",
       "source": "scan",
       "symbols": [
         {
@@ -502,266 +889,375 @@
         }
       ]
     },
+    "internal/server/deep.go": {
+      "description": "",
+      "tokens": 1777,
+      "hash": "4ee88e1b03b75381",
+      "size": 6218,
+      "mtimeMs": 1787796938093.4407,
+      "updatedAt": "2026-08-27T13:00:00.047Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "handleGetEnrichSettings",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 23,
+          "tokens": 79
+        },
+        {
+          "name": "handlePutEnrichSettings",
+          "kind": "fn",
+          "startLine": 24,
+          "endLine": 44,
+          "tokens": 143
+        },
+        {
+          "name": "handleDeepEnrich",
+          "kind": "fn",
+          "startLine": 45,
+          "endLine": 63,
+          "tokens": 139
+        },
+        {
+          "name": "handleRunGet",
+          "kind": "fn",
+          "startLine": 64,
+          "endLine": 72,
+          "tokens": 59
+        },
+        {
+          "name": "handleIssueLatestRun",
+          "kind": "fn",
+          "startLine": 73,
+          "endLine": 83,
+          "tokens": 111
+        },
+        {
+          "name": "handleRunEvents",
+          "kind": "fn",
+          "startLine": 84,
+          "endLine": 187,
+          "tokens": 626
+        },
+        {
+          "name": "handleRunLog",
+          "kind": "fn",
+          "startLine": 188,
+          "endLine": 205,
+          "tokens": 156
+        },
+        {
+          "name": "handleToolbox",
+          "kind": "fn",
+          "startLine": 206,
+          "endLine": 248,
+          "tokens": 361
+        },
+        {
+          "name": "indexByte",
+          "kind": "fn",
+          "startLine": 249,
+          "endLine": 259,
+          "tokens": 43
+        }
+      ]
+    },
     "internal/server/handlers.go": {
-      "description": "applyRequest (84 fields); methods: PrefetchEnrichments",
-      "tokens": 3069,
-      "hash": "ed705a51cf196bb7",
-      "size": 10740,
-      "mtimeMs": 1787782962418.2524,
-      "updatedAt": "2026-08-26T22:30:31.418Z",
+      "description": "applyRequest (86 fields)",
+      "tokens": 4371,
+      "hash": "46038085271acf4c",
+      "size": 15297,
+      "mtimeMs": 1787795274823.9158,
+      "updatedAt": "2026-08-27T13:00:00.048Z",
       "source": "scan",
       "symbols": [
         {
           "name": "handleMeta",
           "kind": "fn",
-          "startLine": 16,
-          "endLine": 30,
-          "tokens": 98
+          "startLine": 22,
+          "endLine": 38,
+          "tokens": 130
+        },
+        {
+          "name": "parseQueueFilter",
+          "kind": "fn",
+          "startLine": 39,
+          "endLine": 71,
+          "tokens": 216
         },
         {
           "name": "handleQueue",
           "kind": "fn",
-          "startLine": 31,
-          "endLine": 52,
-          "tokens": 186
+          "startLine": 72,
+          "endLine": 93,
+          "tokens": 182
+        },
+        {
+          "name": "handleViews",
+          "kind": "fn",
+          "startLine": 94,
+          "endLine": 127,
+          "tokens": 269
+        },
+        {
+          "name": "handleGetFilter",
+          "kind": "fn",
+          "startLine": 128,
+          "endLine": 142,
+          "tokens": 142
+        },
+        {
+          "name": "handlePutFilter",
+          "kind": "fn",
+          "startLine": 143,
+          "endLine": 172,
+          "tokens": 269
+        },
+        {
+          "name": "handleDeleteFilter",
+          "kind": "fn",
+          "startLine": 173,
+          "endLine": 182,
+          "tokens": 99
+        },
+        {
+          "name": "pushRecentSyncFilter",
+          "kind": "fn",
+          "startLine": 183,
+          "endLine": 202,
+          "tokens": 182
         },
         {
           "name": "handleIssueContext",
           "kind": "fn",
-          "startLine": 53,
-          "endLine": 79,
+          "startLine": 203,
+          "endLine": 229,
           "tokens": 246
         },
         {
           "name": "applyRequest",
           "kind": "class",
-          "startLine": 80,
-          "endLine": 85,
+          "startLine": 230,
+          "endLine": 235,
           "tokens": 39
         },
         {
           "name": "handleApply",
           "kind": "fn",
-          "startLine": 86,
-          "endLine": 108,
+          "startLine": 236,
+          "endLine": 258,
           "tokens": 160
         },
         {
           "name": "handleRunMacro",
           "kind": "fn",
-          "startLine": 109,
-          "endLine": 136,
+          "startLine": 259,
+          "endLine": 286,
           "tokens": 207
         },
         {
           "name": "handleSkip",
           "kind": "fn",
-          "startLine": 137,
-          "endLine": 161,
+          "startLine": 287,
+          "endLine": 311,
           "tokens": 198
         },
         {
           "name": "handleSnooze",
           "kind": "fn",
-          "startLine": 162,
-          "endLine": 190,
+          "startLine": 312,
+          "endLine": 340,
           "tokens": 237
         },
         {
           "name": "handleEnrich",
           "kind": "fn",
-          "startLine": 191,
-          "endLine": 231,
-          "tokens": 283
+          "startLine": 341,
+          "endLine": 384,
+          "tokens": 328
         },
         {
           "name": "commentsText",
           "kind": "fn",
-          "startLine": 232,
-          "endLine": 270,
+          "startLine": 385,
+          "endLine": 423,
           "tokens": 292
         },
         {
           "name": "handleUndo",
           "kind": "fn",
-          "startLine": 271,
-          "endLine": 293,
+          "startLine": 424,
+          "endLine": 446,
           "tokens": 156
         },
         {
           "name": "handleListMacros",
           "kind": "fn",
-          "startLine": 294,
-          "endLine": 302,
+          "startLine": 447,
+          "endLine": 455,
           "tokens": 64
         },
         {
           "name": "handleCreateMacro",
           "kind": "fn",
-          "startLine": 303,
-          "endLine": 320,
+          "startLine": 456,
+          "endLine": 473,
           "tokens": 108
         },
         {
           "name": "handleUpdateMacro",
           "kind": "fn",
-          "startLine": 321,
-          "endLine": 343,
+          "startLine": 474,
+          "endLine": 496,
           "tokens": 138
         },
         {
           "name": "handleDeleteMacro",
           "kind": "fn",
-          "startLine": 344,
-          "endLine": 356,
+          "startLine": 497,
+          "endLine": 509,
           "tokens": 92
         },
         {
           "name": "validateMacro",
           "kind": "fn",
-          "startLine": 357,
-          "endLine": 371,
+          "startLine": 510,
+          "endLine": 524,
           "tokens": 110
         },
         {
           "name": "handleReport",
           "kind": "fn",
-          "startLine": 372,
-          "endLine": 380,
+          "startLine": 525,
+          "endLine": 533,
           "tokens": 52
         },
         {
           "name": "handleSyncStatus",
           "kind": "fn",
-          "startLine": 381,
-          "endLine": 384,
+          "startLine": 534,
+          "endLine": 537,
           "tokens": 34
         },
         {
           "name": "handleSyncRefresh",
           "kind": "fn",
-          "startLine": 385,
-          "endLine": 391,
+          "startLine": 538,
+          "endLine": 544,
           "tokens": 82
         },
         {
           "name": "PrefetchEnrichments",
           "kind": "fn",
-          "startLine": 392,
-          "endLine": 433,
+          "startLine": 545,
+          "endLine": 586,
           "tokens": 241
         }
       ]
     },
     "internal/server/ops.go": {
-      "description": "Declares Op",
-      "tokens": 2030,
-      "hash": "a76fc9f5bcc69ae1",
-      "size": 7106,
-      "mtimeMs": 1787782902778.606,
-      "updatedAt": "2026-08-26T22:30:31.419Z",
+      "description": "ref (76 fields)",
+      "tokens": 2101,
+      "hash": "f1b2481a28708764",
+      "size": 7354,
+      "mtimeMs": 1787797242742.9744,
+      "updatedAt": "2026-08-27T13:00:00.049Z",
       "source": "scan",
       "symbols": [
         {
           "name": "resolveOps",
           "kind": "fn",
           "startLine": 18,
-          "endLine": 134,
-          "tokens": 921
-        },
-        {
-          "name": "labelDisplay",
-          "kind": "fn",
-          "startLine": 135,
-          "endLine": 142,
-          "tokens": 47
+          "endLine": 147,
+          "tokens": 1039
         },
         {
           "name": "prevSnapshot",
           "kind": "fn",
-          "startLine": 143,
-          "endLine": 149,
+          "startLine": 148,
+          "endLine": 154,
           "tokens": 71
         },
         {
           "name": "applyOps",
           "kind": "fn",
-          "startLine": 150,
-          "endLine": 192,
+          "startLine": 155,
+          "endLine": 197,
           "tokens": 416
         },
         {
           "name": "undoActivity",
           "kind": "fn",
-          "startLine": 193,
-          "endLine": 253,
+          "startLine": 198,
+          "endLine": 258,
           "tokens": 451
         }
       ]
     },
     "internal/server/server.go": {
       "description": "exposes the local HTTP API and serves the embedded web UI.",
-      "tokens": 901,
-      "hash": "569714b390a7404e",
-      "size": 3152,
-      "mtimeMs": 1787782962414.902,
-      "updatedAt": "2026-08-26T22:30:31.419Z",
+      "tokens": 1185,
+      "hash": "cd56de57d779de89",
+      "size": 4146,
+      "mtimeMs": 1787796938113.4988,
+      "updatedAt": "2026-08-27T13:00:00.049Z",
       "source": "scan",
       "symbols": [
         {
           "name": "Server",
           "kind": "class",
-          "startLine": 19,
-          "endLine": 29,
-          "tokens": 77
+          "startLine": 21,
+          "endLine": 35,
+          "tokens": 116
         },
         {
           "name": "New",
           "kind": "fn",
-          "startLine": 30,
-          "endLine": 33,
-          "tokens": 54
+          "startLine": 36,
+          "endLine": 39,
+          "tokens": 65
         },
         {
           "name": "Handler",
           "kind": "fn",
-          "startLine": 34,
-          "endLine": 57,
-          "tokens": 350
+          "startLine": 40,
+          "endLine": 75,
+          "tokens": 567
         },
         {
           "name": "spaHandler",
           "kind": "fn",
-          "startLine": 58,
-          "endLine": 75,
+          "startLine": 76,
+          "endLine": 93,
           "tokens": 121
         },
         {
           "name": "writeJSON",
           "kind": "fn",
-          "startLine": 76,
-          "endLine": 83,
+          "startLine": 94,
+          "endLine": 101,
           "tokens": 65
         },
         {
           "name": "writeErr",
           "kind": "fn",
-          "startLine": 84,
-          "endLine": 87,
+          "startLine": 102,
+          "endLine": 105,
           "tokens": 36
         },
         {
           "name": "decodeBody",
           "kind": "fn",
-          "startLine": 88,
-          "endLine": 95,
+          "startLine": 106,
+          "endLine": 113,
           "tokens": 68
         },
         {
           "name": "bgCtx",
           "kind": "fn",
-          "startLine": 96,
-          "endLine": 97,
+          "startLine": 114,
+          "endLine": 115,
           "tokens": 18
         }
       ]
@@ -772,7 +1268,7 @@
       "hash": "7296d8e9fbf1978d",
       "size": 4585,
       "mtimeMs": 1787782813412.6218,
-      "updatedAt": "2026-08-26T22:30:31.420Z",
+      "updatedAt": "2026-08-27T13:00:00.050Z",
       "source": "scan",
       "symbols": [
         {
@@ -806,21 +1302,141 @@
       ]
     },
     "internal/store/enrichments.go": {
-      "description": "",
-      "tokens": 378,
-      "hash": "787591488899be60",
-      "size": 1323,
-      "mtimeMs": 1787782813415.651,
-      "updatedAt": "2026-08-26T22:30:31.420Z",
+      "description": "IssueContentHash",
+      "tokens": 706,
+      "hash": "d623bfa80deb0cc5",
+      "size": 2468,
+      "mtimeMs": 1787798277258.5037,
+      "updatedAt": "2026-08-27T13:00:00.050Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "IssueContentHash",
+          "kind": "fn",
+          "startLine": 13,
+          "endLine": 19,
+          "tokens": 78
+        },
+        {
+          "name": "SaveEnrichment",
+          "kind": "fn",
+          "startLine": 20,
+          "endLine": 33,
+          "tokens": 200
+        },
+        {
+          "name": "GetEnrichment",
+          "kind": "fn",
+          "startLine": 34,
+          "endLine": 59,
+          "tokens": 282
+        },
+        {
+          "name": "AttachEnrichments",
+          "kind": "fn",
+          "startLine": 60,
+          "endLine": 70,
+          "tokens": 58
+        }
+      ]
+    },
+    "internal/store/enrichruns.go": {
+      "description": "EnrichRun (46 fields); methods: CreateEnrichRun, FinishEnrichRun, GetEnrichRun, LatestRunForIssue",
+      "tokens": 1188,
+      "hash": "74a1acd2e4b71d45",
+      "size": 4157,
+      "mtimeMs": 1787797322684.5728,
+      "updatedAt": "2026-08-27T13:00:00.051Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "EnrichRun",
+          "kind": "class",
+          "startLine": 8,
+          "endLine": 20,
+          "tokens": 137
+        },
+        {
+          "name": "EnrichEvent",
+          "kind": "class",
+          "startLine": 21,
+          "endLine": 30,
+          "tokens": 86
+        },
+        {
+          "name": "CreateEnrichRun",
+          "kind": "fn",
+          "startLine": 31,
+          "endLine": 37,
+          "tokens": 86
+        },
+        {
+          "name": "FinishEnrichRun",
+          "kind": "fn",
+          "startLine": 38,
+          "endLine": 43,
+          "tokens": 72
+        },
+        {
+          "name": "GetEnrichRun",
+          "kind": "fn",
+          "startLine": 44,
+          "endLine": 57,
+          "tokens": 194
+        },
+        {
+          "name": "LatestRunForIssue",
+          "kind": "fn",
+          "startLine": 58,
+          "endLine": 66,
+          "tokens": 84
+        },
+        {
+          "name": "AppendEnrichEvent",
+          "kind": "fn",
+          "startLine": 67,
+          "endLine": 73,
+          "tokens": 105
+        },
+        {
+          "name": "EnrichEvents",
+          "kind": "fn",
+          "startLine": 74,
+          "endLine": 95,
+          "tokens": 216
+        },
+        {
+          "name": "SaveEnrichmentReport",
+          "kind": "fn",
+          "startLine": 96,
+          "endLine": 104,
+          "tokens": 115
+        },
+        {
+          "name": "FailOrphanRuns",
+          "kind": "fn",
+          "startLine": 105,
+          "endLine": 113,
+          "tokens": 78
+        }
+      ]
+    },
+    "internal/store/enrichsettings.go": {
+      "description": "EnrichSettings gates deep enrichment. Every source is read-only by",
+      "tokens": 341,
+      "hash": "2613fc88afb1471e",
+      "size": 1192,
+      "mtimeMs": 1787796687784.9814,
+      "updatedAt": "2026-08-27T13:00:00.051Z",
       "source": "scan"
     },
     "internal/store/issues.go": {
       "description": "Declares issueCols",
-      "tokens": 2209,
-      "hash": "1efa8b5a5a8360a0",
-      "size": 7729,
-      "mtimeMs": 1787782754710.399,
-      "updatedAt": "2026-08-26T22:30:31.420Z",
+      "tokens": 2253,
+      "hash": "274315827c11c622",
+      "size": 7884,
+      "mtimeMs": 1787789869327.1116,
+      "updatedAt": "2026-08-27T13:00:00.052Z",
       "source": "scan",
       "symbols": [
         {
@@ -849,28 +1465,28 @@
           "kind": "fn",
           "startLine": 52,
           "endLine": 72,
-          "tokens": 282
+          "tokens": 290
         },
         {
           "name": "Queue",
           "kind": "fn",
           "startLine": 73,
-          "endLine": 109,
-          "tokens": 252
+          "endLine": 108,
+          "tokens": 248
         },
         {
           "name": "GetIssue",
           "kind": "fn",
-          "startLine": 110,
+          "startLine": 109,
           "endLine": 116,
-          "tokens": 73
+          "tokens": 83
         },
         {
           "name": "QueueCount",
           "kind": "fn",
           "startLine": 117,
           "endLine": 128,
-          "tokens": 82
+          "tokens": 94
         },
         {
           "name": "MarkSkipped",
@@ -932,8 +1548,8 @@
           "name": "TeamCounts",
           "kind": "fn",
           "startLine": 208,
-          "endLine": 228,
-          "tokens": 126
+          "endLine": 229,
+          "tokens": 143
         }
       ]
     },
@@ -943,16 +1559,16 @@
       "hash": "6274e69169c8a186",
       "size": 1708,
       "mtimeMs": 1787782813409.4856,
-      "updatedAt": "2026-08-26T22:30:31.421Z",
+      "updatedAt": "2026-08-27T13:00:00.052Z",
       "source": "scan"
     },
     "internal/store/metadata.go": {
       "description": "Replace-all upserts for workspace metadata. Each runs in the caller's sync",
       "tokens": 1457,
-      "hash": "d51f00321acfa703",
-      "size": 5097,
-      "mtimeMs": 1787782813405.526,
-      "updatedAt": "2026-08-26T22:30:31.421Z",
+      "hash": "e3fb1fd1745007c4",
+      "size": 5098,
+      "mtimeMs": 1787784741243.277,
+      "updatedAt": "2026-08-27T13:00:00.052Z",
       "source": "scan",
       "symbols": [
         {
@@ -1057,64 +1673,103 @@
     },
     "internal/store/models.go": {
       "description": "View models served to the frontend.",
-      "tokens": 886,
-      "hash": "48534c143032926b",
-      "size": 3101,
-      "mtimeMs": 1787782754705.841,
-      "updatedAt": "2026-08-26T22:30:31.421Z",
+      "tokens": 1016,
+      "hash": "f03841a8d4444b1b",
+      "size": 3557,
+      "mtimeMs": 1787798277258.1257,
+      "updatedAt": "2026-08-27T13:00:00.053Z",
       "source": "scan",
       "symbols": [
         {
           "name": "LabelChip",
           "kind": "class",
-          "startLine": 5,
-          "endLine": 10,
+          "startLine": 7,
+          "endLine": 12,
           "tokens": 32
         },
         {
           "name": "IssueRow",
           "kind": "class",
-          "startLine": 11,
-          "endLine": 33,
+          "startLine": 13,
+          "endLine": 35,
           "tokens": 262
         },
         {
           "name": "Enrichment",
           "kind": "class",
-          "startLine": 34,
-          "endLine": 43,
-          "tokens": 86
+          "startLine": 36,
+          "endLine": 49,
+          "tokens": 182
         },
         {
           "name": "Macro",
           "kind": "class",
-          "startLine": 44,
-          "endLine": 55,
+          "startLine": 50,
+          "endLine": 61,
           "tokens": 133
         },
         {
           "name": "MacroStep",
           "kind": "class",
-          "startLine": 56,
-          "endLine": 69,
-          "tokens": 219
+          "startLine": 62,
+          "endLine": 76,
+          "tokens": 247
         },
         {
           "name": "Activity",
           "kind": "class",
-          "startLine": 70,
-          "endLine": 83,
+          "startLine": 77,
+          "endLine": 90,
           "tokens": 139
+        }
+      ]
+    },
+    "internal/store/queuefilter.go": {
+      "description": "QueueFilter (19 fields); methods: Empty",
+      "tokens": 646,
+      "hash": "c6ebe1ac529c54c0",
+      "size": 2258,
+      "mtimeMs": 1787789869301.5745,
+      "updatedAt": "2026-08-27T13:00:00.053Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "QueueFilter",
+          "kind": "class",
+          "startLine": 10,
+          "endLine": 18,
+          "tokens": 87
+        },
+        {
+          "name": "Empty",
+          "kind": "fn",
+          "startLine": 19,
+          "endLine": 23,
+          "tokens": 60
+        },
+        {
+          "name": "placeholders",
+          "kind": "fn",
+          "startLine": 24,
+          "endLine": 28,
+          "tokens": 43
+        },
+        {
+          "name": "where",
+          "kind": "fn",
+          "startLine": 29,
+          "endLine": 71,
+          "tokens": 399
         }
       ]
     },
     "internal/store/store.go": {
       "description": "owns the local sqlite database: the issue index, skip/snooze",
-      "tokens": 1166,
-      "hash": "783da63dc789686c",
-      "size": 4079,
-      "mtimeMs": 1787782706219.1746,
-      "updatedAt": "2026-08-26T22:30:31.422Z",
+      "tokens": 1554,
+      "hash": "0ce72a10c1d8be82",
+      "size": 5436,
+      "mtimeMs": 1787798277257.7307,
+      "updatedAt": "2026-08-27T13:00:00.053Z",
       "source": "scan",
       "symbols": [
         {
@@ -1142,140 +1797,181 @@
           "name": "migrate",
           "kind": "fn",
           "startLine": 40,
-          "endLine": 122,
-          "tokens": 715
+          "endLine": 153,
+          "tokens": 1103
         },
         {
           "name": "now",
           "kind": "fn",
-          "startLine": 123,
-          "endLine": 126,
+          "startLine": 154,
+          "endLine": 157,
           "tokens": 24
         },
         {
           "name": "SetMeta",
           "kind": "fn",
-          "startLine": 127,
-          "endLine": 132,
+          "startLine": 158,
+          "endLine": 163,
           "tokens": 58
         },
         {
           "name": "GetMeta",
           "kind": "fn",
-          "startLine": 133,
-          "endLine": 142,
+          "startLine": 164,
+          "endLine": 173,
           "tokens": 65
         },
         {
           "name": "mustJSON",
           "kind": "fn",
-          "startLine": 143,
-          "endLine": 150,
+          "startLine": 174,
+          "endLine": 181,
           "tokens": 33
         },
         {
           "name": "errRow",
           "kind": "fn",
-          "startLine": 151,
-          "endLine": 157,
+          "startLine": 182,
+          "endLine": 188,
           "tokens": 31
         }
       ]
     },
     "internal/syncer/syncer.go": {
       "description": "indexes Linear metadata and untriaged issues into sqlite in",
-      "tokens": 1958,
-      "hash": "c386c7fc6cb62828",
-      "size": 6852,
-      "mtimeMs": 1787782867922.3877,
-      "updatedAt": "2026-08-26T22:30:31.422Z",
+      "tokens": 2305,
+      "hash": "2fda9bc86b999087",
+      "size": 8069,
+      "mtimeMs": 1787790415300.8313,
+      "updatedAt": "2026-08-27T13:00:00.054Z",
       "source": "scan",
       "symbols": [
         {
           "name": "Status",
           "kind": "class",
-          "startLine": 17,
-          "endLine": 24,
-          "tokens": 76
+          "startLine": 18,
+          "endLine": 28,
+          "tokens": 126
         },
         {
           "name": "Syncer",
           "kind": "class",
-          "startLine": 25,
-          "endLine": 37,
+          "startLine": 29,
+          "endLine": 41,
           "tokens": 60
         },
         {
           "name": "New",
           "kind": "fn",
-          "startLine": 38,
-          "endLine": 46,
+          "startLine": 42,
+          "endLine": 50,
           "tokens": 98
         },
         {
           "name": "Run",
           "kind": "fn",
-          "startLine": 47,
-          "endLine": 63,
+          "startLine": 51,
+          "endLine": 67,
           "tokens": 86
         },
         {
           "name": "Kick",
           "kind": "fn",
-          "startLine": 64,
-          "endLine": 70,
+          "startLine": 68,
+          "endLine": 74,
           "tokens": 23
         },
         {
           "name": "Status",
           "kind": "fn",
-          "startLine": 71,
-          "endLine": 92,
-          "tokens": 153
+          "startLine": 75,
+          "endLine": 101,
+          "tokens": 244
+        },
+        {
+          "name": "ActiveFilter",
+          "kind": "fn",
+          "startLine": 102,
+          "endLine": 112,
+          "tokens": 87
+        },
+        {
+          "name": "DefaultFilter",
+          "kind": "fn",
+          "startLine": 113,
+          "endLine": 114,
+          "tokens": 20
         },
         {
           "name": "doSync",
           "kind": "fn",
-          "startLine": 93,
-          "endLine": 112,
+          "startLine": 115,
+          "endLine": 134,
           "tokens": 90
         },
         {
           "name": "syncOnce",
           "kind": "fn",
-          "startLine": 113,
-          "endLine": 242,
-          "tokens": 938
+          "startLine": 135,
+          "endLine": 272,
+          "tokens": 1024
         },
         {
           "name": "refID",
           "kind": "fn",
-          "startLine": 243,
-          "endLine": 250,
+          "startLine": 273,
+          "endLine": 280,
           "tokens": 40
         },
         {
           "name": "toRow",
           "kind": "fn",
-          "startLine": 251,
-          "endLine": 278,
-          "tokens": 224
+          "startLine": 281,
+          "endLine": 309,
+          "tokens": 233
         },
         {
           "name": "ToRow",
           "kind": "fn",
-          "startLine": 279,
-          "endLine": 280,
+          "startLine": 310,
+          "endLine": 311,
           "tokens": 19
         },
         {
           "name": "creatorName",
           "kind": "fn",
-          "startLine": 281,
-          "endLine": 290,
+          "startLine": 312,
+          "endLine": 321,
           "tokens": 51
         }
       ]
+    },
+    "Makefile": {
+      "description": "Make build targets",
+      "tokens": 130,
+      "hash": "ef311da0f60d051d",
+      "size": 486,
+      "mtimeMs": 1787784065924.7012,
+      "updatedAt": "2026-08-27T13:00:00.054Z",
+      "source": "scan"
+    },
+    "rapid-triage.example.yaml": {
+      "description": "Rapid Triage configuration. Copy to ./rapid-triage.yaml or",
+      "tokens": 311,
+      "hash": "605d9de594110014",
+      "size": 1089,
+      "mtimeMs": 1787784467377.4277,
+      "updatedAt": "2026-08-27T13:00:00.054Z",
+      "source": "scan"
+    },
+    "README.md": {
+      "description": "Project documentation",
+      "tokens": 686,
+      "hash": "bedd558cf1709107",
+      "size": 2770,
+      "mtimeMs": 1787784086041.2944,
+      "updatedAt": "2026-08-27T13:00:00.055Z",
+      "source": "scan"
     },
     "web/index.html": {
       "description": "Rapid Triage",
@@ -1283,26 +1979,295 @@
       "hash": "fd1c04b2eadc064d",
       "size": 299,
       "mtimeMs": 1787783151761.0964,
-      "updatedAt": "2026-08-26T22:30:31.422Z",
+      "updatedAt": "2026-08-27T13:00:00.056Z",
       "source": "scan"
     },
     "web/package-lock.json": {
       "description": "npm lock file",
-      "tokens": 23887,
-      "hash": "2d2afccecbef9476",
-      "size": 83603,
-      "mtimeMs": 1787783313687.05,
-      "updatedAt": "2026-08-26T22:30:31.423Z",
+      "tokens": 28240,
+      "hash": "ee58514bee84d465",
+      "size": 98839,
+      "mtimeMs": 1787785201021.5117,
+      "updatedAt": "2026-08-27T13:00:00.057Z",
       "source": "scan"
     },
     "web/package.json": {
       "description": "Node.js package manifest",
-      "tokens": 186,
-      "hash": "e049a44d9a3f4973",
-      "size": 649,
-      "mtimeMs": 1787783313675.7375,
-      "updatedAt": "2026-08-26T22:30:31.423Z",
+      "tokens": 192,
+      "hash": "65f3bd4520e45b75",
+      "size": 672,
+      "mtimeMs": 1787785201005.7063,
+      "updatedAt": "2026-08-27T13:00:00.057Z",
       "source": "scan"
+    },
+    "web/src/App.tsx": {
+      "description": "Hash-based page switch (triage | macros | reports) — no router dependency,",
+      "tokens": 400,
+      "hash": "7fb6ab76051a3598",
+      "size": 1402,
+      "mtimeMs": 1787797160093.7605,
+      "updatedAt": "2026-08-27T13:00:00.058Z",
+      "source": "scan"
+    },
+    "web/src/components/Markdown.tsx": {
+      "description": "Tiny dependency-free markdown renderer covering what Linear descriptions",
+      "tokens": 1853,
+      "hash": "b8731c13f8805d66",
+      "size": 6487,
+      "mtimeMs": 1787785302748.755,
+      "updatedAt": "2026-08-27T13:00:00.058Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "inline",
+          "kind": "fn",
+          "startLine": 6,
+          "endLine": 51,
+          "tokens": 406
+        },
+        {
+          "name": "Markdown",
+          "kind": "fn",
+          "startLine": 52,
+          "endLine": 207,
+          "tokens": 1374
+        }
+      ]
+    },
+    "web/src/components/PriorityIcon.tsx": {
+      "description": "Linear priorities: 0 none, 1 urgent, 2 high, 3 medium, 4 low.",
+      "tokens": 282,
+      "hash": "fbadc139c0cf65c3",
+      "size": 986,
+      "mtimeMs": 1787783460174.1384,
+      "updatedAt": "2026-08-27T13:00:00.058Z",
+      "source": "scan"
+    },
+    "web/src/components/triage/ActionBar.tsx": {
+      "description": "OUTCOME_VARIANT",
+      "tokens": 618,
+      "hash": "f5a2072ff93030a0",
+      "size": 2164,
+      "mtimeMs": 1787798070222.6584,
+      "updatedAt": "2026-08-27T13:00:00.059Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "ActionBar",
+          "kind": "fn",
+          "startLine": 14,
+          "endLine": 56,
+          "tokens": 503
+        }
+      ]
+    },
+    "web/src/components/triage/Confetti.tsx": {
+      "description": "TONES — renders chart — uses useState, useEffect",
+      "tokens": 384,
+      "hash": "74890a6ceaf64bd3",
+      "size": 1345,
+      "mtimeMs": 1787783520478.738,
+      "updatedAt": "2026-08-27T13:00:00.059Z",
+      "source": "scan"
+    },
+    "web/src/components/triage/DeepPanel.tsx": {
+      "description": "Deep enrichment UI: live per-scout progress + Claude-Code-style thinking",
+      "tokens": 4980,
+      "hash": "08a81fd5c7ef710c",
+      "size": 17448,
+      "mtimeMs": 1787798305311.636,
+      "updatedAt": "2026-08-27T13:00:00.059Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "useEnrichRun",
+          "kind": "fn",
+          "startLine": 35,
+          "endLine": 71,
+          "tokens": 313
+        },
+        {
+          "name": "LiveRun",
+          "kind": "fn",
+          "startLine": 72,
+          "endLine": 143,
+          "tokens": 883
+        },
+        {
+          "name": "FeedLine",
+          "kind": "fn",
+          "startLine": 144,
+          "endLine": 187,
+          "tokens": 513
+        },
+        {
+          "name": "summarizeInput",
+          "kind": "fn",
+          "startLine": 188,
+          "endLine": 221,
+          "tokens": 402
+        },
+        {
+          "name": "ReportView",
+          "kind": "fn",
+          "startLine": 222,
+          "endLine": 375,
+          "tokens": 1851
+        },
+        {
+          "name": "ELink",
+          "kind": "fn",
+          "startLine": 376,
+          "endLine": 387,
+          "tokens": 137
+        },
+        {
+          "name": "ActionLogDialog",
+          "kind": "fn",
+          "startLine": 388,
+          "endLine": 441,
+          "tokens": 632
+        }
+      ]
+    },
+    "web/src/components/triage/FilterPanel.tsx": {
+      "description": "Queue-source panel: pick a saved Linear view (its filter becomes the index",
+      "tokens": 2825,
+      "hash": "393a2bb4baab0365",
+      "size": 9911,
+      "mtimeMs": 1787795775947.5562,
+      "updatedAt": "2026-08-27T13:00:00.060Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "decodeLinearFilterURL",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 32,
+          "tokens": 244
+        },
+        {
+          "name": "ViewsColumn",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 98,
+          "tokens": 756
+        },
+        {
+          "name": "IndexFilterEditor",
+          "kind": "fn",
+          "startLine": 99,
+          "endLine": 222,
+          "tokens": 1313
+        },
+        {
+          "name": "FilterPanel",
+          "kind": "fn",
+          "startLine": 223,
+          "endLine": 258,
+          "tokens": 314
+        }
+      ]
+    },
+    "web/src/components/triage/HelpOverlay.tsx": {
+      "description": "SHORTCUTS — renders modal",
+      "tokens": 482,
+      "hash": "3bdced617d6a6076",
+      "size": 1692,
+      "mtimeMs": 1787783520474.465,
+      "updatedAt": "2026-08-27T13:00:00.060Z",
+      "source": "scan"
+    },
+    "web/src/components/triage/IssueCard.tsx": {
+      "description": "VERDICT_META — uses useState, useEffect",
+      "tokens": 4333,
+      "hash": "0c23dc15efb92e71",
+      "size": 15172,
+      "mtimeMs": 1787798305312.264,
+      "updatedAt": "2026-08-27T13:00:00.061Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "AIPanel",
+          "kind": "fn",
+          "startLine": 43,
+          "endLine": 176,
+          "tokens": 1388
+        },
+        {
+          "name": "Comments",
+          "kind": "fn",
+          "startLine": 177,
+          "endLine": 229,
+          "tokens": 610
+        },
+        {
+          "name": "Description",
+          "kind": "fn",
+          "startLine": 230,
+          "endLine": 292,
+          "tokens": 537
+        },
+        {
+          "name": "IssueCard",
+          "kind": "fn",
+          "startLine": 293,
+          "endLine": 422,
+          "tokens": 1391
+        }
+      ]
+    },
+    "web/src/components/triage/QuickEditRow.tsx": {
+      "description": "Quick edit: fast keyboard pickers that apply single-field ops to the",
+      "tokens": 1811,
+      "hash": "f25906a0ae3d53ca",
+      "size": 6344,
+      "mtimeMs": 1787798121246.3552,
+      "updatedAt": "2026-08-27T13:00:00.061Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "QuickEditRow",
+          "kind": "fn",
+          "startLine": 23,
+          "endLine": 178,
+          "tokens": 1485
+        }
+      ]
+    },
+    "web/src/components/triage/ShortcutBar.tsx": {
+      "description": "ITEMS",
+      "tokens": 335,
+      "hash": "f7547234066e7526",
+      "size": 1178,
+      "mtimeMs": 1787783520470.6687,
+      "updatedAt": "2026-08-27T13:00:00.061Z",
+      "source": "scan"
+    },
+    "web/src/components/triage/TopBar.tsx": {
+      "description": "SyncPill — renders chart — uses useState",
+      "tokens": 1506,
+      "hash": "c9a4ca0a4170efa9",
+      "size": 5277,
+      "mtimeMs": 1787797160094.3735,
+      "updatedAt": "2026-08-27T13:00:00.061Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "SyncPill",
+          "kind": "fn",
+          "startLine": 9,
+          "endLine": 50,
+          "tokens": 516
+        },
+        {
+          "name": "TopBar",
+          "kind": "fn",
+          "startLine": 51,
+          "endLine": 125,
+          "tokens": 882
+        }
+      ]
     },
     "web/src/components/ui/button.tsx": {
       "description": "buttonVariants",
@@ -1310,7 +2275,7 @@
       "hash": "c7d76a398703d965",
       "size": 2039,
       "mtimeMs": 1787783313707.3127,
-      "updatedAt": "2026-08-26T22:30:31.424Z",
+      "updatedAt": "2026-08-27T13:00:00.062Z",
       "source": "scan",
       "symbols": [
         {
@@ -1324,35 +2289,44 @@
     },
     "web/src/components/ui/dialog.tsx": {
       "description": "Dialog — uses useEffect",
-      "tokens": 464,
-      "hash": "d310a9ef4a9502bb",
-      "size": 1622,
-      "mtimeMs": 1787783313710.8794,
-      "updatedAt": "2026-08-26T22:30:31.424Z",
-      "source": "scan"
+      "tokens": 567,
+      "hash": "44b98c250998e042",
+      "size": 1984,
+      "mtimeMs": 1787797400155.2866,
+      "updatedAt": "2026-08-27T13:00:00.062Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Dialog",
+          "kind": "fn",
+          "startLine": 6,
+          "endLine": 66,
+          "tokens": 521
+        }
+      ]
     },
     "web/src/components/ui/picker.tsx": {
       "description": "Keyboard-first fuzzy picker popover: input on top, arrow-navigable list,",
-      "tokens": 1259,
-      "hash": "26f100721dacd752",
-      "size": 4409,
-      "mtimeMs": 1787783313714.2004,
-      "updatedAt": "2026-08-26T22:30:31.425Z",
+      "tokens": 1285,
+      "hash": "bed0b4db4d44ff47",
+      "size": 4500,
+      "mtimeMs": 1787797400155.0898,
+      "updatedAt": "2026-08-27T13:00:00.062Z",
       "source": "scan",
       "symbols": [
         {
           "name": "PickerOption",
           "kind": "section",
-          "startLine": 7,
-          "endLine": 15,
+          "startLine": 8,
+          "endLine": 16,
           "tokens": 41
         },
         {
           "name": "Picker",
           "kind": "fn",
-          "startLine": 16,
-          "endLine": 133,
-          "tokens": 1135
+          "startLine": 17,
+          "endLine": 135,
+          "tokens": 1149
         }
       ]
     },
@@ -1362,7 +2336,7 @@
       "hash": "af813d7710165890",
       "size": 837,
       "mtimeMs": 1787783313722.7993,
-      "updatedAt": "2026-08-26T22:30:31.425Z",
+      "updatedAt": "2026-08-27T13:00:00.063Z",
       "source": "scan"
     },
     "web/src/components/ui/toast.tsx": {
@@ -1371,7 +2345,7 @@
       "hash": "eced6765db1355f8",
       "size": 2107,
       "mtimeMs": 1787783313718.581,
-      "updatedAt": "2026-08-26T22:30:31.426Z",
+      "updatedAt": "2026-08-27T13:00:00.063Z",
       "source": "scan",
       "symbols": [
         {
@@ -1406,11 +2380,11 @@
     },
     "web/src/lib/api.ts": {
       "description": "Thin fetch wrapper over the local Go API.",
-      "tokens": 782,
-      "hash": "b898b1ad4d70320a",
-      "size": 2737,
-      "mtimeMs": 1787783151775.493,
-      "updatedAt": "2026-08-26T22:30:31.426Z",
+      "tokens": 1163,
+      "hash": "110a06d3319367c2",
+      "size": 4068,
+      "mtimeMs": 1787797003672.1997,
+      "updatedAt": "2026-08-27T13:00:00.063Z",
       "source": "scan",
       "symbols": [
         {
@@ -1424,8 +2398,8 @@
           "name": "req",
           "kind": "fn",
           "startLine": 10,
-          "endLine": 65,
-          "tokens": 709
+          "endLine": 81,
+          "tokens": 1064
         }
       ]
     },
@@ -1435,16 +2409,25 @@
       "hash": "bf23b3458ef41410",
       "size": 524,
       "mtimeMs": 1787783361433.4746,
-      "updatedAt": "2026-08-26T22:30:31.426Z",
+      "updatedAt": "2026-08-27T13:00:00.064Z",
+      "source": "scan"
+    },
+    "web/src/lib/enrichmode.ts": {
+      "description": "Tiny module-level cache of enrichment settings so every card doesn't",
+      "tokens": 180,
+      "hash": "e66af5117e8840a0",
+      "size": 627,
+      "mtimeMs": 1787797118256.1514,
+      "updatedAt": "2026-08-27T13:00:00.064Z",
       "source": "scan"
     },
     "web/src/lib/store.tsx": {
       "description": "Global app state: metadata, macro list, the card deck, and every triage",
-      "tokens": 3589,
-      "hash": "836e456d02cd230a",
-      "size": 12564,
-      "mtimeMs": 1787783422071.957,
-      "updatedAt": "2026-08-26T22:30:31.427Z",
+      "tokens": 3763,
+      "hash": "d71c56d36cfea40c",
+      "size": 13174,
+      "mtimeMs": 1787797160092.2778,
+      "updatedAt": "2026-08-27T13:00:00.064Z",
       "source": "scan",
       "symbols": [
         {
@@ -1458,22 +2441,22 @@
           "name": "TriageCtx",
           "kind": "section",
           "startLine": 28,
-          "endLine": 63,
-          "tokens": 215
+          "endLine": 64,
+          "tokens": 235
         },
         {
           "name": "useTriage",
           "kind": "fn",
-          "startLine": 64,
-          "endLine": 72,
+          "startLine": 65,
+          "endLine": 73,
           "tokens": 52
         },
         {
           "name": "TriageProvider",
           "kind": "fn",
-          "startLine": 73,
-          "endLine": 386,
-          "tokens": 3106
+          "startLine": 74,
+          "endLine": 404,
+          "tokens": 3244
         }
       ]
     },
@@ -1483,16 +2466,16 @@
       "hash": "1dfe906cf473729e",
       "size": 1166,
       "mtimeMs": 1787783361430.237,
-      "updatedAt": "2026-08-26T22:30:31.427Z",
+      "updatedAt": "2026-08-27T13:00:00.065Z",
       "source": "scan"
     },
     "web/src/lib/types.ts": {
       "description": "Shared types mirroring the Go server's JSON payloads.",
-      "tokens": 855,
-      "hash": "d6013f6d01d63205",
-      "size": 2992,
-      "mtimeMs": 1787783151772.2917,
-      "updatedAt": "2026-08-26T22:30:31.427Z",
+      "tokens": 1575,
+      "hash": "635a10e1b3096a6e",
+      "size": 5511,
+      "mtimeMs": 1787798305311.0288,
+      "updatedAt": "2026-08-27T13:00:00.065Z",
       "source": "scan",
       "symbols": [
         {
@@ -1506,106 +2489,176 @@
           "name": "Enrichment",
           "kind": "section",
           "startLine": 9,
-          "endLine": 18,
-          "tokens": 72
+          "endLine": 20,
+          "tokens": 86
+        },
+        {
+          "name": "DeepReport",
+          "kind": "section",
+          "startLine": 21,
+          "endLine": 35,
+          "tokens": 169
+        },
+        {
+          "name": "EnrichSettings",
+          "kind": "section",
+          "startLine": 36,
+          "endLine": 46,
+          "tokens": 80
+        },
+        {
+          "name": "SourceAvail",
+          "kind": "section",
+          "startLine": 47,
+          "endLine": 51,
+          "tokens": 21
+        },
+        {
+          "name": "EnrichSettingsInfo",
+          "kind": "section",
+          "startLine": 52,
+          "endLine": 57,
+          "tokens": 40
+        },
+        {
+          "name": "EnrichRun",
+          "kind": "section",
+          "startLine": 58,
+          "endLine": 69,
+          "tokens": 70
+        },
+        {
+          "name": "EnrichEvent",
+          "kind": "section",
+          "startLine": 70,
+          "endLine": 79,
+          "tokens": 41
         },
         {
           "name": "Issue",
           "kind": "section",
-          "startLine": 19,
-          "endLine": 41,
+          "startLine": 80,
+          "endLine": 102,
           "tokens": 130
         },
         {
           "name": "Team",
           "kind": "section",
-          "startLine": 42,
-          "endLine": 42,
+          "startLine": 103,
+          "endLine": 103,
           "tokens": 18
         },
         {
           "name": "WorkflowState",
           "kind": "section",
-          "startLine": 43,
-          "endLine": 43,
+          "startLine": 104,
+          "endLine": 104,
           "tokens": 35
         },
         {
           "name": "Label",
           "kind": "section",
-          "startLine": 44,
-          "endLine": 44,
+          "startLine": 105,
+          "endLine": 105,
           "tokens": 29
         },
         {
           "name": "Project",
           "kind": "section",
-          "startLine": 45,
-          "endLine": 45,
+          "startLine": 106,
+          "endLine": 106,
           "tokens": 20
         },
         {
           "name": "Cycle",
           "kind": "section",
-          "startLine": 46,
-          "endLine": 46,
+          "startLine": 107,
+          "endLine": 107,
           "tokens": 34
         },
         {
           "name": "User",
           "kind": "section",
-          "startLine": 47,
-          "endLine": 48,
+          "startLine": 108,
+          "endLine": 109,
           "tokens": 29
         },
         {
           "name": "SyncStatus",
           "kind": "section",
-          "startLine": 49,
-          "endLine": 56,
-          "tokens": 46
+          "startLine": 110,
+          "endLine": 118,
+          "tokens": 52
+        },
+        {
+          "name": "ViewFilter",
+          "kind": "section",
+          "startLine": 119,
+          "endLine": 131,
+          "tokens": 87
+        },
+        {
+          "name": "filterIsEmpty",
+          "kind": "fn",
+          "startLine": 132,
+          "endLine": 136,
+          "tokens": 59
+        },
+        {
+          "name": "IndexFilterInfo",
+          "kind": "section",
+          "startLine": 137,
+          "endLine": 144,
+          "tokens": 66
         },
         {
           "name": "Meta",
           "kind": "section",
-          "startLine": 57,
-          "endLine": 72,
+          "startLine": 145,
+          "endLine": 160,
           "tokens": 104
         },
         {
           "name": "Op",
           "kind": "section",
-          "startLine": 73,
-          "endLine": 86,
-          "tokens": 72
+          "startLine": 161,
+          "endLine": 175,
+          "tokens": 79
         },
         {
           "name": "Macro",
           "kind": "section",
-          "startLine": 87,
-          "endLine": 95,
+          "startLine": 176,
+          "endLine": 184,
           "tokens": 49
         },
         {
           "name": "Comment",
           "kind": "section",
-          "startLine": 96,
-          "endLine": 102,
+          "startLine": 185,
+          "endLine": 191,
           "tokens": 39
         },
         {
           "name": "ActivityItem",
           "kind": "section",
-          "startLine": 103,
-          "endLine": 115,
+          "startLine": 192,
+          "endLine": 204,
           "tokens": 69
         },
         {
           "name": "Report",
           "kind": "section",
-          "startLine": 116,
-          "endLine": 127,
+          "startLine": 205,
+          "endLine": 216,
           "tokens": 71
+        },
+        {
+          "name": "CustomView",
+          "kind": "section",
+          "startLine": 217,
+          "endLine": 227,
+          "tokens": 60
         }
       ]
     },
@@ -1615,16 +2668,125 @@
       "hash": "fc700450f01fe229",
       "size": 988,
       "mtimeMs": 1787783151778.334,
-      "updatedAt": "2026-08-26T22:30:31.428Z",
+      "updatedAt": "2026-08-27T13:00:00.065Z",
       "source": "scan"
     },
+    "web/src/main.tsx": {
+      "description": "",
+      "tokens": 121,
+      "hash": "904dbda645e8b456",
+      "size": 422,
+      "mtimeMs": 1787783747004.561,
+      "updatedAt": "2026-08-27T13:00:00.065Z",
+      "source": "scan"
+    },
+    "web/src/pages/Macros.tsx": {
+      "description": "Macro management: user-defined one-key action sequences.",
+      "tokens": 4733,
+      "hash": "68c525a9900d51c7",
+      "size": 16602,
+      "mtimeMs": 1787797284090.6035,
+      "updatedAt": "2026-08-27T13:00:00.066Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "describeOp",
+          "kind": "fn",
+          "startLine": 32,
+          "endLine": 50,
+          "tokens": 255
+        },
+        {
+          "name": "MacrosPage",
+          "kind": "fn",
+          "startLine": 51,
+          "endLine": 413,
+          "tokens": 4130
+        }
+      ]
+    },
+    "web/src/pages/Reports.tsx": {
+      "description": "Gamified report page: stat tiles, per-day bar chart, outcome donut,",
+      "tokens": 2936,
+      "hash": "f5bc4d63965b967d",
+      "size": 10277,
+      "mtimeMs": 1787783735184.2449,
+      "updatedAt": "2026-08-27T13:00:00.066Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Tile",
+          "kind": "fn",
+          "startLine": 20,
+          "endLine": 32,
+          "tokens": 160
+        },
+        {
+          "name": "BarChart",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 88,
+          "tokens": 579
+        },
+        {
+          "name": "Donut",
+          "kind": "fn",
+          "startLine": 89,
+          "endLine": 157,
+          "tokens": 764
+        },
+        {
+          "name": "ReportsPage",
+          "kind": "fn",
+          "startLine": 158,
+          "endLine": 246,
+          "tokens": 1149
+        }
+      ]
+    },
+    "web/src/pages/Settings.tsx": {
+      "description": "Enrichment settings: fast vs deep mode, per-source toggles with live",
+      "tokens": 3248,
+      "hash": "7929095d9f7bb82c",
+      "size": 11392,
+      "mtimeMs": 1787797580488.8062,
+      "updatedAt": "2026-08-27T13:00:00.066Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "SettingsPage",
+          "kind": "fn",
+          "startLine": 26,
+          "endLine": 239,
+          "tokens": 2779
+        }
+      ]
+    },
+    "web/src/pages/Triage.tsx": {
+      "description": "TriagePage — uses useState, useCallback, useEffect",
+      "tokens": 2005,
+      "hash": "dc77892500901b1f",
+      "size": 7020,
+      "mtimeMs": 1787798088965.8896,
+      "updatedAt": "2026-08-27T13:00:00.067Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "TriagePage",
+          "kind": "fn",
+          "startLine": 12,
+          "endLine": 166,
+          "tokens": 1835
+        }
+      ]
+    },
     "web/src/styles.css": {
-      "description": "Styles: 19 rules, 125 vars, 6 animations, 1 layers",
-      "tokens": 2249,
-      "hash": "b95d1c7fb08d95a7",
-      "size": 7871,
-      "mtimeMs": 1787783361427.0112,
-      "updatedAt": "2026-08-26T22:30:31.428Z",
+      "description": "Styles: 19 rules, 133 vars, 6 animations, 1 layers",
+      "tokens": 2369,
+      "hash": "dca6e8b0da88186e",
+      "size": 8293,
+      "mtimeMs": 1787783735178.5828,
+      "updatedAt": "2026-08-27T13:00:00.067Z",
       "source": "scan"
     },
     "web/tsconfig.json": {
@@ -1633,16 +2795,25 @@
       "hash": "cc901e603bb0b42c",
       "size": 454,
       "mtimeMs": 1787783151757.7837,
-      "updatedAt": "2026-08-26T22:30:31.428Z",
+      "updatedAt": "2026-08-27T13:00:00.067Z",
+      "source": "scan"
+    },
+    "web/tsconfig.tsbuildinfo": {
+      "description": "",
+      "tokens": 244,
+      "hash": "9fcc099e522d6589",
+      "size": 914,
+      "mtimeMs": 1787798307994.3733,
+      "updatedAt": "2026-08-27T13:00:00.068Z",
       "source": "scan"
     },
     "web/vite.config.ts": {
       "description": "Vite build configuration",
-      "tokens": 107,
-      "hash": "83abe0a840c3cd64",
-      "size": 374,
-      "mtimeMs": 1787783151754.1677,
-      "updatedAt": "2026-08-26T22:30:31.428Z",
+      "tokens": 146,
+      "hash": "af7ce1d70ea9643d",
+      "size": 509,
+      "mtimeMs": 1787783755856.1511,
+      "updatedAt": "2026-08-27T13:00:00.068Z",
       "source": "scan"
     },
     "webui.go": {
@@ -1651,7 +2822,7 @@
       "hash": "305222e660da2420",
       "size": 291,
       "mtimeMs": 1787782984477.6338,
-      "updatedAt": "2026-08-26T22:30:31.428Z",
+      "updatedAt": "2026-08-27T13:00:00.068Z",
       "source": "scan"
     }
   }
