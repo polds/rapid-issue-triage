@@ -148,7 +148,7 @@ export function MacrosPage() {
   const chipButton = (label: React.ReactNode, onClick: () => void) => (
     <button
       onClick={onClick}
-      className="flex h-8 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 text-left text-xs transition-colors hover:bg-accent"
+      className="flex h-8 w-0 flex-1 cursor-pointer items-center gap-1.5 overflow-hidden rounded-md border border-border bg-surface px-2.5 text-left text-xs transition-colors hover:bg-accent"
     >
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
@@ -237,8 +237,8 @@ export function MacrosPage() {
         className="sm:max-w-xl"
       >
         {draft && (
-          <div className="grid gap-4">
-            <div className="grid grid-cols-[1fr_150px] gap-3">
+          <div className="grid min-w-0 gap-4">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_150px] gap-3">
               <label className="grid gap-1.5 text-xs font-medium">
                 Name
                 <input
@@ -263,10 +263,10 @@ export function MacrosPage() {
               </label>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <span className="text-xs font-medium">Actions</span>
               {draft.steps.map((a, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex min-w-0 items-center gap-2">
                   <span className="w-5 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
                   <Select
                     value={a.type}
@@ -332,7 +332,7 @@ export function MacrosPage() {
                       value={a.body ?? ""}
                       placeholder="Triaged. Closing as obsolete."
                       onChange={(e) => setStep(i, { ...a, body: e.target.value })}
-                      className="h-8 flex-1 rounded-md border border-input bg-surface px-2.5 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-8 w-0 flex-1 rounded-md border border-input bg-surface px-2.5 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     />
                   )}
 

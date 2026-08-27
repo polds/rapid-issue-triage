@@ -218,6 +218,11 @@ func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, k
 	}
 	full, err := s.store.GetIssue(issue.ID)
 	if err == nil {
+		// Keep the stored enrichment attached — the UI replaces its card with
+		// this row, and dropping it here made reports vanish after actions.
+		if e, eerr := s.store.GetEnrichment(full.ID); eerr == nil {
+			full.Enrichment = e
+		}
 		row = full
 	}
 	return row, actID, nil

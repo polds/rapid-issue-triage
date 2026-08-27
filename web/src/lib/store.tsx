@@ -311,7 +311,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           status: "triaged",
           outcome: m.outcome,
           activityId: r.activityId,
-          issue: r.issue,
+          issue: { ...r.issue, enrichment: r.issue.enrichment ?? card.issue.enrichment },
         });
         pushUndo(r.activityId, card.issue.id, true);
         setSessionTriaged((n) => {
@@ -333,7 +333,10 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       if (!card) return;
       try {
         const r = await api.apply(card.issue.id, ops, "edited", duration());
-        updateCard(card.issue.id, { issue: r.issue, activityId: r.activityId });
+        updateCard(card.issue.id, {
+          issue: { ...r.issue, enrichment: r.issue.enrichment ?? card.issue.enrichment },
+          activityId: r.activityId,
+        });
         pushUndo(r.activityId, card.issue.id, false);
         toast(`${description} · ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       } catch (e) {
