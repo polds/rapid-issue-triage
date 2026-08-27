@@ -359,14 +359,14 @@ export function ReportView({
             </div>
           )}
 
-          <div className="flex items-center gap-3 border-t border-primary/10 pt-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-primary/10 pt-2">
             {report.sources && (
-              <span className="flex flex-wrap gap-1.5">
+              <span className="flex min-w-0 flex-wrap gap-1.5">
                 {Object.entries(report.sources).map(([name, st]) => (
                   <span
                     key={name}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]",
+                      "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]",
                       st.status === "done"
                         ? "border-success/30 bg-success/5 text-success"
                         : "border-destructive/30 bg-destructive/5 text-destructive",
@@ -378,11 +378,11 @@ export function ReportView({
                 ))}
               </span>
             )}
-            <span className="ml-auto flex items-center gap-3">
+            <span className="ml-auto flex shrink-0 items-center gap-3">
               {onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                  className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[11px] font-medium text-primary hover:underline"
                   title="Re-run enrichment with the mode configured in Settings"
                 >
                   <RefreshCw className="size-3" /> Regenerate
@@ -392,7 +392,7 @@ export function ReportView({
                 <button
                   onClick={post}
                   disabled={posting}
-                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline disabled:opacity-50"
+                  className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[11px] font-medium text-primary hover:underline disabled:opacity-50"
                 >
                   {posting ? <Loader2 className="size-3 animate-spin" /> : <MessageSquarePlus className="size-3" />}
                   Post to Linear
@@ -401,7 +401,7 @@ export function ReportView({
               {runId && (
                 <button
                   onClick={() => setLogOpen(true)}
-                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                  className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[11px] font-medium text-primary hover:underline"
                 >
                   <ScrollText className="size-3" /> Action log
                 </button>

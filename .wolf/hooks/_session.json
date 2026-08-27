@@ -1,11 +1,22 @@
 {
-  "session_id": "session-2026-08-27-1008",
-  "started": "2026-08-27T17:08:11.329Z",
-  "files_read": {},
+  "session_id": "session-2026-08-27-1022",
+  "started": "2026-08-27T17:22:34.851Z",
+  "files_read": {
+    "/Users/peter.olds/.claude/jobs/100cc8a8/tmp/footer-1280.png": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-27T17:24:16.552Z"
+    },
+    "/Users/peter.olds/.claude/jobs/100cc8a8/tmp/footer-final.png": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-27T17:24:39.088Z"
+    }
+  },
   "files_written": [],
   "edit_counts": {},
   "anatomy_hits": 0,
-  "anatomy_misses": 0,
+  "anatomy_misses": 2,
   "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
   "stop_count": 1
