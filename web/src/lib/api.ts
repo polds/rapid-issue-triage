@@ -1,5 +1,5 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo } from "./types";
 
 class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -21,13 +21,22 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   meta: () => req<Meta>("/api/meta"),
-  queue: (team: string, exclude: string[], limit = 25) => {
+  queue: (f: ViewFilter, exclude: string[], limit = 25) => {
     const p = new URLSearchParams();
-    if (team) p.set("team", team);
+    if (f.teams.length) p.set("teams", f.teams.join(","));
+    if (f.excludeTeams.length) p.set("excludeTeams", f.excludeTeams.join(","));
+    if (f.labels.length) p.set("labels", f.labels.join(","));
+    if (f.excludeLabels.length) p.set("excludeLabels", f.excludeLabels.join(","));
+    if (f.priorities.length) p.set("priorities", f.priorities.join(","));
+    if (f.search.trim()) p.set("search", f.search.trim());
     if (exclude.length) p.set("exclude", exclude.join(","));
     p.set("limit", String(limit));
     return req<{ issues: Issue[] | null; remaining: number }>(`/api/queue?${p}`);
   },
+  getIndexFilter: () => req<IndexFilterInfo>("/api/filter"),
+  putIndexFilter: (filter: Record<string, unknown>) =>
+    req<{ ok: boolean }>("/api/filter", { method: "PUT", body: JSON.stringify({ filter }) }),
+  resetIndexFilter: () => req<{ ok: boolean }>("/api/filter", { method: "DELETE" }),
   context: (id: string) => req<{ comments: Comment[] | null }>(`/api/issues/${id}/context`),
   apply: (id: string, ops: Op[], outcome: string, durationMs?: number) =>
     req<{ issue: Issue; activityId: number }>(`/api/issues/${id}/apply`, {

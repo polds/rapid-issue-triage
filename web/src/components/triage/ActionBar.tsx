@@ -25,7 +25,7 @@ export function ActionBar() {
         <kbd className="kbd h-5">Z</kbd>
       </Button>
       <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-      {macros.slice(0, 9).map((m) => (
+      {macros.slice(0, 9).map((m, i) => (
         <Button
           key={m.id}
           variant={OUTCOME_VARIANT[m.outcome] ?? "neutral"}
@@ -35,7 +35,7 @@ export function ActionBar() {
           title={m.name}
         >
           <span className="max-w-[240px] truncate">{m.name}</span>
-          {m.keyBinding && <kbd className="kbd h-5">{m.keyBinding}</kbd>}
+          <kbd className="kbd h-5">{i + 1}</kbd>
         </Button>
       ))}
       {macros.length === 0 && (

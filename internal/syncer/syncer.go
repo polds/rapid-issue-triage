@@ -5,6 +5,7 @@ package syncer
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strconv"
 	"sync"
@@ -20,6 +21,9 @@ type Status struct {
 	LastError    string `json:"lastError,omitempty"`
 	IssueCount   int    `json:"issueCount"`
 	Stale        bool   `json:"stale"`
+	// Reindexing is true when the active index filter differs from the one
+	// the last completed sync used — the index is being rebuilt.
+	Reindexing bool `json:"reindexing"`
 }
 
 type Syncer struct {
@@ -86,9 +90,27 @@ func (s *Syncer) Status() Status {
 	} else {
 		st.Stale = true
 	}
-	st.IssueCount, _ = s.store.QueueCount("")
+	st.IssueCount, _ = s.store.QueueCount(store.QueueFilter{})
+	active, _ := json.Marshal(s.ActiveFilter())
+	last, _ := s.store.GetMeta("last_sync_filter")
+	st.Reindexing = last != "" && last != string(active) || (last == "" && st.LastSyncedAt == "")
 	return st
 }
+
+// ActiveFilter returns the index filter in effect: the DB-stored override if
+// present, else the config default.
+func (s *Syncer) ActiveFilter() map[string]any {
+	if raw, err := s.store.GetMeta("active_sync_filter"); err == nil && raw != "" {
+		var f map[string]any
+		if json.Unmarshal([]byte(raw), &f) == nil && len(f) > 0 {
+			return f
+		}
+	}
+	return s.filter
+}
+
+// DefaultFilter returns the config-supplied filter.
+func (s *Syncer) DefaultFilter() map[string]any { return s.filter }
 
 func (s *Syncer) doSync(ctx context.Context) {
 	s.mu.Lock()
@@ -119,6 +141,10 @@ func (s *Syncer) syncOnce(ctx context.Context) error {
 	genStr, _ := s.store.GetMeta("sync_gen")
 	gen, _ := strconv.ParseInt(genStr, 10, 64)
 	gen++
+
+	// Resolve the index filter BEFORE opening the transaction: the store runs
+	// on a single sqlite connection, so any s.db read inside the tx deadlocks.
+	filter := s.ActiveFilter()
 
 	// Metadata first.
 	viewer, err := s.client.Viewer(ctx)
@@ -210,7 +236,7 @@ func (s *Syncer) syncOnce(ctx context.Context) error {
 
 	// Issues matching the untriaged filter.
 	total := 0
-	err = s.client.Issues(ctx, s.filter, s.pageSize, func(page []linear.Issue) error {
+	err = s.client.Issues(ctx, filter, s.pageSize, func(page []linear.Issue) error {
 		for _, is := range page {
 			if err := s.store.UpsertIssue(tx, gen, toRow(is)); err != nil {
 				return err
@@ -234,6 +260,10 @@ func (s *Syncer) syncOnce(ctx context.Context) error {
 		return err
 	}
 	if err := s.store.SetMeta("last_synced_at", time.Now().UTC().Format(time.RFC3339)); err != nil {
+		return err
+	}
+	fj, _ := json.Marshal(filter)
+	if err := s.store.SetMeta("last_sync_filter", string(fj)); err != nil {
 		return err
 	}
 	log.Printf("sync: indexed %d issues (pruned %d) in %s", total, pruned, time.Since(start).Round(time.Millisecond))

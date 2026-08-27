@@ -56,7 +56,7 @@ export function TriagePage() {
       if (lower === "x") return void (e.preventDefault(), setPicker("status"));
 
       if (/^[1-9]$/.test(k)) {
-        const macro = macros.find((m) => m.keyBinding === k) ?? macros[Number(k) - 1];
+        const macro = macros[Number(k) - 1];
         if (macro) {
           e.preventDefault();
           applyMacro(macro);

@@ -3,15 +3,21 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/store"
 )
+
+// errStopProbe short-circuits filter validation after the first page.
+var errStopProbe = errors.New("probe ok")
 
 func (s *Server) handleMeta(w http.ResponseWriter, r *http.Request) {
 	meta, err := s.store.Metadata()
@@ -28,6 +34,41 @@ func (s *Server) handleMeta(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, meta)
 }
 
+// parseQueueFilter builds a view filter from query params. `team` remains as
+// a shorthand for teams=<id>.
+func parseQueueFilter(q url.Values) store.QueueFilter {
+	csv := func(key string) []string {
+		v := strings.TrimSpace(q.Get(key))
+		if v == "" {
+			return nil
+		}
+		parts := strings.Split(v, ",")
+		out := parts[:0]
+		for _, p := range parts {
+			if p = strings.TrimSpace(p); p != "" {
+				out = append(out, p)
+			}
+		}
+		return out
+	}
+	f := store.QueueFilter{
+		TeamIDs:       csv("teams"),
+		ExcludeTeams:  csv("excludeTeams"),
+		Labels:        csv("labels"),
+		ExcludeLabels: csv("excludeLabels"),
+		Search:        q.Get("search"),
+	}
+	if t := q.Get("team"); t != "" {
+		f.TeamIDs = append(f.TeamIDs, t)
+	}
+	for _, p := range csv("priorities") {
+		if n, err := strconv.Atoi(p); err == nil {
+			f.Priorities = append(f.Priorities, n)
+		}
+	}
+	return f
+}
+
 func (s *Server) handleQueue(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	var exclude []string
@@ -35,7 +76,8 @@ func (s *Server) handleQueue(w http.ResponseWriter, r *http.Request) {
 		exclude = strings.Split(e, ",")
 	}
 	limit, _ := strconv.Atoi(q.Get("limit"))
-	rows, err := s.store.Queue(q.Get("team"), exclude, limit)
+	filter := parseQueueFilter(q)
+	rows, err := s.store.Queue(filter, exclude, limit)
 	if err != nil {
 		writeErr(w, 500, err)
 		return
@@ -44,8 +86,85 @@ func (s *Server) handleQueue(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, 500, err)
 		return
 	}
-	count, _ := s.store.QueueCount(q.Get("team"))
+	count, _ := s.store.QueueCount(filter)
 	writeJSON(w, 200, map[string]any{"issues": rows, "remaining": count})
+}
+
+// --- index (sync) filter management ---
+
+const recentSyncFiltersKey = "recent_sync_filters"
+
+func (s *Server) handleGetFilter(w http.ResponseWriter, r *http.Request) {
+	var recent []map[string]any
+	if raw, _ := s.store.GetMeta(recentSyncFiltersKey); raw != "" {
+		_ = json.Unmarshal([]byte(raw), &recent)
+	}
+	stored, _ := s.store.GetMeta("active_sync_filter")
+	writeJSON(w, 200, map[string]any{
+		"filter":        s.syncer.ActiveFilter(),
+		"default":       s.syncer.DefaultFilter(),
+		"overridden":    stored != "",
+		"recent":        recent,
+		"syncStatus":    s.syncer.Status(),
+	})
+}
+
+func (s *Server) handlePutFilter(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Filter map[string]any `json:"filter"`
+	}
+	if err := decodeBody(r, &req); err != nil {
+		writeErr(w, 400, err)
+		return
+	}
+	if len(req.Filter) == 0 {
+		writeErr(w, 400, fmt.Errorf("filter must be a non-empty Linear IssueFilter object"))
+		return
+	}
+	// Validate against Linear before committing: a 1-issue probe query.
+	err := s.linear.Issues(r.Context(), req.Filter, 1, func(page []linear.Issue) error {
+		return errStopProbe // one page is enough
+	})
+	if err != nil && err != errStopProbe {
+		writeErr(w, 422, fmt.Errorf("Linear rejected this filter: %w", err))
+		return
+	}
+	raw, _ := json.Marshal(req.Filter)
+	if err := s.store.SetMeta("active_sync_filter", string(raw)); err != nil {
+		writeErr(w, 500, err)
+		return
+	}
+	s.pushRecentSyncFilter(string(raw))
+	s.syncer.Kick()
+	writeJSON(w, 200, map[string]any{"ok": true, "reindexing": true})
+}
+
+func (s *Server) handleDeleteFilter(w http.ResponseWriter, r *http.Request) {
+	if err := s.store.SetMeta("active_sync_filter", ""); err != nil {
+		writeErr(w, 500, err)
+		return
+	}
+	s.syncer.Kick()
+	writeJSON(w, 200, map[string]any{"ok": true, "reindexing": true})
+}
+
+// pushRecentSyncFilter records a filter in the recent list (dedup, cap 10).
+func (s *Server) pushRecentSyncFilter(raw string) {
+	var recent []map[string]any
+	if prev, _ := s.store.GetMeta(recentSyncFiltersKey); prev != "" {
+		_ = json.Unmarshal([]byte(prev), &recent)
+	}
+	out := []map[string]any{{"filter": json.RawMessage(raw), "usedAt": time.Now().UTC().Format(time.RFC3339)}}
+	for _, e := range recent {
+		if b, _ := json.Marshal(e["filter"]); string(b) != raw {
+			out = append(out, e)
+		}
+		if len(out) >= 10 {
+			break
+		}
+	}
+	b, _ := json.Marshal(out)
+	_ = s.store.SetMeta(recentSyncFiltersKey, string(b))
 }
 
 // handleIssueContext returns comments, fetched live from Linear and cached

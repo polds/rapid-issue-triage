@@ -13,7 +13,7 @@ import {
 } from "react";
 import { api } from "./api";
 import { useToast } from "@/components/ui/toast";
-import type { Enrichment, Issue, Macro, Meta, Op, SyncStatus } from "./types";
+import { EMPTY_FILTER, filterIsEmpty, type Enrichment, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
 
 export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
 export type Swipe = "left" | "right" | "down" | null;
@@ -33,8 +33,9 @@ interface TriageCtx {
   macros: Macro[];
   reloadMacros: () => Promise<void>;
 
-  teamFilter: string;
-  setTeamFilter: (t: string) => void;
+  viewFilter: ViewFilter;
+  setViewFilter: (f: ViewFilter) => void;
+  recentFilters: { filter: ViewFilter; usedAt: string }[];
 
   cards: Card[];
   index: number;
@@ -77,9 +78,21 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [metaError, setMetaError] = useState<string | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [macros, setMacros] = useState<Macro[]>([]);
-  const [teamFilter, setTeamFilterState] = useState(
-    () => window.localStorage.getItem("rt-team") ?? "",
-  );
+  const [viewFilter, setViewFilterState] = useState<ViewFilter>(() => {
+    try {
+      const raw = window.localStorage.getItem("rt-viewfilter");
+      return raw ? { ...EMPTY_FILTER, ...JSON.parse(raw) } : EMPTY_FILTER;
+    } catch {
+      return EMPTY_FILTER;
+    }
+  });
+  const [recentFilters, setRecentFilters] = useState<{ filter: ViewFilter; usedAt: string }[]>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem("rt-filter-recents") ?? "[]");
+    } catch {
+      return [];
+    }
+  });
 
   const [cards, setCards] = useState<Card[]>([]);
   const [index, setIndex] = useState(0);
@@ -124,7 +137,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       fetching.current = true;
       try {
         const exclude = reset ? [] : cardsRef.current.map((c) => c.issue.id);
-        const r = await api.queue(teamFilter, exclude, BATCH);
+        const r = await api.queue(viewFilter, exclude, BATCH);
         const fresh = (r.issues ?? []).map((issue) => ({ issue, status: "pending" as const }));
         setRemaining(r.remaining);
         setCards((prev) => {
@@ -140,7 +153,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     },
-    [teamFilter, toast],
+    [viewFilter, toast],
   );
 
   // Keep a ref of cards for exclude computation without re-creating callbacks.
@@ -160,7 +173,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     fetchMore(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamFilter]);
+  }, [viewFilter]);
 
   // Poll sync status; refresh meta + counts when a sync completes.
   const prevSyncState = useRef<string>("");
@@ -194,9 +207,20 @@ export function TriageProvider({ children }: { children: ReactNode }) {
 
   const current = cards[index] ?? null;
 
-  const setTeamFilter = useCallback((t: string) => {
-    window.localStorage.setItem("rt-team", t);
-    setTeamFilterState(t);
+  const setViewFilter = useCallback((f: ViewFilter) => {
+    window.localStorage.setItem("rt-viewfilter", JSON.stringify(f));
+    setViewFilterState(f);
+    if (!filterIsEmpty(f)) {
+      setRecentFilters((prev) => {
+        const key = JSON.stringify(f);
+        const next = [
+          { filter: f, usedAt: new Date().toISOString() },
+          ...prev.filter((e) => JSON.stringify(e.filter) !== key),
+        ].slice(0, 8);
+        window.localStorage.setItem("rt-filter-recents", JSON.stringify(next));
+        return next;
+      });
+    }
   }, []);
 
   const advance = useCallback(() => {
@@ -369,13 +393,13 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const value = useMemo<TriageCtx>(
     () => ({
       meta, metaError, sync, refreshSync, macros, reloadMacros,
-      teamFilter, setTeamFilter,
+      viewFilter, setViewFilter, recentFilters,
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
     }),
     [
-      meta, metaError, sync, refreshSync, macros, reloadMacros, teamFilter, setTeamFilter,
+      meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter, recentFilters,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
     ],

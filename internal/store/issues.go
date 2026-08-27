@@ -70,7 +70,7 @@ func scanIssue(sc interface{ Scan(...any) error }) (IssueRow, error) {
 
 // Queue returns the next batch of untriaged issues: least-skipped first, then
 // pseudo-random. exclude lets the client omit cards already in its deck.
-func (s *Store) Queue(teamID string, exclude []string, limit int) ([]IssueRow, error) {
+func (s *Store) Queue(f QueueFilter, exclude []string, limit int) ([]IssueRow, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 25
 	}
@@ -79,10 +79,9 @@ func (s *Store) Queue(teamID string, exclude []string, limit int) ([]IssueRow, e
 	  WHERE triaged_at IS NULL
 	    AND (snoozed_until IS NULL OR snoozed_until < ?)`
 	args = append(args, now())
-	if teamID != "" {
-		q += ` AND team_id = ?`
-		args = append(args, teamID)
-	}
+	fw, fargs := f.where()
+	q += fw
+	args = append(args, fargs...)
 	if len(exclude) > 0 {
 		q += ` AND id NOT IN (?` + strings.Repeat(",?", len(exclude)-1) + `)`
 		for _, id := range exclude {
@@ -113,16 +112,15 @@ func (s *Store) GetIssue(id string) (IssueRow, error) {
 	return r, errRow(err)
 }
 
-// QueueCount reports remaining untriaged issues (excluding active snoozes),
-// optionally per team.
-func (s *Store) QueueCount(teamID string) (int, error) {
+// QueueCount reports remaining untriaged issues (excluding active snoozes)
+// under the given view filter.
+func (s *Store) QueueCount(f QueueFilter) (int, error) {
 	q := `SELECT COUNT(*) FROM issues WHERE triaged_at IS NULL
 	  AND (snoozed_until IS NULL OR snoozed_until < ?)`
 	args := []any{now()}
-	if teamID != "" {
-		q += ` AND team_id = ?`
-		args = append(args, teamID)
-	}
+	fw, fargs := f.where()
+	q += fw
+	args = append(args, fargs...)
 	var n int
 	err := s.db.QueryRow(q, args...).Scan(&n)
 	return n, err

@@ -52,6 +52,33 @@ export interface SyncStatus {
   lastError?: string;
   issueCount: number;
   stale: boolean;
+  reindexing?: boolean;
+}
+
+export interface ViewFilter {
+  teams: string[];
+  excludeTeams: string[];
+  labels: string[];
+  excludeLabels: string[];
+  priorities: number[];
+  search: string;
+}
+
+export const EMPTY_FILTER: ViewFilter = {
+  teams: [], excludeTeams: [], labels: [], excludeLabels: [], priorities: [], search: "",
+};
+
+export function filterIsEmpty(f: ViewFilter): boolean {
+  return !f.teams.length && !f.excludeTeams.length && !f.labels.length &&
+    !f.excludeLabels.length && !f.priorities.length && !f.search.trim();
+}
+
+export interface IndexFilterInfo {
+  filter: Record<string, unknown>;
+  default: Record<string, unknown>;
+  overridden: boolean;
+  recent: { filter: Record<string, unknown>; usedAt: string }[] | null;
+  syncStatus: SyncStatus;
 }
 
 export interface Meta {

@@ -1,6 +1,6 @@
 // Macro management: user-defined one-key action sequences.
-import { useMemo, useState } from "react";
-import { ArrowRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { ArrowRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
@@ -49,9 +49,30 @@ function describeOp(op: Op, projectName: (id: string) => string): string {
 
 export function MacrosPage() {
   const { macros, reloadMacros, meta } = useTriage();
+  
   const { toast } = useToast();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
+  const dragFrom = useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+
+  // Reorder by drag: persist new positions for every macro that moved.
+  const reorder = async (from: number, to: number) => {
+    if (from === to) return;
+    const next = [...macros];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    try {
+      await Promise.all(
+        next.map((m, i) =>
+          m.position !== i || m.id === moved.id ? api.updateMacro({ ...m, position: i }) : null,
+        ),
+      );
+      await reloadMacros();
+    } catch (e) {
+      toast(`Reorder failed: ${(e as Error).message}`, { tone: "error" });
+    }
+  };
 
   const labelNames = useMemo(
     () => [...new Set((meta?.labels ?? []).filter((l) => !l.isGroup).map((l) => l.name))].sort(),
@@ -118,27 +139,42 @@ export function MacrosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Macros</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            One keystroke, a whole sequence of actions. Keys 1–9 fire from the triage view.
-            Labels and statuses are matched by name per team, so one macro works everywhere.
+            One keystroke, a whole sequence of actions. Keys 1–9 fire from the triage view in the
+            order below — drag to reorder. Labels and statuses are matched by name per team, so one
+            macro works everywhere.
           </p>
         </div>
         <Button
-          onClick={() =>
-            setDraft({ name: "", keyBinding: String(Math.min(macros.length + 1, 9)), outcome: "accepted", steps: [], position: macros.length })
-          }
+          onClick={() => setDraft({ name: "", keyBinding: "", outcome: "accepted", steps: [], position: macros.length })}
         >
           <Plus /> New macro
         </Button>
       </div>
 
       <div className="mt-8 grid gap-3">
-        {macros.map((m) => (
+        {macros.map((m, idx) => (
           <div
             key={m.id}
-            className={`rounded-xl border p-4 shadow-card transition-shadow hover:shadow-pop ${TONE_RING[m.outcome] ?? TONE_RING.custom}`}
+            draggable
+            onDragStart={() => (dragFrom.current = idx)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(idx);
+            }}
+            onDragLeave={() => setDragOver((d) => (d === idx ? null : d))}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(null);
+              if (dragFrom.current !== null) reorder(dragFrom.current, idx);
+              dragFrom.current = null;
+            }}
+            className={`cursor-grab rounded-xl border p-4 shadow-card transition-shadow hover:shadow-pop active:cursor-grabbing ${TONE_RING[m.outcome] ?? TONE_RING.custom} ${
+              dragOver === idx ? "ring-2 ring-primary/50" : ""
+            }`}
           >
             <div className="flex items-start gap-3">
-              <kbd className="kbd mt-0.5 size-7 text-sm">{m.keyBinding || "·"}</kbd>
+              <GripVertical className="mt-1 size-4 shrink-0 text-muted-foreground/50" />
+              <kbd className="kbd mt-0.5 size-7 text-sm">{idx < 9 ? idx + 1 : "·"}</kbd>
               <div className="min-w-0 flex-1">
                 <h2 className="text-sm font-semibold">{m.name}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -180,7 +216,7 @@ export function MacrosPage() {
       >
         {draft && (
           <div className="grid gap-4">
-            <div className="grid grid-cols-[1fr_72px_140px] gap-3">
+            <div className="grid grid-cols-[1fr_150px] gap-3">
               <label className="grid gap-1.5 text-xs font-medium">
                 Name
                 <input
@@ -188,15 +224,6 @@ export function MacrosPage() {
                   placeholder="Accept → Reliability"
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   className="h-9 rounded-md border border-input bg-surface px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
-              </label>
-              <label className="grid gap-1.5 text-xs font-medium">
-                Key
-                <input
-                  maxLength={1}
-                  value={draft.keyBinding}
-                  onChange={(e) => setDraft({ ...draft, keyBinding: e.target.value.replace(/[^1-9]/g, "") })}
-                  className="h-9 rounded-md border border-input bg-surface text-center font-mono text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
               </label>
               <label className="grid gap-1.5 text-xs font-medium">
