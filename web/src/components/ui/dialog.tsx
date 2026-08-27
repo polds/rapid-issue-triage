@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,9 @@ export function Dialog({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // Portal to <body>: ancestors with backdrop-filter/transform (the sticky
+  // header) become containing blocks for fixed elements and trap the overlay.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-[10vh]">
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-[2px] dark:bg-black/60"
@@ -54,6 +57,7 @@ export function Dialog({
         </div>
         <div className="mt-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

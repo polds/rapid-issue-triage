@@ -1,6 +1,7 @@
 // Keyboard-first fuzzy picker popover: input on top, arrow-navigable list,
 // Enter selects, Escape closes. The heart of fast quick-edits.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +83,7 @@ export function Picker({
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[16vh]" onKeyDown={onKey}>
       <div className="fixed inset-0 bg-black/25 dark:bg-black/50" onClick={onClose} />
       <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-border bg-popover shadow-pop anim-pop-in">
@@ -127,6 +128,7 @@ export function Picker({
           </p>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
