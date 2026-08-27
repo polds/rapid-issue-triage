@@ -17,6 +17,7 @@ import { api } from "@/lib/api";
 import type { Comment, DeepReport, Enrichment } from "@/lib/types";
 import { LiveRun, ReportView, useEnrichRun } from "./DeepPanel";
 import { getEnrichInfo } from "@/lib/enrichmode";
+import { useToast } from "@/components/ui/toast";
 import { Markdown } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string 
 
 function AIPanel({ card }: { card: Card }) {
   const { enrich, enriching, meta, setIssueEnrichment } = useTriage();
+  const { toast } = useToast();
   const [open, setOpen] = useState(true);
   const [runId, setRunId] = useState<string | null>(null);
   const [logRunId, setLogRunId] = useState<string | null>(null);
@@ -98,8 +100,7 @@ function AIPanel({ card }: { card: Card }) {
         await enrich();
       }
     } catch (err) {
-      // fall back to the fast path error handling inside enrich()
-      console.error(err);
+      toast(`Enrichment failed to start: ${(err as Error).message}`, { tone: "error" });
     } finally {
       setStarting(false);
     }

@@ -8,11 +8,17 @@ let inflight: Promise<EnrichSettingsInfo> | null = null;
 
 export async function getEnrichInfo(): Promise<EnrichSettingsInfo> {
   if (cached) return cached;
-  inflight ??= api.enrichSettings().then((i) => {
-    cached = i;
-    inflight = null;
-    return i;
-  });
+  // Clear the in-flight slot on failure too — a rejected promise must never
+  // be cached, or one bad request (server restarting) bricks every later call.
+  inflight ??= api
+    .enrichSettings()
+    .then((i) => {
+      cached = i;
+      return i;
+    })
+    .finally(() => {
+      inflight = null;
+    });
   return inflight;
 }
 
