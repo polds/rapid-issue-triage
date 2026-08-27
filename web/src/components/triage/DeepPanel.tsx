@@ -102,17 +102,17 @@ export function LiveRun({ events, running }: { events: EnrichEvent[]; running: b
 
   return (
     <div className="overflow-hidden rounded-xl border border-primary/25 bg-primary/[0.045]">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-primary/15 px-4 py-2.5">
-        <Sparkles className={cn("size-4 text-primary", running && "animate-pulse")} />
-        <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Deep enrichment{running ? " — investigating…" : ""}
+      <div className="flex items-center gap-1.5 border-b border-primary/15 px-4 py-2.5">
+        <Sparkles className={cn("size-4 shrink-0 text-primary", running && "animate-pulse")} />
+        <span className="shrink-0 whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-primary">
+          Deep enrichment
         </span>
-        <span className="ml-auto flex flex-wrap gap-1">
+        <span className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1">
           {Object.entries(scouts).map(([name, st]) => (
             <span
               key={name}
               className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                 st === "running" && "border-info/40 bg-info/10 text-info",
                 st === "done" && "border-success/40 bg-success/10 text-success",
                 st === "error" && "border-destructive/40 bg-destructive/10 text-destructive",
