@@ -137,17 +137,16 @@ export function SettingsPage() {
                   aria-checked={src.enabled}
                   onClick={() => setSource(m.key, { enabled: !src.enabled })}
                   disabled={saving}
-                  className={cn(
-                    "relative mt-0.5 h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors",
-                    src.enabled ? "bg-primary" : "bg-muted",
-                  )}
+                  className="mt-0.5 shrink-0 cursor-pointer"
                 >
                   <span
                     className={cn(
-                      "absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform",
-                      src.enabled ? "translate-x-4" : "translate-x-0.5",
+                      "flex h-5 w-9 items-center rounded-full p-0.5 transition-colors",
+                      src.enabled ? "justify-end bg-primary" : "justify-start bg-muted",
                     )}
-                  />
+                  >
+                    <span className="size-4 rounded-full bg-white shadow" />
+                  </span>
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
