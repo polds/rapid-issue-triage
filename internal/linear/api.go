@@ -214,3 +214,44 @@ func (c *Client) UpdateIssue(ctx context.Context, issueID string, input map[stri
 	}
 	return out.IssueUpdate.Issue, nil
 }
+
+// CreateComment posts a comment on an issue and returns the comment id.
+func (c *Client) CreateComment(ctx context.Context, issueID, body string) (string, error) {
+	var out struct {
+		CommentCreate struct {
+			Success bool `json:"success"`
+			Comment struct {
+				ID string `json:"id"`
+			} `json:"comment"`
+		} `json:"commentCreate"`
+	}
+	q := `mutation ($input: CommentCreateInput!) {
+	  commentCreate(input: $input) { success comment { id } }
+	}`
+	err := c.Do(ctx, q, map[string]any{"input": map[string]any{"issueId": issueID, "body": body}}, &out)
+	if err != nil {
+		return "", err
+	}
+	if !out.CommentCreate.Success {
+		return "", fmt.Errorf("linear: commentCreate reported failure")
+	}
+	return out.CommentCreate.Comment.ID, nil
+}
+
+// DeleteComment removes a comment (used by undo).
+func (c *Client) DeleteComment(ctx context.Context, commentID string) error {
+	var out struct {
+		CommentDelete struct {
+			Success bool `json:"success"`
+		} `json:"commentDelete"`
+	}
+	err := c.Do(ctx, `mutation ($id: String!) { commentDelete(id: $id) { success } }`,
+		map[string]any{"id": commentID}, &out)
+	if err != nil {
+		return err
+	}
+	if !out.CommentDelete.Success {
+		return fmt.Errorf("linear: commentDelete reported failure")
+	}
+	return nil
+}

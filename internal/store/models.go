@@ -71,6 +71,7 @@ type MacroStep struct {
 	ProjectID  string   `json:"projectId,omitempty"`
 	CycleID    string   `json:"cycleId,omitempty"`   // or "active" for the team's current cycle
 	AssigneeID string   `json:"assigneeId,omitempty"` // or "me", or "" with Clear=true
+	Body       string   `json:"body,omitempty"`        // add_comment text
 	Clear      bool     `json:"clear,omitempty"`
 }
 

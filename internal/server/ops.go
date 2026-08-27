@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/polds/rapid-issue-triage/internal/store"
@@ -15,9 +16,10 @@ type Op = store.MacroStep
 
 // resolveOps turns ops (possibly name-based, from macros) into a single Linear
 // IssueUpdateInput map for the given issue, plus a human-readable trace.
-func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []string, error) {
+func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []string, []string, error) {
 	input := map[string]any{}
 	trace := []string{}
+	comments := []string{}
 
 	labelSet := map[string]bool{}
 	for _, l := range issue.Labels {
@@ -42,12 +44,12 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 			for _, name := range names {
 				id, err := s.store.LabelIDByName(issue.TeamID, name)
 				if err != nil {
-					return nil, nil, fmt.Errorf("label %q not found for this team", name)
+					return nil, nil, nil, fmt.Errorf("label %q not found for this team", name)
 				}
 				refs = append(refs, ref{id, name})
 			}
 			if len(refs) == 0 {
-				return nil, nil, fmt.Errorf("%s: label reference missing", op.Type)
+				return nil, nil, nil, fmt.Errorf("%s: label reference missing", op.Type)
 			}
 			for _, rf := range refs {
 				if op.Type == "add_label" {
@@ -65,17 +67,17 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 			if id == "" && op.StateName != "" {
 				id, err = s.store.StateIDByName(issue.TeamID, op.StateName)
 				if err != nil {
-					return nil, nil, fmt.Errorf("state %q not found for this team", op.StateName)
+					return nil, nil, nil, fmt.Errorf("state %q not found for this team", op.StateName)
 				}
 			}
 			if id == "" && op.StateType != "" {
 				id, err = s.store.StateIDByType(issue.TeamID, op.StateType)
 				if err != nil {
-					return nil, nil, fmt.Errorf("no %q state for this team", op.StateType)
+					return nil, nil, nil, fmt.Errorf("no %q state for this team", op.StateType)
 				}
 			}
 			if id == "" {
-				return nil, nil, fmt.Errorf("set_state: state reference missing")
+				return nil, nil, nil, fmt.Errorf("set_state: state reference missing")
 			}
 			input["stateId"] = id
 			trace = append(trace, "set state")
@@ -101,7 +103,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				var err error
 				id, err = s.store.ActiveCycleID(issue.TeamID, time.Now().UTC().Format(time.RFC3339))
 				if err != nil {
-					return nil, nil, fmt.Errorf("no active cycle for this team")
+					return nil, nil, nil, fmt.Errorf("no active cycle for this team")
 				}
 			}
 			if op.Clear || id == "" {
@@ -111,13 +113,20 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				input["cycleId"] = id
 				trace = append(trace, "set cycle")
 			}
+		case "add_comment":
+			body := strings.TrimSpace(op.Body)
+			if body == "" {
+				return nil, nil, nil, fmt.Errorf("add_comment: empty comment body")
+			}
+			comments = append(comments, body)
+			trace = append(trace, "comment: "+truncateTrace(body))
 		case "set_assignee":
 			id := op.AssigneeID
 			if id == "me" {
 				var err error
 				id, err = s.store.MyUserID()
 				if err != nil {
-					return nil, nil, fmt.Errorf("viewer not synced yet")
+					return nil, nil, nil, fmt.Errorf("viewer not synced yet")
 				}
 			}
 			if op.Clear || id == "" {
@@ -128,7 +137,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 				trace = append(trace, "assign")
 			}
 		default:
-			return nil, nil, fmt.Errorf("unknown op type %q", op.Type)
+			return nil, nil, nil, fmt.Errorf("unknown op type %q", op.Type)
 		}
 	}
 	if labelsChanged {
@@ -138,10 +147,17 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (map[string]any, []s
 		}
 		input["labelIds"] = ids
 	}
-	if len(input) == 0 {
-		return nil, nil, fmt.Errorf("no operations to apply")
+	if len(input) == 0 && len(comments) == 0 {
+		return nil, nil, nil, fmt.Errorf("no operations to apply")
 	}
-	return input, trace, nil
+	return input, trace, comments, nil
+}
+
+func truncateTrace(s string) string {
+	if len(s) > 60 {
+		s = s[:60] + "…"
+	}
+	return "\"" + s + "\""
 }
 
 // prevSnapshot captures the fields undo needs to restore.
@@ -153,15 +169,28 @@ func prevSnapshot(issue store.IssueRow) string {
 // applyOps resolves and executes ops against Linear, updates the local row,
 // and logs activity. Returns the refreshed issue and the activity id.
 func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, kind, outcome string, durationMS *int64) (store.IssueRow, int64, error) {
-	input, trace, err := s.resolveOps(issue, ops)
+	input, trace, comments, err := s.resolveOps(issue, ops)
 	if err != nil {
 		return issue, 0, err
 	}
-	updated, err := s.linear.UpdateIssue(ctx, issue.ID, input)
-	if err != nil {
-		return issue, 0, err
+	row := issue
+	if len(input) > 0 {
+		updated, err := s.linear.UpdateIssue(ctx, issue.ID, input)
+		if err != nil {
+			return issue, 0, err
+		}
+		row = syncer.ToRow(updated)
 	}
-	row := syncer.ToRow(updated)
+	// Comments post after the field update; ids are recorded so undo can
+	// delete them again.
+	commentIDs := []string{}
+	for _, body := range comments {
+		id, err := s.linear.CreateComment(ctx, issue.ID, body)
+		if err != nil {
+			return issue, 0, fmt.Errorf("comment failed: %w", err)
+		}
+		commentIDs = append(commentIDs, id)
+	}
 
 	// Terminal when the issue left its triage-eligible state (completed or
 	// canceled state type) — those disappear from the queue immediately.
@@ -178,7 +207,7 @@ func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, k
 	}
 	_ = terminal
 
-	detail, _ := json.Marshal(map[string]any{"ops": trace})
+	detail, _ := json.Marshal(map[string]any{"ops": trace, "commentIds": commentIDs})
 	actID, err := s.store.LogActivity(store.Activity{
 		IssueID: issue.ID, IssueIdentifier: issue.Identifier, IssueTitle: issue.Title,
 		Kind: kind, Outcome: outcome, DetailJSON: string(detail),
@@ -213,6 +242,18 @@ func (s *Server) undoActivity(ctx context.Context, act store.Activity) error {
 		var prev store.IssueRow
 		if err := json.Unmarshal([]byte(act.PrevJSON), &prev); err != nil {
 			return err
+		}
+		// Remove comments this action created.
+		var detail struct {
+			CommentIDs []string `json:"commentIds"`
+		}
+		if act.DetailJSON != "" {
+			_ = json.Unmarshal([]byte(act.DetailJSON), &detail)
+		}
+		for _, cid := range detail.CommentIDs {
+			if err := s.linear.DeleteComment(ctx, cid); err != nil {
+				return fmt.Errorf("undo: delete comment: %w", err)
+			}
 		}
 		ids := make([]string, 0, len(prev.Labels))
 		for _, l := range prev.Labels {

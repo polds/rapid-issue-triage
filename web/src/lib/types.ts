@@ -156,7 +156,7 @@ export interface Meta {
 
 export type OpType =
   | "add_label" | "remove_label" | "set_state" | "set_estimate"
-  | "set_project" | "set_cycle" | "set_assignee";
+  | "set_project" | "set_cycle" | "set_assignee" | "add_comment";
 
 export interface Op {
   type: OpType;
@@ -170,6 +170,7 @@ export interface Op {
   projectId?: string;
   cycleId?: string;
   assigneeId?: string;
+  body?: string;
   clear?: boolean;
 }
 

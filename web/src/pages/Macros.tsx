@@ -27,6 +27,7 @@ const STEP_KINDS = [
   { kind: "set_estimate", label: "Set estimate" },
   { kind: "set_cycle", label: "Set cycle" },
   { kind: "set_assignee", label: "Assign to me" },
+  { kind: "add_comment", label: "Add comment" },
 ] as const;
 
 function describeOp(op: Op, projectName: (id: string) => string): string {
@@ -45,6 +46,8 @@ function describeOp(op: Op, projectName: (id: string) => string): string {
       return op.cycleId === "active" ? "cycle → active" : op.clear ? "clear cycle" : "set cycle";
     case "set_assignee":
       return op.assigneeId === "me" ? "assign to me" : op.clear ? "unassign" : "assign";
+    case "add_comment":
+      return `comment: "${(op.body ?? "").slice(0, 40)}${(op.body ?? "").length > 40 ? "…" : ""}"`;
   }
 }
 
@@ -131,6 +134,8 @@ export function MacrosPage() {
         return { type: kind, cycleId: "active" };
       case "set_assignee":
         return { type: kind, assigneeId: "me" };
+      case "add_comment":
+        return { type: kind, body: "" };
     }
   };
 
@@ -321,6 +326,14 @@ export function MacrosPage() {
                   )}
                   {a.type === "set_assignee" && (
                     <span className="flex-1 text-sm text-muted-foreground">Assigns the issue to you</span>
+                  )}
+                  {a.type === "add_comment" && (
+                    <input
+                      value={a.body ?? ""}
+                      placeholder="Triaged. Closing as obsolete."
+                      onChange={(e) => setStep(i, { ...a, body: e.target.value })}
+                      className="h-8 flex-1 rounded-md border border-input bg-surface px-2.5 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
                   )}
 
                   <Button
