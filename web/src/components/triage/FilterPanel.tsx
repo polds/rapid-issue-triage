@@ -1,53 +1,14 @@
-// View-filter panel: tri-state team/label rows (neutral → include → exclude),
-// priority toggles, text search, recent filters, and the advanced Linear
-// index-filter editor. View filters are instant (local index); the index
-// filter triggers a background reindex.
-import { useEffect, useMemo, useState } from "react";
-import { Check, Eye, Filter as FilterIcon, Link2, Loader2, Minus, RotateCcw, X } from "lucide-react";
-import { useTriage } from "@/lib/store";
+// Queue-source panel: pick a saved Linear view (its filter becomes the index
+// filter, background reindex), or edit the raw IssueFilter on the advanced
+// page. All rich filtering lives in Linear itself.
+import { useEffect, useState } from "react";
+import { Eye, Link2, Loader2, RotateCcw } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { EMPTY_FILTER, filterIsEmpty, type CustomView, type IndexFilterInfo, type ViewFilter } from "@/lib/types";
-import { cn, PRIORITY_NAMES } from "@/lib/utils";
+import type { CustomView, IndexFilterInfo } from "@/lib/types";
 
-type Tri = "none" | "include" | "exclude";
-
-function triOf(id: string, inc: string[], exc: string[]): Tri {
-  if (inc.includes(id)) return "include";
-  if (exc.includes(id)) return "exclude";
-  return "none";
-}
-
-function cycle(id: string, inc: string[], exc: string[]): [string[], string[]] {
-  switch (triOf(id, inc, exc)) {
-    case "none":
-      return [[...inc, id], exc];
-    case "include":
-      return [inc.filter((x) => x !== id), [...exc, id]];
-    case "exclude":
-      return [inc, exc.filter((x) => x !== id)];
-  }
-}
-
-function TriRow({ label, state, onClick, color }: { label: string; state: Tri; onClick: () => void; color?: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-accent/60",
-        state === "include" && "bg-success/10 text-success",
-        state === "exclude" && "bg-destructive/10 text-destructive line-through",
-      )}
-    >
-      {color && <span className="size-2.5 shrink-0 rounded-full" style={{ background: color }} />}
-      <span className="flex-1 truncate">{label}</span>
-      {state === "include" && <Check className="size-4" />}
-      {state === "exclude" && <Minus className="size-4" />}
-    </button>
-  );
-}
 
 // decodeLinearFilterURL extracts and decodes the base64url `filter` param
 // from a linear.app view/filter URL into IssueFilter JSON.
@@ -96,14 +57,14 @@ function ViewsColumn({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Use a Linear view
       </h3>
       <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
         Makes the view's filter the whole queue (reindexes in the background).
       </p>
-      <div className="grid max-h-[380px] gap-1 overflow-y-auto rounded-lg border border-border p-1">
+      <div className="grid max-h-[380px] min-w-0 gap-1 overflow-y-auto overflow-x-hidden rounded-lg border border-border p-1">
         {error && <p className="px-2 py-4 text-xs text-destructive">Couldn't load views: {error}</p>}
         {!views && !error && (
           <p className="inline-flex items-center gap-2 px-2 py-4 text-xs text-muted-foreground">
@@ -118,7 +79,7 @@ function ViewsColumn({ onClose }: { onClose: () => void }) {
             key={v.id}
             onClick={() => applyView(v)}
             disabled={applying !== null}
-            className="group flex w-full cursor-pointer items-start gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent/60 disabled:opacity-60"
+            className="group flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent/60 disabled:opacity-60"
           >
             <Eye className="mt-0.5 size-3.5 shrink-0" style={{ color: v.color || "var(--muted-foreground)" }} />
             <span className="min-w-0 flex-1">
@@ -260,158 +221,24 @@ function IndexFilterEditor({ onClose }: { onClose: () => void }) {
 }
 
 export function FilterPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { meta, viewFilter, setViewFilter, recentFilters } = useTriage();
-  const [draft, setDraft] = useState<ViewFilter>(viewFilter);
-  const [labelQuery, setLabelQuery] = useState("");
   const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setDraft(viewFilter);
-      setAdvanced(false);
-    }
-  }, [open, viewFilter]);
-
-  const labelNames = useMemo(
-    () => [...new Set((meta?.labels ?? []).filter((l) => !l.isGroup).map((l) => l.name))].sort(),
-    [meta],
-  );
-  const shownLabels = useMemo(() => {
-    const q = labelQuery.trim().toLowerCase();
-    const all = q ? labelNames.filter((n) => n.toLowerCase().includes(q)) : labelNames;
-    // Active ones always visible on top
-    const active = new Set([...draft.labels, ...draft.excludeLabels]);
-    return [...labelNames.filter((n) => active.has(n)), ...all.filter((n) => !active.has(n))].slice(0, 40);
-  }, [labelNames, labelQuery, draft]);
-
-  const teamKey = (id: string) => meta?.teams.find((t) => t.id === id)?.key ?? id.slice(0, 6);
-
-  const apply = () => {
-    setViewFilter(draft);
-    onClose();
-  };
+    if (open) setAdvanced(false);
+  }, [open]);
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={advanced ? "Index filter (advanced)" : "Filter the queue"}
-      className="sm:max-w-3xl"
+      title={advanced ? "Index filter (advanced)" : "Queue source"}
+      className="sm:max-w-xl"
     >
       {advanced ? (
         <IndexFilterEditor onClose={onClose} />
       ) : (
-        <div className="grid gap-4">
-          <p className="text-xs text-muted-foreground">
-            Pick a saved Linear view — or build a local filter: click a team or label to cycle{" "}
-            <span className="text-success">include</span> →{" "}
-            <span className="text-destructive">exclude</span> → neutral. Built filters apply instantly.
-          </p>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <ViewsColumn onClose={onClose} />
-            <div className="grid content-start gap-4 sm:border-l sm:border-border sm:pl-5">
-            <div>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Teams
-              </h3>
-              <div className="grid max-h-44 gap-0.5 overflow-y-auto rounded-lg border border-border p-1">
-                {(meta?.teams ?? []).map((t) => (
-                  <TriRow
-                    key={t.id}
-                    label={`${t.key} · ${t.name}`}
-                    state={triOf(t.id, draft.teams, draft.excludeTeams)}
-                    onClick={() => {
-                      const [inc, exc] = cycle(t.id, draft.teams, draft.excludeTeams);
-                      setDraft({ ...draft, teams: inc, excludeTeams: exc });
-                    }}
-                  />
-                ))}
-              </div>
-
-              <h3 className="mb-1.5 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Priority
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {[1, 2, 3, 4, 0].map((p) => (
-                  <button
-                    key={p}
-                    onClick={() =>
-                      setDraft({
-                        ...draft,
-                        priorities: draft.priorities.includes(p)
-                          ? draft.priorities.filter((x) => x !== p)
-                          : [...draft.priorities, p],
-                      })
-                    }
-                    className={cn(
-                      "cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors",
-                      draft.priorities.includes(p)
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-surface-2 text-muted-foreground hover:bg-accent",
-                    )}
-                  >
-                    {PRIORITY_NAMES[p]}
-                  </button>
-                ))}
-              </div>
-
-              <h3 className="mb-1.5 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Text search
-              </h3>
-              <input
-                value={draft.search}
-                onChange={(e) => setDraft({ ...draft, search: e.target.value })}
-                placeholder="identifier or title…"
-                className="h-9 w-full rounded-md border border-input bg-surface px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Labels
-              </h3>
-              <input
-                value={labelQuery}
-                onChange={(e) => setLabelQuery(e.target.value)}
-                placeholder="Search labels…"
-                className="mb-1.5 h-8 w-full rounded-md border border-input bg-surface px-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-              <div className="grid max-h-72 gap-0.5 overflow-y-auto rounded-lg border border-border p-1">
-                {shownLabels.map((n) => (
-                  <TriRow
-                    key={n}
-                    label={n}
-                    state={triOf(n, draft.labels, draft.excludeLabels)}
-                    onClick={() => {
-                      const [inc, exc] = cycle(n, draft.labels, draft.excludeLabels);
-                      setDraft({ ...draft, labels: inc, excludeLabels: exc });
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-            </div>
-          </div>
-
-          {recentFilters.length > 0 && (
-            <div className="grid gap-1">
-              <span className="text-xs font-medium text-muted-foreground">Recent filters</span>
-              <div className="flex flex-wrap gap-1.5">
-                {recentFilters.map((r, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setDraft({ ...EMPTY_FILTER, ...r.filter })}
-                    className="cursor-pointer rounded-full border border-border bg-surface-2 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-accent"
-                    title="Load this filter"
-                  >
-                    {summarize(r.filter, teamKey)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
+        <div className="grid min-w-0 gap-4">
+          <ViewsColumn onClose={onClose} />
           <div className="flex items-center justify-between border-t border-border pt-3">
             <button
               onClick={() => setAdvanced(true)}
@@ -419,30 +246,12 @@ export function FilterPanel({ open, onClose }: { open: boolean; onClose: () => v
             >
               Index filter (advanced) →
             </button>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setDraft(EMPTY_FILTER)}>
-                <X /> Clear
-              </Button>
-              <Button size="sm" onClick={apply}>
-                <FilterIcon /> Apply
-              </Button>
-            </div>
+            <span className="text-[11px] text-muted-foreground">
+              Filtering happens in Linear — build views there, use them here.
+            </span>
           </div>
         </div>
       )}
     </Dialog>
   );
 }
-
-// summarize renders a compact human description of a saved filter.
-export function summarize(f: ViewFilter, names: (id: string) => string): string {
-  const parts: string[] = [];
-  if (f.teams.length) parts.push(`in ${f.teams.map(names).join(",")}`);
-  if (f.excludeTeams.length) parts.push(`not ${f.excludeTeams.map(names).join(",")}`);
-  if (f.labels.length) parts.push(`+${f.labels.join(",")}`);
-  if (f.excludeLabels.length) parts.push(`−${f.excludeLabels.join(",")}`);
-  if (f.priorities.length) parts.push(f.priorities.map((p) => PRIORITY_NAMES[p]).join("/"));
-  if (f.search.trim()) parts.push(`“${f.search.trim()}”`);
-  return parts.join(" · ") || "empty";
-}
-export { filterIsEmpty };

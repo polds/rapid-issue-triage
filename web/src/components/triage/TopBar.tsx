@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, TriangleAlert, X, Zap } from "lucide-react";
+import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, TriangleAlert, Zap } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
-import { FilterPanel, summarize } from "./FilterPanel";
-import { EMPTY_FILTER, filterIsEmpty } from "@/lib/types";
-import { cn, timeAgo, PRIORITY_NAMES } from "@/lib/utils";
+import { FilterPanel } from "./FilterPanel";
+import { cn, timeAgo } from "@/lib/utils";
 
 function SyncPill() {
   const { sync, refreshSync } = useTriage();
@@ -49,82 +48,13 @@ function SyncPill() {
   );
 }
 
-// Chips for each active filter facet, each individually removable.
-function FilterChips() {
-  const { viewFilter, setViewFilter, meta } = useTriage();
-  if (filterIsEmpty(viewFilter)) return null;
-  const teamKey = (id: string) => meta?.teams.find((t) => t.id === id)?.key ?? id.slice(0, 6);
-  const chips: { label: string; remove: () => void }[] = [];
-  const f = viewFilter;
-  f.teams.forEach((t) =>
-    chips.push({ label: `in ${teamKey(t)}`, remove: () => setViewFilter({ ...f, teams: f.teams.filter((x) => x !== t) }) }),
-  );
-  f.excludeTeams.forEach((t) =>
-    chips.push({
-      label: `not ${teamKey(t)}`,
-      remove: () => setViewFilter({ ...f, excludeTeams: f.excludeTeams.filter((x) => x !== t) }),
-    }),
-  );
-  f.labels.forEach((l) =>
-    chips.push({ label: `+${l}`, remove: () => setViewFilter({ ...f, labels: f.labels.filter((x) => x !== l) }) }),
-  );
-  f.excludeLabels.forEach((l) =>
-    chips.push({
-      label: `−${l}`,
-      remove: () => setViewFilter({ ...f, excludeLabels: f.excludeLabels.filter((x) => x !== l) }),
-    }),
-  );
-  f.priorities.forEach((p) =>
-    chips.push({
-      label: PRIORITY_NAMES[p],
-      remove: () => setViewFilter({ ...f, priorities: f.priorities.filter((x) => x !== p) }),
-    }),
-  );
-  if (f.search.trim())
-    chips.push({ label: `“${f.search.trim()}”`, remove: () => setViewFilter({ ...f, search: "" }) });
-
-  return (
-    <div className="border-t border-border/50">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1.5 px-5 py-1.5">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Filters</span>
-        {chips.map((c, i) => (
-          <button
-            key={i}
-            onClick={c.remove}
-            className="group inline-flex cursor-pointer items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20"
-            title="Remove"
-          >
-            {c.label}
-            <X className="size-3 opacity-50 group-hover:opacity-100" />
-          </button>
-        ))}
-        <button
-          onClick={() => setViewFilter(EMPTY_FILTER)}
-          className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground hover:underline"
-        >
-          clear all
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function TopBar({ page, navigate }: { page: string; navigate: (p: string) => void }) {
   const { meta, viewFilter, setViewFilter, remaining } = useTriage();
   const [panel, setPanel] = useState(false);
 
   // The quick team select mirrors viewFilter.teams when it holds exactly one
   // team (and nothing else team-related); otherwise it shows All Teams.
-  const quickTeam =
-    viewFilter.teams.length === 1 && viewFilter.excludeTeams.length === 0 ? viewFilter.teams[0] : "";
-  const activeCount = [
-    viewFilter.teams.length,
-    viewFilter.excludeTeams.length,
-    viewFilter.labels.length,
-    viewFilter.excludeLabels.length,
-    viewFilter.priorities.length,
-    viewFilter.search.trim() ? 1 : 0,
-  ].reduce((a, b) => a + b, 0);
+  const quickTeam = viewFilter.teams.length === 1 ? viewFilter.teams[0] : "";
 
   const navBtn = (target: string, icon: React.ReactNode, label: string) => (
     <button
@@ -167,20 +97,10 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
 
         <button
           onClick={() => setPanel(true)}
-          className={cn(
-            "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors",
-            activeCount > 0
-              ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-              : "border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground",
-          )}
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <FilterIcon className="size-3.5" />
-          Filter
-          {activeCount > 0 && (
-            <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-              {activeCount}
-            </span>
-          )}
+          Views
         </button>
 
         <span className="hidden rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted-foreground sm:inline">
@@ -197,7 +117,6 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
           <ThemeToggle />
         </div>
       </div>
-      <FilterChips />
       <FilterPanel open={panel} onClose={() => setPanel(false)} />
     </header>
   );

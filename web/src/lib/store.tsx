@@ -13,7 +13,7 @@ import {
 } from "react";
 import { api } from "./api";
 import { useToast } from "@/components/ui/toast";
-import { EMPTY_FILTER, filterIsEmpty, type Enrichment, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import { EMPTY_FILTER, type Enrichment, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
 
 export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
 export type Swipe = "left" | "right" | "down" | null;
@@ -35,7 +35,6 @@ interface TriageCtx {
 
   viewFilter: ViewFilter;
   setViewFilter: (f: ViewFilter) => void;
-  recentFilters: { filter: ViewFilter; usedAt: string }[];
 
   cards: Card[];
   index: number;
@@ -86,13 +85,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       return EMPTY_FILTER;
     }
   });
-  const [recentFilters, setRecentFilters] = useState<{ filter: ViewFilter; usedAt: string }[]>(() => {
-    try {
-      return JSON.parse(window.localStorage.getItem("rt-filter-recents") ?? "[]");
-    } catch {
-      return [];
-    }
-  });
+
 
   const [cards, setCards] = useState<Card[]>([]);
   const [index, setIndex] = useState(0);
@@ -210,17 +203,6 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const setViewFilter = useCallback((f: ViewFilter) => {
     window.localStorage.setItem("rt-viewfilter", JSON.stringify(f));
     setViewFilterState(f);
-    if (!filterIsEmpty(f)) {
-      setRecentFilters((prev) => {
-        const key = JSON.stringify(f);
-        const next = [
-          { filter: f, usedAt: new Date().toISOString() },
-          ...prev.filter((e) => JSON.stringify(e.filter) !== key),
-        ].slice(0, 8);
-        window.localStorage.setItem("rt-filter-recents", JSON.stringify(next));
-        return next;
-      });
-    }
   }, []);
 
   const advance = useCallback(() => {
@@ -393,13 +375,13 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const value = useMemo<TriageCtx>(
     () => ({
       meta, metaError, sync, refreshSync, macros, reloadMacros,
-      viewFilter, setViewFilter, recentFilters,
+      viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
     }),
     [
-      meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter, recentFilters,
+      meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
     ],
