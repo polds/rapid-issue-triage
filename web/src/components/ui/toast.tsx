@@ -8,10 +8,14 @@ interface Toast {
   text: string;
   tone: "default" | "error";
   onUndo?: () => void;
+  action?: { label: string; onClick: () => void };
 }
 
 interface ToastCtx {
-  toast: (text: string, opts?: { tone?: "default" | "error"; onUndo?: () => void }) => void;
+  toast: (
+    text: string,
+    opts?: { tone?: "default" | "error"; onUndo?: () => void; action?: { label: string; onClick: () => void } },
+  ) => void;
 }
 
 const Ctx = createContext<ToastCtx>({ toast: () => {} });
@@ -23,7 +27,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const toast = useCallback<ToastCtx["toast"]>((text, opts) => {
     const id = ++idRef.current;
-    setToasts((t) => [...t.slice(-2), { id, text, tone: opts?.tone ?? "default", onUndo: opts?.onUndo }]);
+    setToasts((t) => [
+      ...t.slice(-2),
+      { id, text, tone: opts?.tone ?? "default", onUndo: opts?.onUndo, action: opts?.action },
+    ]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), opts?.tone === "error" ? 6000 : 3500);
   }, []);
 
@@ -48,6 +55,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-primary hover:underline"
               >
                 <Undo2 className="size-3.5" /> Undo
+              </button>
+            )}
+            {t.action && (
+              <button
+                onClick={t.action.onClick}
+                className="cursor-pointer text-xs font-semibold text-primary hover:underline"
+              >
+                {t.action.label}
               </button>
             )}
           </div>

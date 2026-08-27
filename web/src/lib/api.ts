@@ -38,6 +38,7 @@ export const api = {
   putIndexFilter: (filter: Record<string, unknown>) =>
     req<{ ok: boolean }>("/api/filter", { method: "PUT", body: JSON.stringify({ filter }) }),
   resetIndexFilter: () => req<{ ok: boolean }>("/api/filter", { method: "DELETE" }),
+  getIssue: (id: string) => req<{ issue: Issue }>(`/api/issues/${id}`),
   context: (id: string) => req<{ comments: Comment[] | null }>(`/api/issues/${id}/context`),
   apply: (id: string, ops: Op[], outcome: string, durationMs?: number) =>
     req<{ issue: Issue; activityId: number }>(`/api/issues/${id}/apply`, {

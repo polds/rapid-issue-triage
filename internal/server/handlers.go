@@ -198,6 +198,19 @@ func (s *Server) pushRecentSyncFilter(raw string) {
 	_ = s.store.SetMeta(recentSyncFiltersKey, string(b))
 }
 
+// handleGetIssue returns one issue row with its enrichment attached.
+func (s *Server) handleGetIssue(w http.ResponseWriter, r *http.Request) {
+	issue, err := s.store.GetIssue(r.PathValue("id"))
+	if err != nil {
+		writeErr(w, 404, err)
+		return
+	}
+	if e, err := s.store.GetEnrichment(issue.ID); err == nil {
+		issue.Enrichment = e
+	}
+	writeJSON(w, 200, map[string]any{"issue": issue})
+}
+
 // handleIssueContext returns comments, fetched live from Linear and cached
 // for 10 minutes.
 func (s *Server) handleIssueContext(w http.ResponseWriter, r *http.Request) {

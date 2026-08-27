@@ -32,43 +32,6 @@ const AGENT_LABEL: Record<string, string> = {
 
 type ScoutState = "pending" | "running" | "done" | "error";
 
-export function useEnrichRun(runId: string | null, onDone: () => void) {
-  const [events, setEvents] = useState<EnrichEvent[]>([]);
-  const [running, setRunning] = useState(false);
-  const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
-
-  useEffect(() => {
-    if (!runId) return;
-    setEvents([]);
-    setRunning(true);
-    const es = new EventSource(`/api/enrich/runs/${runId}/events`);
-    es.onmessage = (m) => {
-      try {
-        const ev = JSON.parse(m.data) as EnrichEvent;
-        setEvents((prev) => [...prev, ev]);
-        if (
-          ev.agent === "orchestrator" &&
-          ((ev.kind === "status" && ev.payload?.state === "done") || ev.kind === "error")
-        ) {
-          setRunning(false);
-          es.close();
-          onDoneRef.current();
-        }
-      } catch {
-        /* ignore malformed frames */
-      }
-    };
-    es.onerror = () => {
-      // EventSource auto-reconnects; if the run already finished the server
-      // replays and closes again — fine either way.
-    };
-    return () => es.close();
-  }, [runId]);
-
-  return { events, running };
-}
-
 export function LiveRun({ events, running }: { events: EnrichEvent[]; running: boolean }) {
   const feedRef = useRef<HTMLDivElement>(null);
   const scouts = useMemo(() => {

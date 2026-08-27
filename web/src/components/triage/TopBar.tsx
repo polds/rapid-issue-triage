@@ -4,6 +4,7 @@ import { useTriage } from "@/lib/store";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
 import { FilterPanel } from "./FilterPanel";
+import { NotificationBell } from "./NotificationBell";
 import { cn, timeAgo } from "@/lib/utils";
 
 function SyncPill() {
@@ -112,6 +113,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
         </div>
 
         <div className="ml-auto flex items-center gap-1">
+          <NotificationBell navigate={navigate} />
           {navBtn("macros", <Zap className="size-4" />, "Macros")}
           {navBtn("reports", <BarChart3 className="size-4" />, "Reports")}
           {navBtn("settings", <Settings className="size-4" />, "Settings")}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -15,7 +15,7 @@ import type { Card } from "@/lib/store";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
 import type { Comment, DeepReport, Enrichment } from "@/lib/types";
-import { LiveRun, ReportView, useEnrichRun } from "./DeepPanel";
+import { LiveRun, ReportView } from "./DeepPanel";
 
 import { Markdown } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
@@ -41,37 +41,16 @@ const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string 
 };
 
 function AIPanel({ card }: { card: Card }) {
-  const { enrich, enriching, meta, setIssueEnrichment, deepRun, clearDeepRun } = useTriage();
+  const { enrich, enriching, meta, activeRunFor, getRunEvents, eventsTick } = useTriage();
   const [open, setOpen] = useState(true);
   const [logRunId, setLogRunId] = useState<string | null>(null);
   const e = card.issue.enrichment;
 
-  // The store owns the run; this panel renders it when it belongs to this card.
-  const runId = deepRun?.issueId === card.issue.id ? deepRun.runId : null;
-
-  // When a deep run finishes, pull the stored report onto the card.
-  const { events, running } = useEnrichRun(runId, () => {
-    api.latestRun(card.issue.id).then((r) => {
-      if (r.run?.report) {
-        try {
-          const report = JSON.parse(r.run.report) as DeepReport;
-          setIssueEnrichment(card.issue.id, {
-            issueId: card.issue.id,
-            summary: report.summary,
-            verdict: report.verdict,
-            reasoning: report.reasoning,
-            confidence: report.confidence,
-            createdAt: new Date().toISOString(),
-            report,
-          });
-          setLogRunId(r.run.id);
-        } catch {
-          /* leave panel showing the error event */
-        }
-      }
-      clearDeepRun();
-    });
-  });
+  // The store owns run watchers; this panel just renders the buffer for the
+  // run attached to this card (eventsTick invalidates the memo as it grows).
+  const runId = activeRunFor(card.issue.id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const events = useMemo(() => (runId ? getRunEvents(runId) : []), [runId, getRunEvents, eventsTick]);
 
   // Lazily resolve the run id backing a stored report (for the action log).
   useEffect(() => {
@@ -86,7 +65,7 @@ function AIPanel({ card }: { card: Card }) {
   if (!meta?.aiEnabled && !e) return null;
 
   if (runId) {
-    return <LiveRun events={events} running={running} />;
+    return <LiveRun events={events} running />;
   }
 
   if (e?.report) {

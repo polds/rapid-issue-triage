@@ -14,7 +14,7 @@ import {
 import { api } from "./api";
 import { getEnrichInfo } from "./enrichmode";
 import { useToast } from "@/components/ui/toast";
-import { EMPTY_FILTER, type Enrichment, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
 
 export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
 export type Swipe = "left" | "right" | "down" | null;
@@ -59,9 +59,26 @@ interface TriageCtx {
   enrich: () => Promise<void>;
   enriching: boolean;
   setIssueEnrichment: (issueId: string, e: Enrichment) => void;
-  // Active deep run for an issue (set by enrich() when mode is deep).
-  deepRun: { issueId: string; runId: string } | null;
-  clearDeepRun: () => void;
+  // Background deep-run tracking: notices feed the bell dropdown and toasts;
+  // event buffers feed the live panel; focusIssue jumps back to a card.
+  notices: EnrichNotice[];
+  markNoticesRead: () => void;
+  clearDoneNotices: () => void;
+  activeRunFor: (issueId: string) => string | null;
+  getRunEvents: (runId: string) => EnrichEvent[];
+  eventsTick: number;
+  focusIssue: (issueId: string) => Promise<boolean>;
+}
+
+export interface EnrichNotice {
+  runId: string;
+  issueId: string;
+  identifier: string;
+  status: "running" | "done" | "error";
+  verdict?: string;
+  error?: string;
+  at: string;
+  read: boolean;
 }
 
 const Ctx = createContext<TriageCtx | null>(null);
@@ -101,7 +118,10 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [sessionTriaged, setSessionTriaged] = useState(0);
   const [milestone, setMilestone] = useState(0);
   const [enriching, setEnriching] = useState(false);
-  const [deepRun, setDeepRun] = useState<{ issueId: string; runId: string } | null>(null);
+  const [notices, setNotices] = useState<EnrichNotice[]>([]);
+  const [eventsTick, setEventsTick] = useState(0);
+  const runEvents = useRef<Map<string, EnrichEvent[]>>(new Map());
+  const watchers = useRef<Map<string, EventSource>>(new Map());
 
   // Undo stack of activity ids in the order actions happened this session.
   const undoStack = useRef<{ activityId: number; issueId: string; wasTriage: boolean }[]>([]);
@@ -155,11 +175,15 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     [viewFilter, toast],
   );
 
-  // Keep a ref of cards for exclude computation without re-creating callbacks.
+  // Keep refs of cards/index for callbacks that must not re-create.
   const cardsRef = useRef<Card[]>([]);
   useEffect(() => {
     cardsRef.current = cards;
   }, [cards]);
+  const indexRef = useRef(0);
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   // Initial loads.
   useEffect(() => {
@@ -365,7 +389,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       const info = await getEnrichInfo();
       if (info.settings.mode === "deep") {
         const r = await api.deepEnrich(card.issue.id);
-        setDeepRun({ issueId: card.issue.id, runId: r.runId });
+        startWatcher(r.runId, card.issue.id, card.issue.identifier);
         return;
       }
       const r = await api.enrich(card.issue.id);
@@ -379,7 +403,117 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     }
   }, [current, enriching, updateCard, toast]);
 
-  const clearDeepRun = useCallback(() => setDeepRun(null), []);
+  // startWatcher owns the run's SSE for its whole life, independent of which
+  // card is on screen — enrichments continue and notify in the background.
+  const startWatcher = useCallback(
+    (runId: string, issueId: string, identifier: string) => {
+      setNotices((n) => [
+        { runId, issueId, identifier, status: "running", at: new Date().toISOString(), read: false },
+        ...n,
+      ]);
+      runEvents.current.set(runId, []);
+      const es = new EventSource(`/api/enrich/runs/${runId}/events`);
+      watchers.current.set(runId, es);
+
+      const finish = (status: "done" | "error", patch: Partial<EnrichNotice>) => {
+        es.close();
+        watchers.current.delete(runId);
+        setNotices((n) =>
+          n.map((x) => (x.runId === runId ? { ...x, ...patch, status, read: false, at: new Date().toISOString() } : x)),
+        );
+      };
+
+      es.onmessage = (m) => {
+        let ev: EnrichEvent;
+        try {
+          ev = JSON.parse(m.data);
+        } catch {
+          return;
+        }
+        const buf = runEvents.current.get(runId);
+        if (buf && (buf.length === 0 || ev.seq > buf[buf.length - 1].seq)) {
+          buf.push(ev);
+          setEventsTick((t) => t + 1);
+        }
+        if (ev.agent !== "orchestrator") return;
+        if (ev.kind === "error") {
+          const msg = String(ev.payload?.error ?? "enrichment failed");
+          finish("error", { error: msg });
+          toast(`Enrichment failed: ${identifier} — ${msg}`, { tone: "error" });
+        } else if (ev.kind === "status" && ev.payload?.state === "done") {
+          api.latestRun(issueId).then((r) => {
+            let verdict: string | undefined;
+            if (r.run?.report) {
+              try {
+                const report = JSON.parse(r.run.report) as DeepReport;
+                verdict = report.verdict;
+                setIssueEnrichment(issueId, {
+                  issueId,
+                  summary: report.summary,
+                  verdict: report.verdict,
+                  reasoning: report.reasoning,
+                  confidence: report.confidence,
+                  createdAt: new Date().toISOString(),
+                  report,
+                });
+              } catch {
+                /* report unparseable; leave card as-is */
+              }
+            }
+            finish("done", { verdict });
+            toast(`Enrichment finished: ${identifier}`, {
+              action: { label: "View", onClick: () => void focusIssueRef.current(issueId) },
+            });
+          });
+        }
+      };
+    },
+    [toast],
+  );
+
+  const markNoticesRead = useCallback(() => setNotices((n) => n.map((x) => ({ ...x, read: true }))), []);
+  const clearDoneNotices = useCallback(() => setNotices((n) => n.filter((x) => x.status === "running")), []);
+  const activeRunFor = useCallback(
+    (issueId: string) => notices.find((n) => n.issueId === issueId && n.status === "running")?.runId ?? null,
+    [notices],
+  );
+  const getRunEvents = useCallback((runId: string) => runEvents.current.get(runId) ?? [], []);
+
+  // focusIssue jumps the deck to a card, pulling the issue into the deck if
+  // it paged out. Returns false only when the issue no longer exists.
+  const focusIssue = useCallback(async (issueId: string) => {
+    const idx = cardsRef.current.findIndex((c) => c.issue.id === issueId);
+    if (idx >= 0) {
+      setIndex(idx);
+      return true;
+    }
+    try {
+      const r = await api.getIssue(issueId);
+      setCards((prev) => {
+        const at = Math.min(indexRef.current, prev.length);
+        const copy = [...prev];
+        copy.splice(at, 0, { issue: r.issue, status: "pending" });
+        return copy;
+      });
+      // Current index now points at the inserted card.
+      return true;
+    } catch {
+      toast("Issue is no longer in the local index", { tone: "error" });
+      return false;
+    }
+  }, [toast]);
+  const focusIssueRef = useRef(focusIssue);
+  useEffect(() => {
+    focusIssueRef.current = focusIssue;
+  }, [focusIssue]);
+
+  // Close all watchers on unmount.
+  useEffect(() => {
+    const w = watchers.current;
+    return () => {
+      for (const es of w.values()) es.close();
+    };
+  }, []);
 
   const setIssueEnrichment = useCallback(
     (issueId: string, e: Enrichment) => {
@@ -404,13 +538,15 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      setIssueEnrichment, deepRun, clearDeepRun,
+      setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
+      activeRunFor, getRunEvents, eventsTick, focusIssue,
     }),
     [
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      setIssueEnrichment, deepRun, clearDeepRun,
+      setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
+      activeRunFor, getRunEvents, eventsTick, focusIssue,
     ],
   );
 
