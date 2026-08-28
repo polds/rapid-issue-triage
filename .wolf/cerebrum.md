@@ -49,6 +49,7 @@
 
 ## Do-Not-Repeat
 
+- [2026-08-28] Do not expect `.gitattributes merge=union` to keep a PR out of GitHub's conflicted state. It is applied by local git only. PR #31 proved it: with `.gitattributes` present `git merge-tree HEAD origin/main` returned a clean tree (exit 0), the identical merge with the file stripped hit `CONFLICT (content) in .wolf/memory.md`, and GitHub reported `mergeable_state: dirty` throughout. Worse, a conflicted PR produces no merge ref, so the `pull_request` workflows never run and the required checks silently never report - the PR looks stalled rather than conflicted. The fix is the same as always: merge the base branch locally, where union resolves it without a prompt, and push the merge commit. Union saves the manual conflict edit, not the merge commit.
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
 - [2026-08-27] Never commit `.wolf/dashboard-token`. It is the OpenWolf dashboard auth secret (64-hex, mode 0600). Roll by deleting the file; the next `openwolf dashboard` / daemon start mints a new one. Gitignore it.
 - [2026-08-27] Go 1.27 rejects `QueueFilter{}.Empty()` (struct-literal field selector). Write `(QueueFilter{}).Empty()`.

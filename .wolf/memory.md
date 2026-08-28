@@ -308,3 +308,4 @@
 | 21:20 | Untracked 5 generated `.wolf/` state files and added them to `.gitignore` | `.gitignore` | `git rm --cached` used so the running daemon keeps its local state | ~3k |
 | 21:35 | Added `.gitattributes` with `merge=union` for the append-only session log | `.gitattributes` | Scoped to `.wolf/memory.md` only; verified with `git check-attr` | ~5k |
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
+| 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
