@@ -55,6 +55,11 @@ export default tseslint.config(
         { checksVoidReturn: { attributes: false } },
       ],
 
+      // React Compiler purity: render must be deterministic. `Math.random()`,
+      // `Date.now()` and friends belong in an effect, a lazy `useState`
+      // initialiser, or an event handler — not in a render body.
+      "react-hooks/purity": "error",
+
       // ---------------------------------------------------------------
       // Deferred, not forgotten. Each of these is legitimate but needs a
       // codebase-wide cleanup that does not belong in a CI change. They are
@@ -77,11 +82,10 @@ export default tseslint.config(
       "@typescript-eslint/no-floating-promises": "off",
 
       // React Compiler rules new in eslint-plugin-react-hooks v7. They flag
-      // real memoization and purity issues, but adopting them is a rendering
-      // change, not a lint fix.
+      // real memoization issues, but adopting them is a rendering change, not
+      // a lint fix. (`react-hooks/purity` is enabled — see the rules above.)
       "react-hooks/immutability": "off",
       "react-hooks/preserve-manual-memoization": "off",
-      "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/static-components": "off",
     },
