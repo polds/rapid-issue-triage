@@ -99,6 +99,144 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-28T11:16:00-07:00"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "`go test ./...` listed github.com/polds/rapid-issue-triage/web/node_modules/flatted/golang/pkg/flatted after adding ESLint",
+      "file": "Makefile",
+      "root_cause": "eslint -> file-entry-cache -> flat-cache -> flatted, and flatted vendors a Go implementation (flatted.go). Go's `./...` pattern only skips dirs named testdata or starting with . or _, so web/node_modules is walked. It is gitignored, so this only bites after a local `npm install` - CI never installs npm in the Go jobs, which is why CI stayed green.",
+      "fix": "Added GO_PKGS (go list ./... filtered through grep -v /node_modules/) and GO_FILES (git ls-files '*.go') to the Makefile and used them in test/test-race/vet/fix-check/fmt-check/vuln. Also added web/node_modules to both exclusions.paths blocks in .golangci.yml.",
+      "tags": [
+        "go",
+        "makefile",
+        "node_modules",
+        "eslint",
+        "tooling",
+        "golangci-lint"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "internal/syncer/syncer.go:4:1: package requires newer Go version go1.27 (application built with go1.26) - from `go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...` and `can't load config: the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.0)` from `make lint`",
+      "file": "Makefile",
+      "root_cause": "`go run tool@version` builds the tool in the TOOL's module context, so the toolchain is selected from the tool's go.mod, not this module's. govulncheck v1.7.0 and golangci-lint v2.13.2 both declare go1.26, so both got built with go1.26 and their go/types could not parse a go1.27 module. Local-only: CI's golangci-lint-action downloads a prebuilt binary, and setup-go's environment builds govulncheck with 1.27, so CI on main was green throughout.",
+      "fix": "Added GO_TOOLCHAIN = go$(shell go list -m -f '{{.GoVersion}}') to the Makefile (derived from go.mod, so it tracks upgrades) and prefixed the lint and vuln targets with GOTOOLCHAIN=$(GO_TOOLCHAIN). Both now pass locally.",
+      "tags": [
+        "go",
+        "gotoolchain",
+        "govulncheck",
+        "golangci-lint",
+        "makefile",
+        "go1.27"
+      ],
+      "related_bugs": [
+        "bug-006"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "ESLint first run: 'X' is defined but never used (NotificationBell.tsx); assertion unnecessary (store.tsx:433); Unexpected iterable of non-Promise values passed to promise aggregator (Macros.tsx:74)",
+      "file": "web/src/components/triage/NotificationBell.tsx",
+      "root_cause": "No JS/TS linter had ever run on the frontend, so dead imports, a no-op `as Enrichment` assertion, and a Promise.all fed an array padded with nulls all went unnoticed.",
+      "fix": "Removed the unused lucide `X` import, dropped the redundant assertion, and rewrote the Macros reorder to flatMap so only real promises reach Promise.all. Also collapsed SecretField.source from '\"settings\" | \"env\" | string' (which TypeScript widens to plain string) to a documented string.",
+      "tags": [
+        "eslint",
+        "frontend",
+        "dead-code",
+        "typescript",
+        "promise"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-08-28T19:05:00-07:00",
+      "error_message": "CI 'Workflow lint' job failed: .github/workflows/release.yml:78:9: shellcheck reported issue in this script: SC2129:style: Consider using { cmd1; cmd2; } >> file instead of individual redirects [shellcheck]",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "actionlint shells out to shellcheck for every `run:` block, but only if shellcheck is on PATH - otherwise it silently skips that check and still exits 0. GitHub's ubuntu runners ship shellcheck; this dev container did not. So the local actionlint run looked clean while CI failed on a pre-existing SC2129 in the 'Reproducible timestamps' step (three separate >> \"$GITHUB_ENV\" redirects). A green local actionlint proves much less than it appears when shellcheck is missing.",
+      "fix": "Grouped the three echoes into a single { ... } >> \"$GITHUB_ENV\" redirect. Installed shellcheck locally and reproduced the failure before fixing. Added a guard to the Makefile actions-lint target: if shellcheck is absent it warns loudly that run: blocks are being skipped, and hard-fails when CI is set, so the blind spot cannot recur silently.",
+      "tags": [
+        "actionlint",
+        "shellcheck",
+        "github-actions",
+        "ci",
+        "silent-skip"
+      ],
+      "related_bugs": [
+        "bug-010"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:05:00-07:00"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-08-28T19:05:00-07:00",
+      "error_message": "fatal: no audit was performed / 'artipacked' audit failed ... couldn't list tags for actions/checkout ... HTTP status client error (401 Unauthorized) for url (https://github.com/actions/checkout.git/git-upload-pack)",
+      "file": "Makefile",
+      "root_cause": "zizmor runs online audits by default, which call the GitHub API. Unauthenticated, it does not degrade - it panics and exits non-zero, so no audit runs at all. Every earlier local run had used --no-online-audits, so the first invocation without it (via the new `make actions-lint`) crashed. The CI step as originally written also passed no token and would have hit the same 401 once actionlint stopped failing first.",
+      "fix": "Pass --no-online-audits in the Makefile target that both CI and the pre-commit hook call. Deterministic, needs no token, identical locally and in CI; the online audits only check ref freshness, which Dependabot already covers. zizmor stays optional locally but the target hard-fails when CI is set, so a missing binary cannot silently skip the audit.",
+      "tags": [
+        "zizmor",
+        "github-actions",
+        "ci",
+        "auth",
+        "silent-skip"
+      ],
+      "related_bugs": [
+        "bug-009"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:05:00-07:00"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-08-28T19:25:00-07:00",
+      "error_message": "PR #16 stuck: required check 'Web typecheck and build' never reported ('Expected - waiting for status to be reported'), mergeable_state=blocked, while all 14 check runs on the head were green",
+      "file": ".github/workflows/ci.yml",
+      "root_cause": "The Main ruleset (id 21707865, active, strict) requires three status checks by exact name: golangci-lint, 'Web typecheck and build', 'Go fmt, vet, test'. This PR renamed the web job to 'Web lint, test, build' because it now lints and tests too. GitHub matches required checks by name, so the old context can never be satisfied and the PR blocks forever. Not a hung runner - the check was never going to run.",
+      "fix": "Owner updates the ruleset to the current job names (and to require the new gates, which were not required at all: Workflow lint, Security, Dependency review, Analyze go, Analyze javascript-typescript, and the three 'Embed UI and compile binary (leg)' matrix names). Documented the trap in README's CI section so a future rename changes the ruleset in the same PR.",
+      "tags": [
+        "github-actions",
+        "rulesets",
+        "required-status-checks",
+        "ci",
+        "job-rename",
+        "matrix"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:25:00-07:00"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-08-28T20:30:00-07:00",
+      "error_message": "422 Validation Failed: \"Invalid rule 'tag_name_pattern': \" when creating the tag ruleset via POST /repos/polds/rapid-issue-triage/rulesets",
+      "file": ".github (repo settings, not a tracked file)",
+      "root_cause": "tag_name_pattern is a metadata-restriction rule. That family is plan/ownership gated and is not available on this user-owned repository, so the API rejects the rule outright. The recommended ruleset JSON included it without checking availability first - the REST schema documents the rule's shape but not which repos may use it.",
+      "fix": "Dropped the rule. The 'Release Tags' ruleset ships deletion + non_fast_forward + update, which are the rules that actually protect published Go module versions. Semver enforcement stays in release.yml's regex guard; the release workflow's v*.*.* trigger glob means a non-semver tag cannot start a release anyway.",
+      "tags": [
+        "github",
+        "rulesets",
+        "tags",
+        "422",
+        "metadata-restrictions",
+        "plan-gated"
+      ],
+      "related_bugs": [
+        "bug-011"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T20:30:00-07:00"
     }
   ]
 }

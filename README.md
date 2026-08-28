@@ -76,16 +76,51 @@ dependency-light Vite + React + Tailwind v4 SPA embedded via `go:embed`.
 
 Every push and pull request to `main` runs `.github/workflows/ci.yml`:
 
-- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test ./...`
+- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test -race`
 - Coverage floor of 70% on `internal/config` and `internal/store`
-- Web `npm ci` + `tsc` + Vite build
-- Compile the embedded binary
-- `govulncheck`, `npm audit --audit-level=high`, and gitleaks
+- Web ESLint, Vitest (90% floor on the pure `src/lib` modules), `tsc`, Vite build
+- Compile the embedded binary on Linux, macOS, and Windows
+- `actionlint` + `zizmor` over the workflows themselves
+- `govulncheck`, `npm audit --audit-level=high`, gitleaks, and a
+  dependency review that blocks PRs adding a high-severity advisory
+
+> **Job names are load-bearing.** The `Main` ruleset lists CI job names as
+> required status checks, and GitHub matches them by exact string. Renaming a
+> job whose name is required makes that check sit at "Expected — waiting for
+> status to be reported" forever, silently blocking every PR even when all of
+> CI is green. Adding a matrix to a job renames it too: it then reports once
+> per matrix leg, as `Job name (leg)`. Change a job name and the ruleset in the
+> same PR, or not at all.
+
+`.github/workflows/codeql.yml` runs CodeQL (`security-extended`) over both Go
+and the TypeScript UI on every PR and weekly.
+`.github/workflows/scorecard.yml` reports the repository's OpenSSF Scorecard.
+
+Every action is pinned to a commit SHA, jobs declare least-privilege
+`permissions` and a timeout, and checkouts use `persist-credentials: false`.
+The release job additionally disables toolchain caching so a poisoned cache
+cannot reach a signed, attested artifact. Deliberate zizmor exceptions live in
+`.github/zizmor.yml`.
 
 Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
 
-Local equivalent: `make ci` (or `make pre-commit`). Install the git hook with `make hooks` so those checks run before each commit.
+Local equivalent: `make ci` — `ci-go` (fmt, fix, vet, lint, `test -race`, coverage),
+`web-ci` (eslint, vitest, build), and `actions-lint` (actionlint, zizmor).
+
+Install the git hook with `make hooks`. It runs only the gates a commit
+actually touches, so a web-only change does not pay for the Go race suite:
+
+| Staged paths | Runs |
+|---|---|
+| `*.go`, `go.mod`/`go.sum`, `Makefile`, `.golangci.yml` | `make ci-go` |
+| `web/**` (excluding `web/dist/`) | `make web-ci` |
+| `.github/workflows/**`, `.github/zizmor.yml` | `make actions-lint` |
+
+`PRE_COMMIT_ALL=1 git commit` forces the full `make ci`; `--no-verify` skips it.
+
 `make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
+`make vuln` runs the pinned govulncheck. zizmor is optional locally (`pipx install zizmor==1.29.0`)
+and required in CI, so a missing binary can never silently skip the audit.
 
 ## Releasing
 

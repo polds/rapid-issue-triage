@@ -61,7 +61,8 @@ export interface SecretField {
   id: string;
   label: string;
   set: boolean;
-  source?: "settings" | "env" | string;
+  // "settings" (stored in sqlite) or "env", plus any provider-specific origin.
+  source?: string;
   hint?: string;
 }
 

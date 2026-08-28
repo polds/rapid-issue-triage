@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (first release cut as v0.1.1)
+> Last updated: 2026-08-28 (CI/CD hardening on PR #16; first release cut as v0.1.1)
 
 ---
 
@@ -13,6 +13,7 @@
 - Repository "Browse" opens a native OS folder picker (`POST /api/pick`). Claude path Browse uses the file picker.
 - GitHub Actions CI (fmt, go fix, vet, golangci-lint v2.13, tests, 70% coverage on config/store, web build, binary compile, govulncheck, npm audit, gitleaks), Dependabot, and tagged GoReleaser releases (multi-OS, SPDX SBOM, SLSA provenance, reproducible builds).
 - Go 1.27 + `go fix` modernizers. golangci-lint is pedantic (`default: all`) with **gocyclo min-complexity 15**.
+- CI/CD hardening (PR #16, draft): ESLint 10 + Vitest for the frontend (33 tests, 90% floor scoped to the pure `src/lib` modules), `actionlint` + `zizmor` over the workflows, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, dependency review, `SECURITY.md`. `persist-credentials: false` everywhere, per-job timeouts, `go test -race`, 3-OS binary compile, pinned govulncheck. Release job runs cache-free so a poisoned cache cannot reach attested artifacts.
 - Release workflow publishes. `workflow_dispatch` takes an optional `tag` input: empty = snapshot dry run (uploads `snapshot-dist`), a `v*.*.*` tag = real `goreleaser release --clean` + provenance attestation. Diagnosed from run 33144134442, which was snapshot-only.
 
 ---
@@ -24,9 +25,10 @@
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
-3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. Optional cleanup from a laptop: unused `v0.1.0` tag at ff9f062 and unpublished draft release id 378431198.
+3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. (Done 2026-08-28: the unused `v0.1.0` tag and its draft release were deleted, before the tag ruleset went active.)
 
 ### Closed decisions
+- Repo rulesets: "Main" (branch) requires all 11 CI contexts; "Release Tags" (tag, ~ALL) blocks deletion, tag moves, and force pushes. Neither has bypass actors. Adding `creation` to the tag ruleset would break `release.yml` - see cerebrum.
 - Secrets live in sqlite, not rewritten `.env` files.
 - Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.
 - Native picker is a Go subprocess (osascript / zenity / PowerShell) because the browser cannot expose filesystem paths.
@@ -55,8 +57,12 @@
 
 ```bash
 make build
-make ci                 # fmt, go fix, vet, lint, test, coverage
-make hooks              # install .githooks/pre-commit
+make ci                 # ci-go + web-ci + actions-lint (everything CI gates on)
+make ci-go              # fmt, go fix, vet, lint, test -race, coverage
+make web-ci             # eslint, vitest + coverage floor, vite build
+make actions-lint       # actionlint + zizmor (zizmor optional locally)
+make vuln               # pinned govulncheck
+make hooks              # install .githooks/pre-commit (path-scoped)
 go run ./cmd/triage -no-open
 cd web && npm run dev   # UI :5173, proxies /api → :7333
 ```

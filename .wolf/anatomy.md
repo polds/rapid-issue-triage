@@ -12,8 +12,27 @@
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `Makefile` — Make build targets (~130 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~352 tok)
-- `README.md` — Project documentation (~739 tok)
+- `README.md` — Project documentation (~830 tok)
+- `SECURITY.md` — Disclosure policy, threat-model scope, release attestation verification (~300 tok)
 - `webui.go` — embeds the built frontend (web/dist) into the binary. (~84 tok)
+
+## .github/
+
+- `dependabot.yml` — Weekly gomod / npm / actions update PRs (~90 tok)
+- `zizmor.yml` — Reviewed zizmor audit exceptions (cache-poisoning on release.yml) (~120 tok)
+- `workflows/ci.yml` — Go, web lint/test/build, workflow lint, 3-OS binary, security, dependency review (~1200 tok)
+- `workflows/codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~420 tok)
+- `workflows/release.yml` — GoReleaser publish, SBOM, provenance, tag minting (~1000 tok)
+- `workflows/scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~330 tok)
+
+## web/ (config)
+
+- `eslint.config.js` — ESLint 10 flat config; type-checked rules, deferred families documented (~640 tok)
+- `vitest.config.ts` — Vitest node env, coverage floor scoped to the pure src/lib modules (~230 tok)
+
+## web/src/lib/ (tests)
+
+- `colors.test.ts`, `enrichmode.test.ts`, `linear.test.ts`, `linearfilter.test.ts`, `utils.test.ts` — 33 tests over the pure logic modules (~1500 tok)
 
 ## .claude/
 
