@@ -282,7 +282,7 @@ export function SettingsPage() {
                           className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && newPath.trim()) {
-                              setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
+                              void setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
                               setNewPath("");
                             }
                           }}
@@ -302,7 +302,7 @@ export function SettingsPage() {
                           size="sm"
                           disabled={!newPath.trim()}
                           onClick={() => {
-                            setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
+                            void setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
                             setNewPath("");
                           }}
                         >
@@ -361,7 +361,7 @@ export function SettingsPage() {
               placeholder="/usr/local/bin/claude"
               className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
               onKeyDown={(e) => {
-                if (e.key === "Enter") save({ ...s, claudePath: claudePathDraft.trim() });
+                if (e.key === "Enter") void save({ ...s, claudePath: claudePathDraft.trim() });
               }}
             />
             <Button variant="quiet" size="sm" disabled={picking} onClick={pickClaude}>

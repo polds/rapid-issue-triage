@@ -148,7 +148,7 @@ export function QuickEditRow({
         desc = id === "clear" ? "Unassigned" : "Assigned";
         break;
     }
-    applyOps([op], desc);
+    void applyOps([op], desc);
   };
 
   return (
@@ -186,7 +186,7 @@ export function QuickEditRow({
           identifier={issue.identifier}
           report={issue.enrichment?.report}
           onPick={(canonicalId) => {
-            applyOps(
+            void applyOps(
               [{ type: "set_state", stateId: duplicateState, duplicateOfId: canonicalId }],
               `Status → ${meta.states.find((s) => s.id === duplicateState)?.name ?? "Duplicate"}`,
             );
