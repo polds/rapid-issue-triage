@@ -250,3 +250,15 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 21:36 | Made golangci-lint CI-green; committing CI/Go 1.27/release | `.golangci.yml`, workflows, Go packages | lint 0 issues; tests + 87.2% cover | ~8k |
+
+## Session: 2026-08-28 10:15
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-28 (release publish fix)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:40 | Diagnosed run 33144134442: snapshot-only, no Release published | GH Actions logs | Root cause: workflow_dispatch on main → ref_type='branch' → `release --snapshot --clean` | ~12k |
+| 10:45 | Added `tag` dispatch input + RELEASE_TAG gating; snapshot artifacts upload | `.github/workflows/release.yml`, `README.md` | actionlint clean on all workflows | ~6k |

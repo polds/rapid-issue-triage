@@ -8,10 +8,32 @@
       "file": "web/src/pages/Settings.tsx",
       "root_cause": "Secret rows were gated on src.enabled, so unavailable sources had no way to set keys before enabling",
       "fix": "Always render secret fields for sources that declare them, independent of the enabled toggle",
-      "tags": ["settings", "ux", "secrets"],
+      "tags": [
+        "settings",
+        "ux",
+        "secrets"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-27T19:20:00-07:00"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-08-28T10:40:00-07:00",
+      "error_message": "Release workflow run succeeded and packaged archives/SBOMs but created no GitHub Release",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "The only Release run was a workflow_dispatch on main, so github.ref_type was 'branch'. The args expression selected 'release --snapshot --clean', which builds and packages into dist/ but never publishes; the attestation step was skipped by the same condition. There was no way for a manual run to publish.",
+      "fix": "Added an optional workflow_dispatch 'tag' input. A job-level RELEASE_TAG env resolves to github.ref_name on a v* tag push or the dispatch input otherwise; when non-empty the job checks out that tag, runs 'release --clean' with GORELEASER_CURRENT_TAG, and attests provenance. Empty still means a snapshot dry run, now uploading dist as a 'snapshot-dist' artifact.",
+      "tags": [
+        "ci",
+        "release",
+        "goreleaser",
+        "github-actions",
+        "workflow_dispatch"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T10:40:00-07:00"
     }
   ]
 }

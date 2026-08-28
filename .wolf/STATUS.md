@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-27 (CI green on disk)
+> Last updated: 2026-08-28 (release workflow can publish)
 
 ---
 
@@ -13,17 +13,18 @@
 - Repository "Browse" opens a native OS folder picker (`POST /api/pick`). Claude path Browse uses the file picker.
 - GitHub Actions CI (fmt, go fix, vet, golangci-lint v2.13, tests, 70% coverage on config/store, web build, binary compile, govulncheck, npm audit, gitleaks), Dependabot, and tagged GoReleaser releases (multi-OS, SPDX SBOM, SLSA provenance, reproducible builds).
 - Go 1.27 + `go fix` modernizers. golangci-lint is pedantic (`default: all`) with **gocyclo min-complexity 15**.
+- Release workflow publishes. `workflow_dispatch` takes an optional `tag` input: empty = snapshot dry run (uploads `snapshot-dist`), a `v*.*.*` tag = real `goreleaser release --clean` + provenance attestation. Diagnosed from run 33144134442, which was snapshot-only.
 
 ---
 
 ## 🚀 Next phase
 
-**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work; first tagged `v*` release.
+**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work; cut the first `v0.1.0` tag now that Release can publish.
 
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
-3. CI is green on `main`; a `v*` tag publishes GitHub Release archives with SBOM + provenance.
+3. CI is green on `main`; pushing `v0.1.0` publishes GitHub Release archives with SBOM + provenance (no tags and no releases exist yet).
 
 ### Closed decisions
 - Secrets live in sqlite, not rewritten `.env` files.
