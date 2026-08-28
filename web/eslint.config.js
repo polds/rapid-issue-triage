@@ -82,10 +82,9 @@ export default tseslint.config(
       "@typescript-eslint/no-floating-promises": "off",
 
       // The remaining React Compiler rules new in eslint-plugin-react-hooks
-      // v7. They flag real memoization and purity issues, but adopting them
+      // v7. They flag real immutability and purity issues, but adopting them
       // is a rendering change, not a lint fix.
       "react-hooks/immutability": "off",
-      "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
     },
