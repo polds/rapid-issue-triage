@@ -106,8 +106,49 @@
   `cerebrum.md`. So expect one last manual conflict on any file the moment you
   union it - that is not the rule failing.
 
+- **Running the app offline is a solved problem — use the run skill.**
+  `.claude/skills/run-rapid-issue-triage/` holds `driver.mjs` (Playwright) and
+  `fixture.mjs` (a seeded workspace). `driver.mjs smoke` boots the binary with a
+  fake `LINEAR_API_KEY`, seeds six issues and three macros into a sandboxed
+  sqlite db under `.run-sandbox/`, and drives the real page: skip, snooze,
+  `Space`, `?`, and all four routes, with screenshots. Do not re-derive this by
+  hand; the whole point is that a fresh db renders "Inbox zero", not an error.
+- **The offline read/write split.** With a fake key the UI is fully usable
+  because everything the deck needs is served from sqlite. Only two routes are
+  live Linear passthroughs — `/api/views` and `/api/issues/{id}/context` — and
+  they 502. Skip and snooze are local writes and work; macros, the pickers, and
+  undo all funnel through `resolveOps` → `applyOps` → `issueUpdate` and 502.
+  This is the cleanest available probe of whether something has drifted off the
+  local index.
+- **`claude` is on PATH and authenticated in the web container**
+  (`/opt/node22/bin/claude`), so AI enrichment genuinely runs — `POST
+  /api/issues/{id}/enrich` returns a real summary and verdict in ~20s.
+  Enrichments ride along in the `/api/queue` payload, so a card enriched
+  out-of-band keeps showing "No AI context" until the deck is refetched.
+- **Playwright 1.56.1 is installed globally** at
+  `/opt/node22/lib/node_modules/playwright`, with browsers in `/opt/pw-browsers`
+  — not in `web/node_modules`, so a bare `import 'playwright'` will not resolve
+  from this repo. Import it by absolute path. `node:sqlite` (`DatabaseSync`) is
+  available on Node 22 and is the cheapest way to poke the index from a script.
+
 ## Do-Not-Repeat
 
+- [2026-08-28] Never run `pkill -f <pattern>` where the pattern also occurs in
+  the command you are typing. `-f` matches full command lines including the
+  shell running the Bash tool call, so it kills its own caller: the tool
+  returns exit 144 with no output at all and nothing explains why. Kill by pid
+  (or scan `/proc/*/exe`) instead — `driver.mjs stop` does.
+- [2026-08-28] Do not wipe a table with an `AUTOINCREMENT` id and assume ids
+  restart. `DELETE FROM macros` leaves `sqlite_sequence` alone, so a re-seed
+  hands out ids 10, 11, 12 and `POST /api/issues/{id}/macro/1` 404s. Clear
+  `sqlite_sequence` for the table too.
+- [2026-08-28] Do not assert a UI state with a loose `text=` Playwright
+  selector. `text=/skip|snooze/i` matched the card's own action buttons, so the
+  help-overlay check waited on six elements and timed out. Anchor on a heading
+  the target screen uniquely owns (`h2:text-is("Keyboard shortcuts")`).
+  Relatedly, `App.tsx pageFromHash()` silently falls back to the triage page
+  for any unrecognised hash, so `#/report` (the route is `reports`) renders the
+  wrong screen while the assertion still passes.
 - [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
   2026-08-28T02:20 scan tracked 90 files and silently omitted five real
   modules (`web/src/lib/linear.ts`, `linearfilter.ts`, `triage-context.ts`,

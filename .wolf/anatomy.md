@@ -1,21 +1,21 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T22:06:03.967Z
-> Files: 121 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:24:45.124Z
+> Files: 124 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitattributes` — Git attributes (~375 tok)
-- `.gitignore` — Git ignore rules (~139 tok)
+- `.gitignore` — Git ignore rules (~143 tok)
 - `.golangci.yml` — Declares is (~1950 tok)
 - `.goreleaser.yaml` (~1431 tok)
 - `.tool-versions` (~4 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
-- `CLAUDE.md` — Root agent guide + index of every directory-level CLAUDE.md (~2351 tok)
+- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2575 tok)
 - `go.mod` — Go module definition (~151 tok)
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `LICENSE` — Project license (~3029 tok)
-- `Makefile` — Make build targets (~1269 tok)
+- `Makefile` — Make build targets (~1358 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~352 tok)
 - `README.md` — Project documentation (~1927 tok)
 - `SECURITY.md` — Disclosure policy, threat-model scope, release attestation verification (~373 tok)
@@ -27,17 +27,22 @@
 
 ## .github/
 
-- `CLAUDE.md` — CI job-name/ruleset coupling, hardening rules, release traps (~1655 tok)
+- `CLAUDE.md` — .github/ — CI, security scanning, releases (~2213 tok)
 - `dependabot.yml` — Weekly gomod / npm / actions update PRs, Conventional Commit prefixes scoped by area (~234 tok)
-- `zizmor.yml` — Reviewed zizmor audit exceptions (cache-poisoning on release.yml) (~184 tok)
+- `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~441 tok)
 
 ## .github/workflows/
 
-- `ci.yml` — Go, web lint/test/build, workflow lint, 3-OS binary, security, dependency review (~2001 tok)
+- `ci.yml` — CI: CI (~2217 tok)
 - `codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~555 tok)
-- `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~420 tok)
+- `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~1338 tok)
 - `release.yml` — GoReleaser publish, SBOM, provenance, tag minting (~1676 tok)
 - `scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~359 tok)
+
+## .run-sandbox/
+
+- `rapid-triage.yaml` (~45 tok)
+- `server.log` (~55 tok)
 
 ## cmd/triage/
 

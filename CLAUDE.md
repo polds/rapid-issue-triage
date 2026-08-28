@@ -74,6 +74,7 @@ Reading the relevant one is faster and cheaper than re-deriving the layout.
 | [`web/src/components/ui/`](web/src/components/ui/CLAUDE.md) | Primitive kit and its keyboard contract. |
 | [`web/src/pages/`](web/src/pages/CLAUDE.md) | The four hash routes; the keyboard map; Settings invariants. |
 | [`.github/`](.github/CLAUDE.md) | CI, CodeQL, Scorecard, Dependabot, and the release traps. |
+| [`.claude/skills/run-rapid-issue-triage/`](.claude/skills/run-rapid-issue-triage/SKILL.md) | Running and driving the app offline: the Playwright driver, the sqlite fixture, and what does and does not work without a Linear key. |
 
 ## Architecture in one pass
 
