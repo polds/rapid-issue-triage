@@ -70,22 +70,22 @@ export default tseslint.config(
       // `.catch()` where the user needs to see it.
       "@typescript-eslint/no-floating-promises": "error",
 
+      // Type safety. `req()` in api.ts decodes into `unknown` and asserts the
+      // response shape in exactly one place, so no `any` escapes the fetch
+      // wrapper into its callers. Keep it that way.
+      "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+
       // ---------------------------------------------------------------
       // Deferred, not forgotten. Each of these is legitimate but needs a
       // codebase-wide cleanup that does not belong in a CI change. They are
       // listed explicitly so the debt is visible in review rather than
       // silently missing from the config.
       // ---------------------------------------------------------------
-
-      // ~60 hits, nearly all downstream of `res.json()` being `any` in
-      // api.ts. Fixing this means typing the fetch wrapper against `unknown`
-      // and narrowing at each call site.
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-explicit-any": "off",
 
       // The remaining React Compiler rules new in eslint-plugin-react-hooks
       // v7. They flag real immutability and effect-ordering issues, but
