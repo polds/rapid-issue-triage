@@ -2,12 +2,26 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (lint fan-out merged; web/dist gated against a fresh build)
+> Last updated: 2026-08-28 (container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
 
+- **Container image in the release.** `dockers_v2` + `docker_digest` in
+  `.goreleaser.yaml` publish `ghcr.io/polds/rapid-issue-triage` (linux/amd64 +
+  linux/arm64) on the same run that cuts a GitHub Release, tagged
+  `{{.Version}}` / `MAJOR.MINOR` / `latest` (the last two suppressed on a
+  prerelease). The root `Dockerfile` only `COPY`s the binary GoReleaser already
+  built onto a digest-pinned distroless `static-debian13:nonroot`, so the image
+  ships the attested bytes; OCI labels come from `build_args` (version, commit,
+  `.CommitDate`, source) and OCI annotations from `dockers_v2.annotations`
+  (including `base.name` / `base.digest` read off the `FROM` line).
+  `release.yml` gained `packages: write`, `docker/setup-buildx-action`
+  (`cache-binary: false`), a GHCR login gated on a release tag, and a second
+  `actions/attest` over `dist/digests.txt`. Snapshot dispatches build the image
+  locally and push nothing. Dependabot now tracks the base image
+  (`build(docker)`), held from auto-merge like the release-only actions.
 - **OpenWolf CLI bootstrap.** `.claude/hooks/session-start.sh` (adopted from a sibling repo) reinstalls the `openwolf` CLI on every remote session start, registered first in `.claude/settings.json` SessionStart. The committed `.wolf/hooks/*.js` always worked; the CLI did not survive the ephemeral container, so `openwolf scan`/`find`/`designqc` were unavailable and anatomy.md drifted. `.claude/rules/openwolf.md` gained the designqc rule.
 - **Agent docs tree.** Root `CLAUDE.md` is now an index (architecture map, non-negotiables, domain vocabulary, maintenance triggers) linking 16 directory-level `CLAUDE.md` files: `cmd/triage`, `internal/` + all 7 packages, `web/` + `src/lib` + `src/pages` + `src/components{,/triage,/ui}`, and `.github/`. Each carries a layout table, invariants, path-scoped lint exclusions, and a "change X -> update Y" block. The OpenWolf block in the root is fenced with `<!-- openwolf:begin/end -->` so `openwolf init` can't clobber the index. `anatomy.md` is now generated, not hand-edited: `.claude/hooks/session-start.sh` reinstalls the `openwolf` CLI each remote session, and `openwolf scan` reindexed the tree at 121 files.
 - Claude probe is live (`LookPath` on each settings/meta/enrich request). Missing CLI shows a warning on the issue card and Settings. Advanced → Claude binary path (text + native file picker) stored as `enrich_settings.claudePath`.
@@ -43,6 +57,8 @@
 ### Open decisions
 - Dependabot majors are open and not safe to merge blind: #9 bumps TypeScript to 7.0.2, outside `typescript-eslint@8`'s peer range (`<6.1.0`), which would break the whole type-aware config. #7 (vite 8) and #8 are also majors.
 - Whether first-run should boot without `LINEAR_API_KEY` and force a Settings setup screen (still required at process start today).
+- The container path is unrehearsed end to end: no local Docker daemon was available, so it was validated with `goreleaser check`, GoReleaser v2.18's own source (context layout, template fields, base-image parsing), and actionlint/shellcheck/zizmor — not an actual image build. **Run a snapshot dispatch (empty `tag`) before the next real tag**; it builds the image locally and pushes nothing.
+- Whether to make the GHCR package public. It is created private on first push; the `org.opencontainers.image.source` label links it to the repo, and the setting is a one-time manual toggle.
 
 ---
 

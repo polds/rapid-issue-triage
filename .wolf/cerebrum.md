@@ -110,6 +110,39 @@
   `cerebrum.md`. So expect one last manual conflict on any file the moment you
   union it - that is not the rule failing.
 
+### Container releases (2026-08-28)
+- GoReleaser's **`dockers_v2`** (v2.12+) replaces `dockers` + `docker_manifests`.
+  It builds with `docker buildx` in the **publish phase**, not the build phase,
+  because buildx cannot assemble a multi-platform manifest without pushing it.
+  So `--skip=publish` / `goreleaser build` silently produce no image at all, and
+  `release --snapshot` instead builds one `--load`ed image per platform with a
+  `-linux-amd64` tag suffix. That snapshot path is the dry run that proves the
+  Dockerfile before a real tag does.
+- The docker build context is a **temp dir holding only artifacts**, laid out as
+  `<goos>/<goarch>[/v<arm>]/<binary>` — the same string as `$TARGETPLATFORM`, so
+  `COPY $TARGETPLATFORM/triage /usr/bin/` is the whole Dockerfile. Repo files are
+  absent unless listed in `extra_files` (no wildcards).
+- The runner's **default buildx driver is `docker`, which cannot cross-build**;
+  `docker/setup-buildx-action` (docker-container driver) is required. QEMU is
+  not: a COPY-only Dockerfile never executes anything for the target platform.
+- **Labels and annotations are not interchangeable.** Labels live in the image
+  config and can come from Dockerfile `ARG`s (so a hand build gets them);
+  annotations live on the index and the per-platform manifests and can only come
+  from `dockers_v2.annotations`, scoped `index,manifest:`. `.BaseImage` /
+  `.BaseImageDigest` are parsed off the `FROM` line, so pinning the base by
+  digest also makes `org.opencontainers.image.base.*` exact and drift-free.
+- `docker_digest` writes `dist/digests.txt` in checksum-file shape purely so
+  `actions/attest` can take it as `subject-checksums`, giving images the same
+  provenance as the archives. It does not exist on a snapshot run.
+- Distroless `static:nonroot` sets `User=65532` but **no `HOME`**, and Go's
+  `os.UserHomeDir` reads the env, not `/etc/passwd`. Without `ENV HOME=...` the
+  sqlite index lands in a relative `.rapid-triage/`. BuildKit creates a `WORKDIR`
+  owned by the image's current user, which is what makes a named volume at
+  `/data` writable without a `RUN chown` (there is no shell to run one).
+- Docker Hub rate-limits anonymous pulls (429 seen from this container). Another
+  reason the base image comes from `gcr.io`: a rate-limited pull inside a release
+  is a failed release.
+
 ## Do-Not-Repeat
 
 - [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
@@ -182,3 +215,6 @@
 
 - [2026-08-28] Re-enabled the deferred lint rules as one PR per rule, fanned out to an agent each, rather than one sweeping PR. Every PR touched the same deferred block in eslint.config.js, so conflicts were constant - the cost of the approach. It bought reviewable, revertable diffs and let each agent root-cause its own rule; two real bugs (Confetti re-randomizing mid-burst, 5 hidden `no-base-to-string` errors) were found that a bulk suppression pass would have buried.
 - [2026-08-28] The `web/dist` freshness gate verifies rather than regenerates: it fails a PR whose committed bundle does not match a fresh build, instead of a bot rebuilding and committing. A workflow that pushes generated output needs write access on every PR and turns an unreviewed build into a commit. It rides in the existing `Web lint, test, build` job rather than a new one, so the `Main` ruleset's required contexts do not change. It reads only the worktree column of `git status`, so an already-staged rebuild passes - otherwise the pre-commit hook could never be satisfied.
+- [2026-08-28] The release publishes a container to `ghcr.io/polds/rapid-issue-triage` built from the **binaries GoReleaser already produced**, not from source in a builder stage: a rebuild inside the image would ship bytes that the archives' checksums and the SLSA provenance do not cover. Tags are `{{.Version}}`, `{{.Major}}.{{.Minor}}`, and `latest`, the last two suppressed on a prerelease. No bare `{{.Major}}` tag while the project is 0.x — a moving `0` would promise a compatibility semver does not give before 1.0. Image tags are also *not* immutable the way the GitHub Release is: a re-run overwrites them, which is fine because the attestations pin digests.
+- [2026-08-28] The container binds `0.0.0.0:7333`, which is not a retreat from the loopback-only rule: inside a network namespace, loopback is reachable from nothing, so the bind address stops being the control. The control moves to the port publish — `-p 127.0.0.1:7333:7333` — and is stated in the Dockerfile, README, SECURITY.md, and the root CLAUDE.md non-negotiables, because `/api/pick` and `/api/toolbox` spawn subprocesses.
+- [2026-08-28] The Dockerfile base image joins the Dependabot hold list (`docker` ecosystem, `build(docker)` scope). No pull request builds the image, so a base bump is exactly as unvalidated as a bump to an action that only release.yml runs — same reason, same list.
