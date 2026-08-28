@@ -1,40 +1,42 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T22:52:56.446Z
-> Files: 123 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:13:50.843Z
+> Files: 126 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitattributes` — Git attributes (~375 tok)
-- `.gitignore` — Git ignore rules (~139 tok)
+- `.gitignore` — Git ignore rules (~158 tok)
 - `.golangci.yml` — Declares is (~1950 tok)
 - `.goreleaser.yaml` (~2477 tok)
 - `.tool-versions` (~4 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
-- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2694 tok)
-- `Dockerfile` — Release runtime image: COPYs GoReleaser's prebuilt `$TARGETPLATFORM/triage` onto pinned distroless, OCI labels from build args, binds 0.0.0.0:7333 as uid 65532 with /data as $HOME (~1109 tok)
+- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2975 tok)
+- `coverage.out` (~6822 tok)
+- `Dockerfile` — Release runtime image: COPYs GoReleaser's prebuilt `$TARGETPLATFORM/triage` onto pinned distroless, OCI labels from build args, binds 0.0.0.0:7333 as uid 65532 with /data as $HOME (~1170 tok)
 - `go.mod` — Go module definition (~151 tok)
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `LICENSE` — Project license (~3029 tok)
-- `Makefile` — Make build targets (~1358 tok)
+- `Makefile` — Make build targets (~3115 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~352 tok)
-- `README.md` — Project documentation (~2513 tok)
+- `README.md` — Project documentation (~3005 tok)
 - `SECURITY.md` — Security Policy (~519 tok)
+- `semgrep.sarif` (~85559 tok)
 - `webui.go` — embeds the built frontend (web/dist) into the binary. (~84 tok)
 
 ## .githooks/
 
-- `pre-commit` — Mirror the CI quality gates, scoped to what this commit actually touches. (~451 tok)
+- `pre-commit` — Mirror the CI quality gates, scoped to what this commit actually touches. (~682 tok)
 
 ## .github/
 
-- `CLAUDE.md` — .github/ — CI, security scanning, releases (~2808 tok)
+- `CLAUDE.md` — .github/ — CI, security scanning, releases (~3546 tok)
 - `dependabot.yml` — Declares for (~337 tok)
 - `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~453 tok)
 
 ## .github/workflows/
 
-- `ci.yml` — CI: CI (~2217 tok)
+- `ci.yml` — CI: CI (~3645 tok)
 - `codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~555 tok)
 - `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~1439 tok)
 - `release.yml` — CI: Release (~2188 tok)
@@ -112,13 +114,17 @@
 
 ## web/
 
-- `CLAUDE.md` — Frontend root: dist embedding, hash routing, lint contracts (~1136 tok)
-- `eslint.config.js` — ESLint flat configuration (~1277 tok)
+- `CLAUDE.md` — web/ — the embedded frontend (~1411 tok)
+- `eslint.config.js` — ESLint flat configuration (~1902 tok)
 - `index.html` — Rapid Triage (~80 tok)
-- `package.json` — Node.js package manifest (~338 tok)
+- `package.json` — Node.js package manifest (~349 tok)
 - `tsconfig.json` — TypeScript configuration (~130 tok)
 - `vite.config.ts` — Vite build configuration (~146 tok)
 - `vitest.config.ts` — Vitest test configuration (~246 tok)
+
+## web/scripts/
+
+- `check-licenses.mjs` — Dependency license gate for the frontend tree. (~1081 tok)
 
 ## web/src/
 
@@ -128,9 +134,9 @@
 
 ## web/src/components/
 
-- `CLAUDE.md` — Shared components; why Markdown.tsx is hand-written (~680 tok)
+- `CLAUDE.md` — web/src/components/ — shared components + two subtrees (~844 tok)
 - `ErrorBoundary.tsx` — A render crash anywhere below must not blank the whole app: show what (~596 tok)
-- `Markdown.tsx` — Inline markdown (bold, code, links) without wrapping block elements. (~1905 tok)
+- `Markdown.tsx` — Inline markdown (bold, code, links) without wrapping block elements. (~2141 tok)
 - `PriorityIcon.tsx` — Linear priorities: 0 none, 1 urgent, 2 high, 3 medium, 4 low. (~282 tok)
 
 ## web/src/components/triage/
@@ -169,7 +175,7 @@
 - `enrichmode.ts` — Tiny module-level cache of enrichment settings so every card doesn't (~238 tok)
 - `linear.test.ts` — Declares from (~309 tok)
 - `linear.ts` — linearIssueHref: identifier + template URL -> Linear issue URL (~129 tok)
-- `linearfilter.test.ts` — Mirrors what linear.app puts in ?filter=: base64url, padding stripped. (~493 tok)
+- `linearfilter.test.ts` — Mirrors what linear.app puts in ?filter=: base64url, padding stripped. (~571 tok)
 - `linearfilter.ts` — decodeLinearFilterURL: base64url ?filter= -> IssueFilter JSON (~246 tok)
 - `store.tsx` — Global app state: metadata, macro list, the card deck, and every triage (~5800 tok)
 - `theme.tsx` — Ctx — uses useState, useEffect, useCallback, useContext (~334 tok)
@@ -185,7 +191,7 @@
 ## web/src/pages/
 
 - `CLAUDE.md` — The four hash routes; keyboard map; Settings invariants (~796 tok)
-- `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5135 tok)
+- `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5158 tok)
 - `Reports.tsx` — Gamified report page: stat tiles, per-day bar chart, outcome donut, (~2998 tok)
 - `Settings.tsx` — Enrichment settings: fast vs deep mode, per-source toggles with live (~5276 tok)
 - `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2138 tok)

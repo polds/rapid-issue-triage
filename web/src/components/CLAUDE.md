@@ -25,6 +25,16 @@ case — do not swap in a library.
 Link handling is the sharp edge: only `http(s)` hrefs may be emitted, and a
 `javascript:` URL must render as text.
 
+The other sharp edge is the tokenizer regex itself. Every alternative is
+bounded by a negated class that excludes its own opening delimiter, so no
+start position can scan past the next one. The link target used `[^)]+`, which
+was not bounded that way: on `"[a](".repeat(n)` — text a Linear description
+can plainly contain — it rescanned to end-of-string from every `[`, quadratic,
+~2.5s at 160KB. The cost of the fix is that a link target containing a space
+or a paren now renders as text instead of a link. That is the right side of
+the "not a full spec implementation" trade. `sonarjs/super-linear-regex` is
+what guards it now; do not silence it here.
+
 ## Conventions
 
 - **Styling is Tailwind classes over the tokens in `src/styles.css`.** Use
