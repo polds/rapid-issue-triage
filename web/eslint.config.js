@@ -26,7 +26,7 @@ export default tseslint.config(
     },
     plugins: { "react-refresh": reactRefresh },
     rules: {
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
 
       // Unused code is an error, but a `_` prefix is the explicit
       // "intentionally ignored" marker (rest destructuring, unused args).
@@ -55,6 +55,21 @@ export default tseslint.config(
         { checksVoidReturn: { attributes: false } },
       ],
 
+      // Components declared inside another component are a new identity on
+      // every render, so React unmounts and remounts their subtree (losing
+      // DOM and local state). No call sites do this today; keep it that way.
+      "react-hooks/static-components": "error",
+
+      // setState in an effect body costs a second render pass, and usually
+      // means the value should be derived during render or updated by the
+      // event that causes it. Effects are for syncing with the outside world.
+      "react-hooks/set-state-in-effect": "error",
+
+      // Fire-and-forget is allowed, but it has to be spelled out: `void` for
+      // calls whose failure is already handled inside the callee, or a real
+      // `.catch()` where the user needs to see it.
+      "@typescript-eslint/no-floating-promises": "error",
+
       // ---------------------------------------------------------------
       // Deferred, not forgotten. Each of these is legitimate but needs a
       // codebase-wide cleanup that does not belong in a CI change. They are
@@ -72,19 +87,11 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-explicit-any": "off",
 
-      // ~17 fire-and-forget calls (background refresh, telemetry) that are
-      // deliberate. Each needs a `void` marker or a rejection handler.
-      "@typescript-eslint/no-floating-promises": "off",
-
-      // React Compiler rules new in eslint-plugin-react-hooks v7. The ones
-      // still listed here flag real memoization and purity issues, but
-      // adopting them is a rendering change, not a lint fix.
-      // `react-hooks/set-state-in-effect` is no longer among them: its hits
-      // were cleaned up, so it gates as an error via the recommended set.
+      // The remaining React Compiler rules new in eslint-plugin-react-hooks
+      // v7. They flag real immutability and purity issues, but adopting them
+      // is a rendering change, not a lint fix.
       "react-hooks/immutability": "off",
-      "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/purity": "off",
-      "react-hooks/static-components": "off",
     },
   },
 

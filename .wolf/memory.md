@@ -294,3 +294,10 @@
 | 20:13 | Check-in: owner applied both rulesets; PR #16 now mergeable_state=clean | rulesets 21707865, 21759998 | Stale required check resolved; v0.1.0 tag + draft release cleaned up first | ~5k |
 | 20:15 | Recorded the tag-ruleset constraints so a future session cannot break releases | `.wolf/cerebrum.md`, `.wolf/STATUS.md` | `creation`/`required_signatures` must stay off without a bypass actor | ~3k |
 | 20:30 | tag_name_pattern rejected 422 on this user-owned repo; dropped from the tag ruleset | `.wolf/cerebrum.md`, `.wolf/buglog.json` | bug-012; structural rules work, metadata family does not | ~4k |
+
+## Session: 2026-08-28 21:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:05 | Give Dependabot Conventional Commit prefixes scoped by repo area | .github/dependabot.yml, .wolf/anatomy.md | build(backend) / build(frontend)+chore(frontend) / ci(actions); YAML validated | ~4k |
+| 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |

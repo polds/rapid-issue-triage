@@ -2,7 +2,7 @@
 // back to that card (pulling it into the deck if it paged out).
 import { useEffect, useRef, useState } from "react";
 import { Bell, Check, Loader2, TriangleAlert } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { cn, timeAgo } from "@/lib/utils";
 
 const VERDICT_LABEL: Record<string, string> = {

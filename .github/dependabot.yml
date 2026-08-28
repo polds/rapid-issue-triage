@@ -5,13 +5,23 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Conventional Commits: the scope names the area of the repo the bump touches.
+    # `build` is the Conventional Commits type for build-system / dependency changes.
+    commit-message:
+      prefix: "build(backend)"
   - package-ecosystem: npm
     directory: /web
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(frontend)"
+      # npm distinguishes devDependencies; those are tooling, not shipped code.
+      prefix-development: "chore(frontend)"
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(actions)"
