@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (dependabot commit scopes)
+> Last updated: 2026-08-28 (lint fan-out: every deferred ESLint rule re-enabled)
 
 ## User Preferences
 
@@ -29,6 +29,9 @@
 - eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
 - v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They were all deferred when the lint gate landed; they are being re-enabled one rule per PR. `static-components` is enabled as of PR #23 (zero violations - verify a rule is actually loaded with `npx eslint --print-config <file>` before trusting a clean run).
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
+- `no-explicit-any` was blinding rules that were already enabled. `any` short-circuits type-aware analysis, so enforcing it surfaced 5 pre-existing `no-base-to-string` errors that had been silently unreachable. Expect a type-safety rule to uncover violations of its neighbours.
+- All 12 previously deferred rules are enforced as of main `cb8b536`: `react-refresh/only-export-components`, `react-hooks/{static-components,set-state-in-effect,purity,immutability}`, `preserve-manual-memoization` (via `reactHooks.configs.flat.recommended`, no explicit line), `@typescript-eslint/{no-floating-promises,no-unsafe-argument,no-unsafe-assignment,no-unsafe-call,no-unsafe-member-access,no-unsafe-return,no-explicit-any}`. `npm run lint` is 0 errors / 2 warnings (both `exhaustive-deps` in store.tsx).
+- Fast-refresh compliance drove three extractions: `web/src/lib/triage-context.ts` (out of store.tsx), `web/src/components/ui/use-toast.ts` (out of toast.tsx), `web/src/components/triage/report-format.ts` (out of DeepPanel.tsx). A component module must export only components.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
 ### Git merge drivers (2026-08-28)
@@ -59,7 +62,7 @@
 - [2026-08-28] Never create the GitHub Release by hand in the Releases UI while immutable releases are on. It publishes instantly, GoReleaser then cannot attach any archive/SBOM/checksum, the run fails on preflight, and the tag name is burnt permanently — the version must be bumped. Let the workflow create the release.
 - [2026-08-28] Do not treat a green Release run as a published release. Run 33144134442 succeeded, built every archive/SBOM, and created nothing, because a `workflow_dispatch` from `main` took the `--snapshot` branch. Check the run's resolved GoReleaser version (`8aa5c68-snapshot`, `tag: v0.0.0`) and whether the attestation step was skipped.
 
-- [2026-08-28] Do not add an ESLint gate that requires refactoring the whole app. The first type-checked run produced 127 errors; the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) are turned off with a written reason in eslint.config.js so the debt is visible in review, and everything else gates as an error. A lint job that cannot pass is not a CI improvement.
+- [2026-08-28] Do not land an ESLint gate whose rules cannot pass, and do not leave the deferral open-ended either. The first type-checked run produced 127 errors, so the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) were turned off with a written reason in eslint.config.js to keep the debt visible in review. **Resolved 2026-08-28**: all of them were re-enabled one rule per PR (#23-#30, #32, #33). eslint.config.js now has no deferred block; the only `off` left is the deliberate test-file override for `react-refresh/only-export-components`. Deferring is a staging tactic, not an end state.
 - [2026-08-28] Do not assume a tool failing locally means CI is broken. `make lint` and `make vuln` both failed here on the go1.26/go1.27 toolchain mismatch while every CI run on main was green - CI uses a prebuilt golangci-lint binary and a setup-go environment. Check the actual run conclusions before reporting a red pipeline.
 
 - [2026-08-28] Do not trust a green local `actionlint`. It shells out to shellcheck for `run:` blocks only when shellcheck is on PATH, and silently skips them otherwise while still exiting 0. GitHub runners have it; dev containers often do not. `make actions-lint` now warns locally and hard-fails in CI when it is missing.
@@ -72,6 +75,14 @@
 
 - [2026-08-28] Do not put `tag_name_pattern` (or any metadata-restriction rule: `branch_name_pattern`, `commit_message_pattern`, `commit_author_email_pattern`) in a ruleset for this repo. It is a user-owned repo, and those rules 422 with `Invalid rule 'tag_name_pattern':`. The structural rules (`creation`, `update`, `deletion`, `non_fast_forward`) do work here - the "Release Tags" ruleset uses three of them. Semver enforcement therefore lives only in release.yml's own regex guard, which is fine: the release trigger glob is `v*.*.*`, so a non-semver tag cannot fire a release.
 - [2026-08-28] Do not combine a scoped Dependabot `commit-message.prefix` with `include: "scope"`. Dependabot appends its own `(deps)` / `(deps-dev)` scope to whatever prefix you give it, so `prefix: "build(backend)"` plus `include: scope` emits `build(backend)(deps): ...`, which is not a valid Conventional Commit. Pick one: either the area lives in the prefix's scope (what this repo does) or you let Dependabot own the scope with `deps`.
+
+- [2026-08-28] `void somePromise` does not satisfy `react-hooks/set-state-in-effect`. The rule tracks the setter call, not the floating promise, so `void load()` inside an effect still reports. The shape that passes is an IIFE the effect owns: `void (async () => { ... })()`. Reaching for `void` because `no-floating-promises` is also on will silence one rule and leave the other red.
+
+- [2026-08-28] Do not close and reopen a PR to kick CI, ever. On a *conflicted* PR it does nothing anyway: GitHub cannot build a merge ref, so `pull_request` workflows never fire and the PR shows **zero** check runs - not failures. The fix is to merge the base branch in and resolve. Reopening #26 only cancelled 8 in-flight runs and dropped the event subscription.
+
+- [2026-08-28] Do not deduplicate check runs by name and keep an arbitrary one. A re-run leaves several runs sharing a name (cancelled, queued, in progress); keeping whichever the API returned first reported "7 required checks failing" on #26 when nothing was failing. Sort by `started_at` and keep the latest run per name.
+
+- [2026-08-28] A worktree-isolated agent must verify its cwd before its first edit. One fan-out agent edited `/home/user/rapid-issue-triage/web/eslint.config.js` - the shared checkout - instead of its own worktree, putting an unrelated rule into the main tree. Also: the scratchpad directory is shared across agents, not per-agent; two agents writing `commit-msg.txt` overwrote each other.
 
 ## Decision Log
 
@@ -89,3 +100,5 @@
 - [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.
 
 - [2026-08-28] Dependabot writes Conventional Commits whose **scope is the repo area, not `deps`**: `build(backend)` for gomod, `build(frontend)` / `chore(frontend)` (devDependencies) for npm in `/web`, `ci(actions)` for github-actions. `build` is the Conventional Commits type for dependency/build-system changes; `ci` for the workflow toolchain. Chose the area over `deps` because the repo is a Go backend plus a `/web` frontend in one tree and the ecosystem alone does not say which half a PR touches. Nothing enforces this in CI - metadata rulesets (`commit_message_pattern`) 422 on this user-owned repo - so the config is the only place it is specified.
+
+- [2026-08-28] Re-enabled the deferred lint rules as one PR per rule, fanned out to an agent each, rather than one sweeping PR. Every PR touched the same deferred block in eslint.config.js, so conflicts were constant and each had to merge main before landing - the cost of the approach. It bought reviewable, revertable diffs and let each agent root-cause its own rule; two real bugs (Confetti re-randomizing mid-burst, 5 hidden `no-base-to-string` errors) were found that a bulk suppression pass would have buried.
