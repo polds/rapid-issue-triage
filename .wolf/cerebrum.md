@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (directory-level CLAUDE.md tree)
+> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled)
 
 ## User Preferences
 
@@ -61,8 +61,24 @@
   degrades to a normal text conflict - it never silently resolves the wrong way. That
   makes custom drivers safe to ship, but they need per-clone `git config`, which is
   why this repo took the built-in.
-- Never widen union to the `.wolf` JSON state files (invalid JSON) or to
-  `cerebrum.md` / `STATUS.md` (edited in place, so it duplicates sections).
+- **`cerebrum.md` is union too, as of PR #35** (2026-08-28) - superseding the
+  original "never widen union past memory.md" call. It is append-mostly (12 of
+  16 changes over the last 500 commits deleted no lines), and union's failure
+  mode here - a duplicated section when a rewrite collides with an append - is
+  visible in markdown and repairable. The rationale lives in `.gitattributes`.
+- Still never union: the `.wolf` JSON state files (two appends interleave into
+  invalid JSON that git reports as a *successful* merge) and `STATUS.md`, which
+  is genuinely edited in place rather than appended to. `.gitattributes` names
+  exactly two files; keep it that way.
+- **A newly added `merge=union` line does not apply to the merge that
+  introduces it.** Git reads merge attributes from the `.gitattributes` already
+  on the branch you are merging *into*, so the rule only takes effect from the
+  next merge onward. Verified empirically on PR #36: merging main (which
+  carried the new cerebrum union line) into a branch whose `.gitattributes`
+  predated it conflicted on `cerebrum.md` while `memory.md` resolved silently;
+  replaying the identical merge with the line pre-staged auto-resolved
+  `cerebrum.md`. So expect one last manual conflict on any file the moment you
+  union it - that is not the rule failing.
 
 ## Do-Not-Repeat
 
@@ -115,3 +131,5 @@
 - [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.
 
 - [2026-08-28] Dependabot writes Conventional Commits whose **scope is the repo area, not `deps`**: `build(backend)` for gomod, `build(frontend)` / `chore(frontend)` (devDependencies) for npm in `/web`, `ci(actions)` for github-actions. `build` is the Conventional Commits type for dependency/build-system changes; `ci` for the workflow toolchain. Chose the area over `deps` because the repo is a Go backend plus a `/web` frontend in one tree and the ecosystem alone does not say which half a PR touches. Nothing enforces this in CI - metadata rulesets (`commit_message_pattern`) 422 on this user-owned repo - so the config is the only place it is specified.
+
+- [2026-08-28] `.wolf/cerebrum.md` joined `.wolf/memory.md` under `merge=union` (PR #35), reversing the earlier "union stops at memory.md" call. The trade-off was accepted knowingly: cerebrum is append-mostly, so union removes a conflict that has no decision in it, and when it does misfire (a rewrite colliding with an append) it duplicates a markdown section — loud and repairable. That is categorically unlike union on JSON, which yields invalid output git reports as a clean merge. `STATUS.md` stays excluded because it is rewritten in place every phase, which is union's actual bad case. Scope is two files, named explicitly in `.gitattributes`; widening it further needs the same append-mostly evidence.

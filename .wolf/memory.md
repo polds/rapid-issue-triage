@@ -320,3 +320,4 @@
 | 21:53 | wrote 16 directory CLAUDE.md files + rewrote root as an index | CLAUDE.md, cmd/triage, internal/{,ai,config,deep,linear,server,store,syncer}, web/{,src/lib,src/pages,src/components{,/triage,/ui}}, .github | ~9.7k words, every relative link verified | ~12k |
 | 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
 | 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
+| 22:05 | reconciled cerebrum union contradiction: .gitattributes union'd cerebrum.md (PR #35) while Key Learnings still said never to | .wolf/cerebrum.md | 3 bullets + Decision Log entry; empirically verified merge-attribute timing in a scratch worktree | ~4k |
