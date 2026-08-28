@@ -312,3 +312,4 @@
 | 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
 | 22:03 | Add Dependabot auto-merge + sweep CI coverage of watched paths | .github/workflows/dependabot-auto-merge.yml, .github/zizmor.yml | patch/minor only, 4 release-only actions held; IFS splitting bug found and fixed by truth table; actionlint+zizmor green | ~30k |
 | 22:13 | Single-source the pinned tool versions; test Dependabot tracking via tools module | Makefile, .github/workflows/ci.yml | print-% target, ci.yml reads pins; shared tools/go.mod REJECTED - MVS breaks actionlint | ~35k |
+| 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |

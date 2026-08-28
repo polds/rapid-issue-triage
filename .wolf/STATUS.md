@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (CI/CD hardening on PR #16; first release cut as v0.1.1)
+> Last updated: 2026-08-28 (repo hygiene: PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
@@ -13,7 +13,9 @@
 - Repository "Browse" opens a native OS folder picker (`POST /api/pick`). Claude path Browse uses the file picker.
 - GitHub Actions CI (fmt, go fix, vet, golangci-lint v2.13, tests, 70% coverage on config/store, web build, binary compile, govulncheck, npm audit, gitleaks), Dependabot, and tagged GoReleaser releases (multi-OS, SPDX SBOM, SLSA provenance, reproducible builds).
 - Go 1.27 + `go fix` modernizers. golangci-lint is pedantic (`default: all`) with **gocyclo min-complexity 15**.
-- CI/CD hardening (PR #16, draft): ESLint 10 + Vitest for the frontend (33 tests, 90% floor scoped to the pure `src/lib` modules), `actionlint` + `zizmor` over the workflows, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, dependency review, `SECURITY.md`. `persist-credentials: false` everywhere, per-job timeouts, `go test -race`, 3-OS binary compile, pinned govulncheck. Release job runs cache-free so a poisoned cache cannot reach attested artifacts.
+- CI/CD hardening (PR #16, merged): ESLint 10 + Vitest for the frontend (33 tests, 90% floor scoped to the pure `src/lib` modules), `actionlint` + `zizmor` over the workflows, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, dependency review, `SECURITY.md`. `persist-credentials: false` everywhere, per-job timeouts, `go test -race`, 3-OS binary compile, pinned govulncheck. Release job runs cache-free so a poisoned cache cannot reach attested artifacts.
+- Repo hygiene (PRs #31, #35, both merged). Generated files no longer tracked: the OpenWolf daemon's `.honcho-sync-state.json`, `_scan-state.json`, `cron-state.json`, `daemon.log`, `token-ledger.json`, plus `web/tsconfig.tsbuildinfo`. All were rewritten on every run, so they churned every commit and conflicted on every merge. Untracked with `git rm --cached`, so local state survives.
+- `.gitattributes` marks `.wolf/memory.md` and `.wolf/cerebrum.md` `merge=union` — they are append-only, so parallel branches collided on the same tail with no real decision to make. Deliberately **not** applied to `buglog.json` or the JSON state (union interleaves keys into invalid JSON that git reports as a *successful* merge) or to `STATUS.md` / `anatomy.md` (rewritten in place, so union duplicates sections). Two caveats worth remembering: GitHub does not apply merge drivers, so a conflicted PR still needs `main` merged locally and the merge commit pushed; and while a PR is conflicted it has no merge ref, so the `pull_request` workflows never run and required checks read as absent rather than failing. `web/dist/` stays tracked despite being the #3 churner — `//go:embed all:web/dist` needs it at compile time.
 - Release workflow publishes. `workflow_dispatch` takes an optional `tag` input: empty = snapshot dry run (uploads `snapshot-dist`), a `v*.*.*` tag = real `goreleaser release --clean` + provenance attestation. Diagnosed from run 33144134442, which was snapshot-only.
 
 ---
