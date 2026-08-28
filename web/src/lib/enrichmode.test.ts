@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EnrichSettingsInfo } from "./types";
 
-const enrichSettings = vi.fn();
+const enrichSettings = vi.fn<() => Promise<EnrichSettingsInfo>>();
 vi.mock("./api", () => ({ api: { enrichSettings: () => enrichSettings() } }));
 
 const { getEnrichInfo, invalidateEnrichInfo } = await import("./enrichmode");

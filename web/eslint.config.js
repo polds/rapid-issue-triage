@@ -60,14 +60,30 @@ export default tseslint.config(
       // DOM and local state). No call sites do this today; keep it that way.
       "react-hooks/static-components": "error",
 
+      // React Compiler purity: render must be deterministic. `Math.random()`,
+      // `Date.now()` and friends belong in an effect, a lazy `useState`
+      // initialiser, or an event handler — not in a render body.
+      "react-hooks/purity": "error",
+
       // Fire-and-forget is allowed, but it has to be spelled out: `void` for
       // calls whose failure is already handled inside the callee, or a real
       // `.catch()` where the user needs to see it.
       "@typescript-eslint/no-floating-promises": "error",
 
-      // Reassigning a captured binding after render is a React Compiler
-      // correctness bug, not a style preference. Kept on.
+      // React Compiler immutability: reassigning a captured binding after
+      // render, or mutating a value a hook already captured, is a
+      // correctness bug rather than a style preference.
       "react-hooks/immutability": "error",
+
+      // Type safety. `req()` in api.ts decodes into `unknown` and asserts the
+      // response shape in exactly one place, so no `any` escapes the fetch
+      // wrapper into its callers. Keep it that way.
+      "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-explicit-any": "error",
 
       // ---------------------------------------------------------------
       // Deferred, not forgotten. Each of these is legitimate but needs a
@@ -76,20 +92,9 @@ export default tseslint.config(
       // silently missing from the config.
       // ---------------------------------------------------------------
 
-      // ~60 hits, nearly all downstream of `res.json()` being `any` in
-      // api.ts. Fixing this means typing the fetch wrapper against `unknown`
-      // and narrowing at each call site.
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-
-      // The remaining React Compiler rules new in eslint-plugin-react-hooks
-      // v7. They flag real purity and effect-ordering issues, but adopting
-      // them is a rendering change, not a lint fix.
-      "react-hooks/purity": "off",
+      // The last React Compiler rule from eslint-plugin-react-hooks v7 still
+      // deferred. It flags real effect-ordering issues, but adopting it is a
+      // rendering change, not a lint fix.
       "react-hooks/set-state-in-effect": "off",
     },
   },

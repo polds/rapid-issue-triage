@@ -39,7 +39,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [viewFilter, setViewFilterState] = useState<ViewFilter>(() => {
     try {
       const raw = window.localStorage.getItem("rt-viewfilter");
-      return raw ? { ...EMPTY_FILTER, ...JSON.parse(raw) } : EMPTY_FILTER;
+      return raw ? { ...EMPTY_FILTER, ...(JSON.parse(raw) as Partial<ViewFilter>) } : EMPTY_FILTER;
     } catch {
       return EMPTY_FILTER;
     }
@@ -64,7 +64,9 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   // Undo stack of activity ids in the order actions happened this session.
   const undoStack = useRef<{ activityId: number; issueId: string; wasTriage: boolean }[]>([]);
   const [canUndo, setCanUndo] = useState(false);
-  const viewStart = useRef(Date.now());
+  // Stamped by the card-change effect below (which also runs on mount) rather
+  // than during render, so the timer does not depend on when React renders.
+  const viewStart = useRef(0);
   const fetching = useRef(false);
 
   // Latest-value refs, for callbacks that must not re-create when the value
@@ -205,7 +207,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const duration = useCallback(() => Date.now() - viewStart.current, []);
+  const duration = useCallback(() => (viewStart.current ? Date.now() - viewStart.current : 0), []);
 
   // Animate the card away, then advance. The API call runs concurrently.
   const swipeAway = useCallback(
@@ -382,10 +384,10 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         );
       };
 
-      es.onmessage = (m) => {
+      es.onmessage = (m: MessageEvent<string>) => {
         let ev: EnrichEvent;
         try {
-          ev = JSON.parse(m.data);
+          ev = JSON.parse(m.data) as EnrichEvent;
         } catch {
           return;
         }
