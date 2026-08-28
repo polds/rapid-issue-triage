@@ -107,7 +107,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [viewFilter, setViewFilterState] = useState<ViewFilter>(() => {
     try {
       const raw = window.localStorage.getItem("rt-viewfilter");
-      return raw ? { ...EMPTY_FILTER, ...JSON.parse(raw) } : EMPTY_FILTER;
+      return raw ? { ...EMPTY_FILTER, ...(JSON.parse(raw) as Partial<ViewFilter>) } : EMPTY_FILTER;
     } catch {
       return EMPTY_FILTER;
     }
@@ -459,10 +459,10 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         );
       };
 
-      es.onmessage = (m) => {
+      es.onmessage = (m: MessageEvent<string>) => {
         let ev: EnrichEvent;
         try {
-          ev = JSON.parse(m.data);
+          ev = JSON.parse(m.data) as EnrichEvent;
         } catch {
           return;
         }

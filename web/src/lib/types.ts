@@ -86,13 +86,28 @@ export interface EnrichRun {
   finishedAt?: string;
 }
 
+// The per-event payload the enrichment stream sends. Its shape varies by
+// `kind`, and the Go side adds agent-specific keys, so every field is optional
+// and anything unlisted stays `unknown` — narrow it before use, don't widen the
+// type back to `any`.
+export interface EnrichPayload {
+  scouts?: string[];
+  state?: string;
+  text?: string;
+  tool?: string;
+  args?: string[];
+  input?: unknown;
+  error?: string;
+  [key: string]: unknown;
+}
+
 export interface EnrichEvent {
   id: number;
   runId: string;
   seq: number;
   agent: string;
   kind: string;
-  payload: any;
+  payload: EnrichPayload;
   at: string;
 }
 

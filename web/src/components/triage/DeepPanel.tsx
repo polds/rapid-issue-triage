@@ -472,7 +472,7 @@ function ActionLogDialog({ runId, open, onClose }: { runId: string; open: boolea
   useEffect(() => {
     if (!open) return;
     fetch(`/api/enrich/runs/${runId}/log`)
-      .then((r) => r.json())
+      .then((r) => r.json() as Promise<{ events?: EnrichEvent[] | null }>)
       .then((d) => setEvents(d.events ?? []));
   }, [open, runId]);
 

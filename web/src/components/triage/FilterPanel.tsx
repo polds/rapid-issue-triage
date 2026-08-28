@@ -99,7 +99,7 @@ function IndexFilterEditor({ onClose }: { onClose: () => void }) {
   const save = async () => {
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(text) as Record<string, unknown>;
     } catch (e) {
       toast(`Invalid JSON: ${(e as Error).message}`, { tone: "error" });
       return;
