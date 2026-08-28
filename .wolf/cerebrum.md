@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (dependabot commit scopes)
+> Last updated: 2026-08-28 (directory-level CLAUDE.md tree)
 
 ## User Preferences
 
@@ -13,6 +13,23 @@
 ## Key Learnings
 
 - **Project:** rapid-issue-triage
+- **Agent docs are a tree, not one file.** The root `CLAUDE.md` is an index
+  (architecture, non-negotiables, vocabulary, maintenance triggers) that links
+  to 16 directory-level `CLAUDE.md` files. Read the root plus the one directory
+  you are touching - not the whole set. Each directory file carries a layout
+  table, its invariants, its path-scoped lint exclusions, and a "when you
+  change X update Y" block. The OpenWolf block in the root is wrapped in
+  `<!-- openwolf:begin/end -->` markers (like AGENTS.md) so a future
+  `openwolf init` rewrites only that block and leaves the index alone.
+- Surfaces that drift silently, documented in the maintenance tables because
+  nothing in CI checks them: Go JSON tags vs `web/src/lib/types.ts`; the route
+  table vs `web/src/lib/api.ts`; the deep-report schema across
+  `deep/scouts.go` + `server/reportcomment.go` + `triage/report-format.ts`; the
+  keyboard map across `pages/Triage.tsx` + `HelpOverlay.tsx` + README.
+- `react-refresh/only-export-components` is an **error** in this repo, which is
+  why `lib/triage-context.ts`, `ui/use-toast.ts` and `triage/report-format.ts`
+  exist as separate files. A new context, hook, or constant goes in a sibling
+  `.ts`, never next to a component.
 - Claude is probed at runtime with `exec.LookPath`. `EnrichSettings.ClaudePath` overrides config `ai.command`. Enricher/orchestrator are constructed even when the binary is missing so a later path save can enable enrichment without restart.
 - Credentials set in Settings are sqlite `meta.secrets` JSON. Resolution order: Settings → env → `.env` / `~/.rapid-triage/.env` (`config.Lookup`). The API never returns secret values, only `{set, source, hint}`.
 - The browser cannot give a real filesystem path (`showDirectoryPicker` / `<input webkitdirectory>`). Native pick is `POST /api/pick` → osascript (macOS) / zenity|kdialog (Linux) / PowerShell (Windows).
@@ -49,6 +66,13 @@
 
 ## Do-Not-Repeat
 
+- [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
+  2026-08-28T02:20 scan tracked 90 files and silently omitted five real
+  modules (`web/src/lib/linear.ts`, `linearfilter.ts`, `triage-context.ts`,
+  `components/ui/use-toast.ts`, `components/triage/report-format.ts`) plus
+  `.golangci.yml`, `.goreleaser.yaml`, `.githooks/pre-commit` and two test
+  files. Use it to decide whether to read a file, never to decide whether a
+  file exists - `git ls-files <dir>` is the authority.
 - [2026-08-28] Do not expect `.gitattributes merge=union` to keep a PR out of GitHub's conflicted state. It is applied by local git only. PR #31 proved it: with `.gitattributes` present `git merge-tree HEAD origin/main` returned a clean tree (exit 0), the identical merge with the file stripped hit `CONFLICT (content) in .wolf/memory.md`, and GitHub reported `mergeable_state: dirty` throughout. Worse, a conflicted PR produces no merge ref, so the `pull_request` workflows never run and the required checks silently never report - the PR looks stalled rather than conflicted. The fix is the same as always: merge the base branch locally, where union resolves it without a prompt, and push the merge commit. Union saves the manual conflict edit, not the merge commit.
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
 - [2026-08-27] Never commit `.wolf/dashboard-token`. It is the OpenWolf dashboard auth secret (64-hex, mode 0600). Roll by deleting the file; the next `openwolf dashboard` / daemon start mints a new one. Gitignore it.

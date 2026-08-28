@@ -1,13 +1,13 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T02:20:30.618Z
-> Files: 90 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T02:20:30.618Z (CLAUDE.md tree + missed modules added by hand; rerun `openwolf scan`)
+> Files: 110 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitignore` — Git ignore rules (~14 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
-- `CLAUDE.md` — OpenWolf (~57 tok)
+- `CLAUDE.md` — Root agent guide + index of every directory-level CLAUDE.md (~1700 tok)
 - `go.mod` — Go module definition (~151 tok)
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `Makefile` — Make build targets (~130 tok)
@@ -24,6 +24,7 @@
 - `workflows/codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~420 tok)
 - `workflows/release.yml` — GoReleaser publish, SBOM, provenance, tag minting (~1000 tok)
 - `workflows/scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~330 tok)
+- `CLAUDE.md` — CI job-name/ruleset coupling, hardening rules, release traps (~1300 tok)
 
 ## web/ (config)
 
@@ -72,6 +73,11 @@
   - fn `run` L51-131 (~611 tok)
   - fn `toolClient` L132-163 (~241 tok)
   - fn `openBrowser` L164-178 (~80 tok)
+- `CLAUDE.md` — Startup order, flags, the hidden `triage tool` shim (~500 tok)
+
+## internal/
+
+- `CLAUDE.md` — Go package map, dependency direction, cross-package conventions (~530 tok)
 
 ## internal/ai/
 
@@ -83,6 +89,7 @@
   - fn `parseResult` L92-107 (~142 tok)
   - fn `buildPrompt` L108-143 (~476 tok)
   - fn `truncate` L144-150 (~27 tok)
+- `CLAUDE.md` — Fast enrichment: verdict set, prompt/truncation invariants (~480 tok)
 
 ## internal/config/
 
@@ -97,6 +104,7 @@
   - fn `Lookup` L111-124 (~98 tok)
   - fn `ExpandHome` L125-138 (~99 tok)
   - fn `envFileValue` L139-159 (~140 tok)
+- `CLAUDE.md` — Config search order, Settings->env->.env lookup chain (~430 tok)
 
 ## internal/deep/
 
@@ -151,6 +159,7 @@
   - fn `firstLine` L334-341 (~39 tok)
   - fn `truncateStr` L342-349 (~50 tok)
   - fn `truncateJSON` L350-357 (~52 tok)
+- `CLAUDE.md` — Scout fanout, the credential boundary, run lifecycle, report schema (~950 tok)
 
 ## internal/linear/
 
@@ -191,6 +200,7 @@
   - class `Issue` L53-76 (~215 tok)
   - class `Comment` L77-86 (~68 tok)
   - class `PageInfo` L87-91 (~30 tok)
+- `CLAUDE.md` — Shared-client SetAPIKey contract, issueFields, verbatim filters (~580 tok)
 
 ## internal/server/
 
@@ -267,6 +277,7 @@
   - fn `handlePutEnrichSettings` L81-97 (~124 tok)
   - fn `handlePutSecret` L98-120 (~158 tok)
   - fn `handlePick` L121-150 (~196 tok)
+- `CLAUDE.md` — Route table, resolveOps->applyOps write path, loopback assumptions (~930 tok)
 
 ## internal/store/
 
@@ -358,6 +369,7 @@
   - fn `GetMeta` L164-173 (~65 tok)
   - fn `mustJSON` L174-181 (~33 tok)
   - fn `errRow` L182-188 (~31 tok)
+- `CLAUDE.md` — DDL/migration rules, sync_gen pruning, queue order, secret masking (~810 tok)
 
 ## internal/syncer/
 
@@ -376,6 +388,7 @@
   - fn `toRow` L281-309 (~233 tok)
   - fn `ToRow` L310-311 (~19 tok)
   - fn `creatorName` L312-321 (~51 tok)
+- `CLAUDE.md` — Generation-based sync, stale vs reindexing semantics (~490 tok)
 
 ## web/
 
@@ -385,6 +398,7 @@
 - `tsconfig.json` — TypeScript configuration (~130 tok)
 - `tsconfig.tsbuildinfo` (~279 tok)
 - `vite.config.ts` — Vite build configuration (~146 tok)
+- `CLAUDE.md` — Frontend root: dist embedding, hash routing, lint contracts (~710 tok)
 
 ## web/src/
 
@@ -402,8 +416,11 @@
   - fn `inline` L6-51 (~406 tok)
   - fn `Markdown` L52-207 (~1374 tok)
 - `PriorityIcon.tsx` — Linear priorities: 0 none, 1 urgent, 2 high, 3 medium, 4 low. (~282 tok)
+- `CLAUDE.md` — Shared components; why Markdown.tsx is hand-written (~510 tok)
 
 ## web/src/components/triage/
+
+- `report-format.ts` — VERDICT_META + deep report -> Linear markdown (not a component) (~430 tok)
 
 - `ActionBar.tsx` — OUTCOME_VARIANT (~618 tok)
   - fn `ActionBar` L14-56 (~503 tok)
@@ -438,8 +455,11 @@
 - `TopBar.tsx` — SyncPill — renders chart — uses useState (~1540 tok)
   - fn `SyncPill` L10-51 (~516 tok)
   - fn `TopBar` L52-127 (~900 tok)
+- `CLAUDE.md` — Triage screen; index filter vs view filter; SSE-in-a-ref rule (~740 tok)
 
 ## web/src/components/ui/
+
+- `use-toast.ts` — ToastContext + useToast, split from toast.tsx for react-refresh (~90 tok)
 
 - `button.tsx` — buttonVariants (~583 tok)
   - section `ButtonProps` L33-42 (~111 tok)
@@ -454,6 +474,7 @@
   - section `ToastCtx` L14-21 (~68 tok)
   - fn `useToast` L22-23 (~14 tok)
   - fn `ToastProvider` L24-74 (~535 tok)
+- `CLAUDE.md` — Primitive kit and its keyboard-first contract (~420 tok)
 
 ## web/src/lib/
 
@@ -500,6 +521,10 @@
   - section `CustomView` L238-248 (~60 tok)
   - section `LinearSearchHit` L249-257 (~41 tok)
 - `utils.ts` — Exports cn, timeAgo, fmtMs, PRIORITY_NAMES (~282 tok)
+- `CLAUDE.md` — Store contract, api.ts assertion boundary, the tested pure modules (~810 tok)
+- `linear.ts` — linearIssueHref: identifier + template URL -> Linear issue URL (~60 tok)
+- `linearfilter.ts` — decodeLinearFilterURL: base64url ?filter= -> IssueFilter JSON (~180 tok)
+- `triage-context.ts` — Triage context object, useTriage, deck types (split for react-refresh) (~380 tok)
 
 ## web/src/pages/
 
@@ -516,3 +541,4 @@
   - fn `SecretRow` L386-442 (~508 tok)
 - `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2135 tok)
   - fn `TriagePage` L13-176 (~1944 tok)
+- `CLAUDE.md` — The four hash routes; keyboard map; Settings invariants (~610 tok)

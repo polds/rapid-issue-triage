@@ -309,3 +309,13 @@
 | 21:35 | Added `.gitattributes` with `merge=union` for the append-only session log | `.gitattributes` | Scoped to `.wolf/memory.md` only; verified with `git check-attr` | ~5k |
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
 | 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
+
+## Session: 2026-08-28 21:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+### 2026-08-28 — directory-level CLAUDE.md tree
+| 21:50 | walked the tree, read every Go package header + route table + schema | (survey) | mapped 7 Go pkgs + 5 web dirs | ~35k |
+| 21:53 | wrote 16 directory CLAUDE.md files + rewrote root as an index | CLAUDE.md, cmd/triage, internal/{,ai,config,deep,linear,server,store,syncer}, web/{,src/lib,src/pages,src/components{,/triage,/ui}}, .github | ~9.7k words, every relative link verified | ~12k |
+| 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
