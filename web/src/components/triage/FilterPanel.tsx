@@ -4,13 +4,11 @@
 import { useEffect, useState } from "react";
 import { Eye, Link2, Loader2, RotateCcw } from "lucide-react";
 import { api } from "@/lib/api";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import type { CustomView, IndexFilterInfo } from "@/lib/types";
 import { decodeLinearFilterURL } from "@/lib/linearfilter";
-
-export { decodeLinearFilterURL } from "@/lib/linearfilter";
 
 // ViewsColumn lists saved Linear views; picking one makes its filter the
 // index filter (validated server-side, background reindex).

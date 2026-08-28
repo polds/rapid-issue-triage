@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (immutable releases)
+> Last updated: 2026-08-28 (dependabot commit scopes)
 
 ## User Preferences
 
@@ -27,7 +27,7 @@
 - `go run <tool>@<ver>` picks its toolchain from the TOOL's go.mod, not this module's. For a go1.27 module, pin `GOTOOLCHAIN=go$(go list -m -f '{{.GoVersion}}')` or the tool is built with an older Go and cannot parse the source at all.
 - `./...` does not skip `node_modules`. web/node_modules ships a Go file (eslint -> flat-cache -> flatted), so Makefile targets filter it out and .golangci.yml excludes the path.
 - eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
-- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They are off here: adopting them is a rendering change, not a lint fix.
+- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They were all deferred when the lint gate landed; they are being re-enabled one rule per PR. `static-components` is enabled as of PR #23 (zero violations - verify a rule is actually loaded with `npx eslint --print-config <file>` before trusting a clean run).
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
@@ -54,6 +54,7 @@
 - [2026-08-28] Never add the `creation` rule to the `Release Tags` tag ruleset (21759998) without first adding a bypass actor. `release.yml`'s `create_tag` path pushes `refs/tags/$RELEASE_TAG` with `GITHUB_TOKEN`, which holds no bypass permission, so restricting creations makes every tag push 403 and the release path dies. Enabling it requires a GitHub App token (`actions/create-github-app-token`) or a deploy key registered as a bypass actor. Same reason `required_signatures` stays off: the runner's `git tag -a` is unsigned.
 
 - [2026-08-28] Do not put `tag_name_pattern` (or any metadata-restriction rule: `branch_name_pattern`, `commit_message_pattern`, `commit_author_email_pattern`) in a ruleset for this repo. It is a user-owned repo, and those rules 422 with `Invalid rule 'tag_name_pattern':`. The structural rules (`creation`, `update`, `deletion`, `non_fast_forward`) do work here - the "Release Tags" ruleset uses three of them. Semver enforcement therefore lives only in release.yml's own regex guard, which is fine: the release trigger glob is `v*.*.*`, so a non-semver tag cannot fire a release.
+- [2026-08-28] Do not combine a scoped Dependabot `commit-message.prefix` with `include: "scope"`. Dependabot appends its own `(deps)` / `(deps-dev)` scope to whatever prefix you give it, so `prefix: "build(backend)"` plus `include: scope` emits `build(backend)(deps): ...`, which is not a valid Conventional Commit. Pick one: either the area lives in the prefix's scope (what this repo does) or you let Dependabot own the scope with `deps`.
 
 ## Decision Log
 
@@ -69,3 +70,5 @@
 - [2026-08-28] Optional-tool gates use the `CI` env var as the switch: skip with a warning on a developer machine, hard-fail on a runner. A CI check that silently no-ops when its binary is absent is worse than no check.
 - [2026-08-28] Tag ruleset "Release Tags" (id 21759998, active, ~ALL tags, no bypass actors): deletion + non_fast_forward + update. Tags are Go module versions - once anyone resolves one, sum.golang.org pins its hash forever, so moving or deleting a tag does not un-publish it, it just breaks consumers with a checksum mismatch while the proxy keeps serving the original. `update` is accepted on a tag target (confirmed empirically). `creation` and `required_signatures` are deliberately absent - both would 403 the release workflow.
 - [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.
+
+- [2026-08-28] Dependabot writes Conventional Commits whose **scope is the repo area, not `deps`**: `build(backend)` for gomod, `build(frontend)` / `chore(frontend)` (devDependencies) for npm in `/web`, `ci(actions)` for github-actions. `build` is the Conventional Commits type for dependency/build-system changes; `ci` for the workflow toolchain. Chose the area over `deps` because the repo is a Go backend plus a `/web` frontend in one tree and the ecosystem alone does not say which half a PR touches. Nothing enforces this in CI - metadata rulesets (`commit_message_pattern`) 422 on this user-owned repo - so the config is the only place it is specified.

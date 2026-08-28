@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
 import { FilterPanel } from "./FilterPanel";
