@@ -18,7 +18,7 @@
 
 ## .github/
 
-- `dependabot.yml` — Weekly gomod / npm / actions update PRs (~90 tok)
+- `dependabot.yml` — Weekly gomod / npm / actions update PRs, Conventional Commit prefixes scoped by area (~130 tok)
 - `zizmor.yml` — Reviewed zizmor audit exceptions (cache-poisoning on release.yml) (~120 tok)
 - `workflows/ci.yml` — Go, web lint/test/build, workflow lint, 3-OS binary, security, dependency review (~1200 tok)
 - `workflows/codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~420 tok)
