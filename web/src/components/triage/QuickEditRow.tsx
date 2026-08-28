@@ -1,7 +1,7 @@
 // Quick edit: fast keyboard pickers that apply single-field ops to the
 // current issue immediately (no card advance).
 import { Hash, Layers, Repeat, Tag, User, Workflow } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { Button } from "@/components/ui/button";
 import { Picker, type PickerOption } from "@/components/ui/picker";
 import { DuplicateOfPicker } from "./DuplicateOfPicker";

@@ -26,7 +26,7 @@ export default tseslint.config(
     },
     plugins: { "react-refresh": reactRefresh },
     rules: {
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
 
       // Unused code is an error, but a `_` prefix is the explicit
       // "intentionally ignored" marker (rest destructuring, unused args).
