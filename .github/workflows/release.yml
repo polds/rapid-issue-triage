@@ -20,6 +20,8 @@ permissions:
   contents: write
   id-token: write
   attestations: write
+  # Push the container image to this repository's GHCR package.
+  packages: write
 
 jobs:
   release:
@@ -103,6 +105,31 @@ jobs:
       - name: Install Syft
         uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
 
+      # GoReleaser's dockers_v2 shells out to `docker buildx build`. The
+      # runner's default builder uses the `docker` driver, which refuses to
+      # build for a platform other than its own, so the linux/arm64 image needs
+      # a `docker-container` builder. No QEMU step is needed with it: the
+      # Dockerfile only COPYs an already-built binary, so nothing ever executes
+      # under the target platform.
+      #
+      # cache-binary is off for the same reason setup-go and setup-node run
+      # cache-free here: nothing in the release path restores a cache that a
+      # pull request branch could have written.
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+        with:
+          cache-binary: false
+
+      # Only a publishing run pushes. A snapshot builds the images locally to
+      # prove the Dockerfile works and never contacts the registry, so it has no
+      # business holding a registry credential.
+      - name: Log in to GHCR
+        if: env.RELEASE_TAG != ''
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser
@@ -118,6 +145,15 @@ jobs:
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: dist/checksums.txt
+
+      # The images get the same provenance as the files. GoReleaser writes
+      # dist/digests.txt (docker_digest) in checksum-file shape for exactly
+      # this; it only exists when something was pushed, hence the same gate.
+      - name: Attest container image provenance
+        if: env.RELEASE_TAG != ''
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: dist/digests.txt
 
       # SBOMs are published as release assets by GoReleaser itself (they are
       # first-class SBOM artifacts, not extra_files); provenance covers every

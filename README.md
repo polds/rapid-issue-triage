@@ -32,6 +32,34 @@ First run kicks off a full sync of metadata plus every issue matching the
 configured filter (default: workflow state type `triage`). The queue fills as
 the sync streams in.
 
+### Docker
+
+Every release publishes a multi-platform image (linux/amd64, linux/arm64) to
+GHCR, tagged with the version, the `MAJOR.MINOR` line, and `latest`:
+
+```sh
+docker run --rm \
+  -p 127.0.0.1:7333:7333 \
+  -v rapid-triage:/data \
+  -e LINEAR_API_KEY=lin_api_... \
+  ghcr.io/polds/rapid-issue-triage:latest
+```
+
+- **Publish it to `127.0.0.1` only.** The container listens on `0.0.0.0:7333`
+  because loopback inside a network namespace is reachable from nothing; the
+  `-p 127.0.0.1:7333:7333` above is what keeps the *host* exposure the same as
+  running the binary. `-p 7333:7333` would put an API that spawns subprocesses
+  on every interface. See [SECURITY.md](SECURITY.md).
+- **`/data` is the state directory** — it is `$HOME` inside the image, so the
+  sqlite index lands in `/data/.rapid-triage/` and survives `docker rm`. The
+  image runs as uid 65532; a bind mount needs to be writable by it, a named
+  volume just works.
+- **AI enrichment is off in the container** unless you mount a `claude` binary
+  into it: the image is distroless and ships only `triage`.
+- The image carries the standard OCI labels and annotations, so
+  `docker buildx imagetools inspect ghcr.io/polds/rapid-issue-triage:latest`
+  reports the exact version, commit, and base image it was built from.
+
 ## Configuration
 
 Copy `rapid-triage.example.yaml` to `./rapid-triage.yaml` or
@@ -138,12 +166,24 @@ git tag v0.1.0
 git push upstream v0.1.0
 ```
 
+The same run publishes the container image described under
+[Docker](#docker) to `ghcr.io/polds/rapid-issue-triage`, built from those same
+binaries rather than from source, with a BuildKit SBOM attestation and the same
+build provenance:
+
+```sh
+gh attestation verify oci://ghcr.io/polds/rapid-issue-triage:0.1.1 --owner polds
+```
+
 `workflow_dispatch` on the Release workflow takes a `tag` input and a
 `create_tag` checkbox:
 
 - **Empty `tag`** — snapshot dry run. Builds and packages everything but
   publishes nothing; the archives, packages, SBOMs, and checksums are uploaded as
-  a `snapshot-dist` workflow artifact so you can inspect them.
+  a `snapshot-dist` workflow artifact so you can inspect them. The container
+  image is built too — per-platform and local-only, since buildx cannot assemble
+  a multi-platform manifest without pushing it — so a broken `Dockerfile` fails
+  the dry run rather than a real release.
 - **`tag` set, `create_tag` unchecked** — publishes that existing tag's GitHub
   Release from a manual run, exactly as a tag push would.
 - **`tag` set, `create_tag` checked** — creates the tag at the dispatched ref,
@@ -168,5 +208,14 @@ Two consequences worth knowing:
   fails. The tag name is then burnt and you have to bump the version.
 - A run that dies mid-upload leaves a draft behind. `replace_existing_draft`
   clears it, so re-running the same tag works.
+
+The container image is not covered by that immutability: a re-run of the same
+tag overwrites the image tags it pushed. The digest of the previous push stays
+resolvable, and the release's own attestations pin digests, not tags.
+
+The GHCR package is created private on its first push. Make it public once, in
+the package settings, if the image is meant to be pullable anonymously — the
+`org.opencontainers.image.source` label is what links the package to this
+repository so those settings are reachable from it.
 
 [immutable]: https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases
