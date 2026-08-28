@@ -135,6 +135,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const viewStart = useRef(Date.now());
   const fetching = useRef(false);
 
+  // Latest-value refs, for callbacks that must not re-create when the value
+  // they mirror changes. Declared up front so every reader below binds to the
+  // same ref; each is kept in sync by an effect next to the value it mirrors.
+  const cardsRef = useRef<Card[]>([]);
+  const indexRef = useRef(0);
+  const undoRef = useRef<() => void>(() => {});
+  const focusIssueRef = useRef<(issueId: string) => Promise<boolean>>(() => Promise.resolve(false));
+
   const loadMeta = useCallback(async () => {
     try {
       const m = await api.meta();
@@ -181,12 +189,9 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     [viewFilter, toast],
   );
 
-  // Keep refs of cards/index for callbacks that must not re-create.
-  const cardsRef = useRef<Card[]>([]);
   useEffect(() => {
     cardsRef.current = cards;
   }, [cards]);
-  const indexRef = useRef(0);
   useEffect(() => {
     indexRef.current = index;
   }, [index]);
@@ -410,34 +415,18 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   // Stable ref so toasts created before `undo` re-renders still work.
-  const undoRef = useRef(undo);
   useEffect(() => {
     undoRef.current = undo;
   }, [undo]);
 
-  // enrich is mode-aware: every entry point (button, keyboard) goes through
-  // here, so fast vs deep is decided in exactly one place.
-  const enrich = useCallback(async () => {
-    const card = current;
-    if (!card || enriching) return;
-    setEnriching(true);
-    try {
-      const info = await getEnrichInfo();
-      if (info.settings.mode === "deep") {
-        const r = await api.deepEnrich(card.issue.id);
-        startWatcher(r.runId, card.issue.id, card.issue.identifier);
-        return;
-      }
-      const r = await api.enrich(card.issue.id);
-      updateCard(card.issue.id, {
-        issue: { ...card.issue, enrichment: r.enrichment },
-      });
-    } catch (e) {
-      toast(`Enrichment failed: ${(e as Error).message}`, { tone: "error" });
-    } finally {
-      setEnriching(false);
-    }
-  }, [current, enriching, updateCard, toast]);
+  const setIssueEnrichment = useCallback(
+    (issueId: string, e: Enrichment) => {
+      setCards((prev) =>
+        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
+      );
+    },
+    [],
+  );
 
   // startWatcher owns the run's SSE for its whole life, independent of which
   // card is on screen — enrichments continue and notify in the background.
@@ -514,6 +503,30 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
+  // enrich is mode-aware: every entry point (button, keyboard) goes through
+  // here, so fast vs deep is decided in exactly one place.
+  const enrich = useCallback(async () => {
+    const card = current;
+    if (!card || enriching) return;
+    setEnriching(true);
+    try {
+      const info = await getEnrichInfo();
+      if (info.settings.mode === "deep") {
+        const r = await api.deepEnrich(card.issue.id);
+        startWatcher(r.runId, card.issue.id, card.issue.identifier);
+        return;
+      }
+      const r = await api.enrich(card.issue.id);
+      updateCard(card.issue.id, {
+        issue: { ...card.issue, enrichment: r.enrichment },
+      });
+    } catch (e) {
+      toast(`Enrichment failed: ${(e as Error).message}`, { tone: "error" });
+    } finally {
+      setEnriching(false);
+    }
+  }, [current, enriching, updateCard, toast]);
+
   const markNoticesRead = useCallback(() => setNotices((n) => n.map((x) => ({ ...x, read: true }))), []);
   const clearDoneNotices = useCallback(() => setNotices((n) => n.filter((x) => x.status === "running")), []);
   const activeRunFor = useCallback(
@@ -545,7 +558,6 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       return false;
     }
   }, [toast]);
-  const focusIssueRef = useRef(focusIssue);
   useEffect(() => {
     focusIssueRef.current = focusIssue;
   }, [focusIssue]);
@@ -557,15 +569,6 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       for (const es of w.values()) es.close();
     };
   }, []);
-
-  const setIssueEnrichment = useCallback(
-    (issueId: string, e: Enrichment) => {
-      setCards((prev) =>
-        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
-      );
-    },
-    [],
-  );
 
   const refreshSync = useCallback(() => {
     api.syncRefresh().then(() => {
