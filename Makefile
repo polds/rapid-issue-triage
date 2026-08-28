@@ -21,7 +21,7 @@ GO_TOOLCHAIN = go$(shell go list -m -f '{{.GoVersion}}')
 GO_FILES = $(shell git ls-files '*.go')
 
 .PHONY: all build ui go dev clean test test-race vet fmt-check fix-check lint vuln cover-go \
-	web-deps web-lint web-test web-build web-ci actions-lint ci ci-go pre-commit hooks
+	web-deps web-lint web-test web-build web-dist-check web-ci actions-lint ci ci-go pre-commit hooks
 
 all: build
 
@@ -79,8 +79,30 @@ web-test: web-deps
 web-build: web-deps
 	npm --prefix web run build
 
-## web-ci: the frontend gates CI runs (eslint, vitest + coverage floor, build)
-web-ci: web-lint web-test web-build
+## web-dist-check: fail when the committed web/dist does not match a fresh build
+# web/dist is tracked on purpose: webui.go embeds it, so `go install`-ing this
+# module has to compile without anyone running npm. That only works while the
+# committed bundle matches web/src, and nothing else notices when it stops -
+# CI builds into an artifact and never reads the committed copy.
+#
+# Only the worktree column of `git status` is inspected (`awk substr($$0,2,1)`),
+# so a rebuilt bundle that has already been `git add`ed passes. Otherwise the
+# pre-commit hook could never be satisfied: it builds into the worktree, and the
+# fix for a stale bundle is to stage it.
+web-dist-check: web-build
+	@drift=$$(git status --porcelain -- web/dist | awk 'substr($$0,2,1) != " "'); \
+	if [ -n "$$drift" ]; then \
+		echo "web/dist does not match a build of web/src:"; \
+		echo "$$drift"; \
+		echo; \
+		echo "webui.go embeds web/dist, so a plain checkout compiles the committed"; \
+		echo "bundle. Run 'make web-build' and 'git add web/dist' with your change."; \
+		exit 1; \
+	fi
+	@echo "web/dist matches a fresh build"
+
+## web-ci: the frontend gates CI runs (eslint, vitest + coverage floor, build, dist freshness)
+web-ci: web-lint web-test web-build web-dist-check
 
 ## actions-lint: what the CI "Workflow lint" job runs over .github/workflows
 # --no-online-audits keeps this deterministic and token-free: zizmor's online

@@ -310,6 +310,13 @@
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
 | 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
 
+## Session: 2026-08-28 22:30
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:00 | Fanned out re-enablement of every deferred ESLint rule, one agent + one PR per rule | web/eslint.config.js and callers | PRs #23-#30, #32, #33 all merged; main cb8b536 | ~400k |
+| 22:10 | Verified the composed result, not just the individual PRs | web/ | `--print-config` shows all 12 rules at severity 2; lint 0 errors / 2 warnings; 33/33 tests; clean build | ~15k |
+| 22:50 | Consolidated .wolf notes after the fan-out | .wolf/anatomy.md, cerebrum.md, buglog.json, STATUS.md | 3 new modules indexed, moved symbols corrected, bug-013..015 logged, next phase set to web/dist drift | ~20k |
 ## Session: 2026-08-28 21:45
 
 | Time | Action | File(s) | Outcome | ~Tokens |

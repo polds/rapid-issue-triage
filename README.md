@@ -133,7 +133,8 @@ cannot reach a signed, attested artifact. Deliberate zizmor exceptions live in
 Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
 
 Local equivalent: `make ci` — `ci-go` (fmt, fix, vet, lint, `test -race`, coverage),
-`web-ci` (eslint, vitest, build), and `actions-lint` (actionlint, zizmor).
+`web-ci` (eslint, vitest, build, `web/dist` freshness), and `actions-lint`
+(actionlint, zizmor).
 
 Install the git hook with `make hooks`. It runs only the gates a commit
 actually touches, so a web-only change does not pay for the Go race suite:
@@ -145,6 +146,19 @@ actually touches, so a web-only change does not pay for the Go race suite:
 | `.github/workflows/**`, `.github/zizmor.yml` | `make actions-lint` |
 
 `PRE_COMMIT_ALL=1 git commit` forces the full `make ci`; `--no-verify` skips it.
+
+### The committed `web/dist`
+
+`webui.go` embeds `web/dist` with `go:embed`, so the built bundle is tracked:
+without it `go install github.com/polds/rapid-issue-triage/cmd/triage@latest`
+does not compile. That means the UI a plain checkout serves is whatever was
+committed, not whatever `web/src` currently says, and CI builds into an
+artifact it never compares against the committed copy.
+
+`make web-dist-check` (part of `web-ci`, and a step in the CI web job) rebuilds
+and fails when the two disagree. When it does, run `make web-build` and stage
+`web/dist` alongside your source change - the check ignores an already-staged
+rebuild, so it is satisfied in the same commit.
 
 `make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
 `make vuln` runs the pinned govulncheck. zizmor is optional locally (`pipx install zizmor==1.29.0`)
