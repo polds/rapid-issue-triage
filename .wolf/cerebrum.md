@@ -31,8 +31,25 @@
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
+### Git merge drivers (2026-08-28)
+- `.wolf/memory.md` carries `merge=union` in `.gitattributes`. It is append-only, so
+  parallel branches collide on the same tail with no real decision to make.
+- Union applies **only to hunks that actually conflict**. A change one side makes
+  alone - the 7-day memory-compression cron deleting old rows - is still resolved by
+  the normal 3-way merge, so union does not resurrect compressed entries. Verified
+  empirically, not assumed.
+- Union has no ordering: it emits ours-then-theirs, so session blocks can land out of
+  chronological order. Accepted; the alternative was a custom driver.
+- A custom driver named in `.gitattributes` but not configured in a given clone
+  degrades to a normal text conflict - it never silently resolves the wrong way. That
+  makes custom drivers safe to ship, but they need per-clone `git config`, which is
+  why this repo took the built-in.
+- Never widen union to the `.wolf` JSON state files (invalid JSON) or to
+  `cerebrum.md` / `STATUS.md` (edited in place, so it duplicates sections).
+
 ## Do-Not-Repeat
 
+- [2026-08-28] Do not expect `.gitattributes merge=union` to keep a PR out of GitHub's conflicted state. It is applied by local git only. PR #31 proved it: with `.gitattributes` present `git merge-tree HEAD origin/main` returned a clean tree (exit 0), the identical merge with the file stripped hit `CONFLICT (content) in .wolf/memory.md`, and GitHub reported `mergeable_state: dirty` throughout. Worse, a conflicted PR produces no merge ref, so the `pull_request` workflows never run and the required checks silently never report - the PR looks stalled rather than conflicted. The fix is the same as always: merge the base branch locally, where union resolves it without a prompt, and push the merge commit. Union saves the manual conflict edit, not the merge commit.
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
 - [2026-08-27] Never commit `.wolf/dashboard-token`. It is the OpenWolf dashboard auth secret (64-hex, mode 0600). Roll by deleting the file; the next `openwolf dashboard` / daemon start mints a new one. Gitignore it.
 - [2026-08-27] Go 1.27 rejects `QueueFilter{}.Empty()` (struct-literal field selector). Write `(QueueFilter{}).Empty()`.

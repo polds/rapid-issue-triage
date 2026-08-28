@@ -300,4 +300,12 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 21:05 | Give Dependabot Conventional Commit prefixes scoped by repo area | .github/dependabot.yml, .wolf/anatomy.md | build(backend) / build(frontend)+chore(frontend) / ci(actions); YAML validated | ~4k |
+
+## Session: 2026-08-28 21:12
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:20 | Untracked 5 generated `.wolf/` state files and added them to `.gitignore` | `.gitignore` | `git rm --cached` used so the running daemon keeps its local state | ~3k |
+| 21:35 | Added `.gitattributes` with `merge=union` for the append-only session log | `.gitattributes` | Scoped to `.wolf/memory.md` only; verified with `git check-attr` | ~5k |
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
+| 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |

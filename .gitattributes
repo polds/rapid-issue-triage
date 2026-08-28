@@ -1,0 +1,12 @@
+# .wolf/memory.md is an append-only session log: every session appends a block
+# at the end, so two branches almost always "conflict" on the same tail even
+# though neither touched the other's entries. The built-in union driver keeps
+# both sides instead of stopping for a merge that has no real decision in it.
+#
+# Union applies only to hunks that actually conflict, so a one-sided deletion
+# (the 7-day compression cron) is still resolved by the normal 3-way merge.
+#
+# Deliberately scoped to this one file. Union on the .wolf JSON state files
+# would emit structurally invalid JSON, and on cerebrum.md/STATUS.md - which
+# are edited in place rather than appended to - it would duplicate sections.
+.wolf/memory.md merge=union
