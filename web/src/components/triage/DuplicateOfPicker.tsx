@@ -29,14 +29,19 @@ export function DuplicateOfPicker({
 
   useEffect(() => inputRef.current?.focus(), []);
 
+  // Every path that changes the query goes through here, so the spinner and the
+  // cleared result list are driven by the event that causes them. The effect
+  // below is then purely the debounced call out to Linear.
+  const changeQuery = (v: string) => {
+    setQuery(v);
+    if (v.trim()) setLoading(true);
+    else setHits([]);
+  };
+
   useEffect(() => {
     const q = query.trim();
-    if (!q) {
-      setHits([]);
-      return;
-    }
+    if (!q) return;
     const mySeq = ++seq.current;
-    setLoading(true);
     const t = setTimeout(() => {
       void api
         .linearSearch(q)
@@ -84,7 +89,7 @@ export function DuplicateOfPicker({
         <input
           ref={inputRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => changeQuery(e.target.value)}
           placeholder="Search Linear by identifier or title…"
           className="w-full border-b border-border bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
         />
@@ -97,7 +102,7 @@ export function DuplicateOfPicker({
               {suggestions.map((ri) => (
                 <button
                   key={ri.identifier}
-                  onClick={() => setQuery(ri.identifier)}
+                  onClick={() => changeQuery(ri.identifier)}
                   className="cursor-pointer rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-[11px] text-muted-foreground hover:bg-accent"
                   title={ri.title}
                 >

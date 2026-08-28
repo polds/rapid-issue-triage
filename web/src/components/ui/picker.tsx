@@ -54,7 +54,6 @@ export function Picker({
       .map((x) => x.o);
   }, [options, query]);
 
-  useEffect(() => setCursor(0), [query]);
   useEffect(() => inputRef.current?.focus(), []);
   useEffect(() => {
     listRef.current
@@ -90,7 +89,12 @@ export function Picker({
         <input
           ref={inputRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            // Typing re-ranks the list, so the highlight goes back to the top.
+            // Done here rather than in an effect: same render, no extra pass.
+            setQuery(e.target.value);
+            setCursor(0);
+          }}
           placeholder={`Search ${title.toLowerCase()}…`}
           className="w-full border-b border-border bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
         />

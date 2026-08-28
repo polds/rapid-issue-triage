@@ -205,9 +205,14 @@ function IndexFilterEditor({ onClose }: { onClose: () => void }) {
 export function FilterPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [advanced, setAdvanced] = useState(false);
 
-  useEffect(() => {
+  // Every fresh open starts on the simple view. Adjusting during render is the
+  // supported way to reset state on a prop change: the reset lands in the same
+  // pass, so the advanced editor never flashes before it is cleared.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setAdvanced(false);
-  }, [open]);
+  }
 
   return (
     <Dialog

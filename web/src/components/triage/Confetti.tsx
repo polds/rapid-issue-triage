@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const TONES = ["bg-chart-1", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-primary"];
 
@@ -18,23 +18,33 @@ function rollPieces(): Piece[] {
 }
 
 export function Confetti({ trigger }: { trigger: number }) {
-  const [burst, setBurst] = useState<{ count: number; pieces: Piece[] } | null>(null);
+  // `trigger` already carries the count to celebrate, so what to show is derived
+  // from it rather than copied into state by an effect. State records only which
+  // trigger the timeout has dismissed — the one update an external system drives.
+  const [dismissed, setDismissed] = useState(0);
+  const done = useCallback(() => setDismissed(trigger), [trigger]);
+
+  if (!trigger || trigger === dismissed) return null;
+  // Keyed by trigger, so each milestone mounts a fresh Burst with its own roll.
+  return <Burst key={trigger} count={trigger} onDone={done} />;
+}
+
+function Burst({ count, onDone }: { count: number; onDone: () => void }) {
+  // A lazy initialiser keeps the roll out of the render body while still giving
+  // every burst its own particles — the remount does what setBurst used to.
+  const [pieces] = useState(rollPieces);
 
   useEffect(() => {
-    if (!trigger) return;
-    setBurst({ count: trigger, pieces: rollPieces() });
-    const t = setTimeout(() => setBurst(null), 1500);
+    const t = setTimeout(onDone, 1500);
     return () => clearTimeout(t);
-  }, [trigger]);
-
-  if (!burst) return null;
+  }, [onDone]);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
       <div className="absolute left-1/2 top-1/3 -translate-x-1/2 rounded-full border border-primary/30 bg-surface px-4 py-2 text-sm shadow-pop anim-pop-in">
-        <span className="font-display font-bold">{burst.count}</span>&nbsp;triaged this session
+        <span className="font-display font-bold">{count}</span>&nbsp;triaged this session
       </div>
-      {burst.pieces.map((p, i) => (
+      {pieces.map((p, i) => (
         <span
           key={i}
           className={`absolute top-1/3 size-2 rounded-[2px] ${TONES[i % TONES.length]}`}
