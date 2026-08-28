@@ -1,27 +1,25 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:13:50.843Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:32:07.454Z
 > Files: 126 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitattributes` — Git attributes (~375 tok)
-- `.gitignore` — Git ignore rules (~158 tok)
+- `.gitignore` — Git ignore rules (~162 tok)
 - `.golangci.yml` — Declares is (~1950 tok)
 - `.goreleaser.yaml` (~2477 tok)
 - `.tool-versions` (~4 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
-- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2975 tok)
-- `coverage.out` (~6822 tok)
+- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~3033 tok)
 - `Dockerfile` — Release runtime image: COPYs GoReleaser's prebuilt `$TARGETPLATFORM/triage` onto pinned distroless, OCI labels from build args, binds 0.0.0.0:7333 as uid 65532 with /data as $HOME (~1170 tok)
 - `go.mod` — Go module definition (~151 tok)
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `LICENSE` — Project license (~3029 tok)
-- `Makefile` — Make build targets (~3115 tok)
+- `Makefile` — Make build targets (~3313 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~352 tok)
-- `README.md` — Project documentation (~3005 tok)
+- `README.md` — Project documentation (~3039 tok)
 - `SECURITY.md` — Security Policy (~519 tok)
-- `semgrep.sarif` (~85559 tok)
 - `webui.go` — embeds the built frontend (web/dist) into the binary. (~84 tok)
 
 ## .githooks/
@@ -30,17 +28,22 @@
 
 ## .github/
 
-- `CLAUDE.md` — .github/ — CI, security scanning, releases (~3546 tok)
-- `dependabot.yml` — Declares for (~337 tok)
+- `CLAUDE.md` — .github/ — CI, security scanning, releases (~3809 tok)
+- `dependabot.yml` — Declares for (~804 tok)
 - `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~453 tok)
 
 ## .github/workflows/
 
-- `ci.yml` — CI: CI (~3645 tok)
+- `ci.yml` — CI: CI (~3764 tok)
 - `codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~555 tok)
 - `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~1439 tok)
 - `release.yml` — CI: Release (~2188 tok)
 - `scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~359 tok)
+
+## .run-sandbox/
+
+- `rapid-triage.yaml` (~45 tok)
+- `server.log` (~55 tok)
 
 ## cmd/triage/
 
@@ -124,7 +127,7 @@
 
 ## web/scripts/
 
-- `check-licenses.mjs` — Dependency license gate for the frontend tree. (~1081 tok)
+- `check-licenses.mjs` — Dependency license gate for the frontend tree. (~1581 tok)
 
 ## web/src/
 

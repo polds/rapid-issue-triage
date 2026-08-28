@@ -335,6 +335,26 @@
 | 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
 | 22:13 | merged main (#37 STATUS.md) - only the "Last updated" line conflicted; cerebrum auto-merged this time, confirming the union-timing finding | .wolf/STATUS.md, .wolf/cerebrum.md | both sides' Done entries kept; cerebrum bullet aligned with #37's wording (anatomy.md named too) | ~3k |
 
+## Session: 2026-08-28 23:11
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-28 23:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:12 | Surveyed repo, Makefile, main.go, store schema for run-skill authoring | README.md, Makefile, cmd/triage/main.go, internal/store/store.go | unit = whole repo, single binary | ~12k |
+| 23:13 | make build (npm install + vite + go build) | web/dist/, triage | ok, binary 19MB | ~1k |
+| 23:14 | Launched ./triage with a fake LINEAR_API_KEY | - | boots; sync 502s, UI degrades to stale as designed | ~2k |
+| 23:16 | Wrote fixture.mjs (node:sqlite seeder: 6 issues, 3 macros, teams/states/labels) | .claude/skills/run-rapid-issue-triage/fixture.mjs | deck renders real cards | ~4k |
+| 23:17 | Wrote driver.mjs (Playwright: start/seed/smoke/repl/stop) | .claude/skills/run-rapid-issue-triage/driver.mjs | 9-step smoke green from an empty sandbox | ~6k |
+| 23:19 | Drove the REPL under tmux; `key z` snoozed a card | .run-sandbox/ | queue 6 -> 5 in sqlite, verified end to end | ~3k |
+| 23:20 | Ran AI enrichment via the real claude CLI | - | 200, verdict=actionable, AI CONTEXT panel screenshotted | ~2k |
+| 23:22 | make test-race + npm run coverage | - | both green (33 web tests, 100% src/lib) | ~1k |
+| 23:28 | Wrote SKILL.md; verified every documented command verbatim | .claude/skills/run-rapid-issue-triage/SKILL.md | clean-shell replay passed | ~5k |
+| 23:31 | Reverted web/dist churn from `make build` (npm install, not npm ci) | web/dist/ | diff clean; logged as bug-019 | ~1k |
+| 23:32 | Logged bugs 014-019, updated cerebrum + anatomy | .wolf/ | bookkeeping current | ~3k |
 ## Session: 2026-08-28 22:45
 
 | Time | Action | File(s) | Outcome | ~Tokens |
