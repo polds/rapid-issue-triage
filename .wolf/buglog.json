@@ -216,6 +216,27 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T19:25:00-07:00"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-08-28T20:30:00-07:00",
+      "error_message": "422 Validation Failed: \"Invalid rule 'tag_name_pattern': \" when creating the tag ruleset via POST /repos/polds/rapid-issue-triage/rulesets",
+      "file": ".github (repo settings, not a tracked file)",
+      "root_cause": "tag_name_pattern is a metadata-restriction rule. That family is plan/ownership gated and is not available on this user-owned repository, so the API rejects the rule outright. The recommended ruleset JSON included it without checking availability first - the REST schema documents the rule's shape but not which repos may use it.",
+      "fix": "Dropped the rule. The 'Release Tags' ruleset ships deletion + non_fast_forward + update, which are the rules that actually protect published Go module versions. Semver enforcement stays in release.yml's regex guard; the release workflow's v*.*.* trigger glob means a non-semver tag cannot start a release anyway.",
+      "tags": [
+        "github",
+        "rulesets",
+        "tags",
+        "422",
+        "metadata-restrictions",
+        "plan-gated"
+      ],
+      "related_bugs": [
+        "bug-011"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T20:30:00-07:00"
     }
   ]
 }

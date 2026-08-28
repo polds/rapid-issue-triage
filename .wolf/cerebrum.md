@@ -53,6 +53,8 @@
 
 - [2026-08-28] Never add the `creation` rule to the `Release Tags` tag ruleset (21759998) without first adding a bypass actor. `release.yml`'s `create_tag` path pushes `refs/tags/$RELEASE_TAG` with `GITHUB_TOKEN`, which holds no bypass permission, so restricting creations makes every tag push 403 and the release path dies. Enabling it requires a GitHub App token (`actions/create-github-app-token`) or a deploy key registered as a bypass actor. Same reason `required_signatures` stays off: the runner's `git tag -a` is unsigned.
 
+- [2026-08-28] Do not put `tag_name_pattern` (or any metadata-restriction rule: `branch_name_pattern`, `commit_message_pattern`, `commit_author_email_pattern`) in a ruleset for this repo. It is a user-owned repo, and those rules 422 with `Invalid rule 'tag_name_pattern':`. The structural rules (`creation`, `update`, `deletion`, `non_fast_forward`) do work here - the "Release Tags" ruleset uses three of them. Semver enforcement therefore lives only in release.yml's own regex guard, which is fine: the release trigger glob is `v*.*.*`, so a non-semver tag cannot fire a release.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
