@@ -25,9 +25,10 @@
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
-3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. Optional cleanup from a laptop: unused `v0.1.0` tag at ff9f062 and unpublished draft release id 378431198.
+3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. (Done 2026-08-28: the unused `v0.1.0` tag and its draft release were deleted, before the tag ruleset went active.)
 
 ### Closed decisions
+- Repo rulesets: "Main" (branch) requires all 11 CI contexts; "Release Tags" (tag, ~ALL) blocks deletion, tag moves, and force pushes. Neither has bypass actors. Adding `creation` to the tag ruleset would break `release.yml` - see cerebrum.
 - Secrets live in sqlite, not rewritten `.env` files.
 - Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.
 - Native picker is a Go subprocess (osascript / zenity / PowerShell) because the browser cannot expose filesystem paths.

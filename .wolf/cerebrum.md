@@ -51,6 +51,8 @@
 
 - [2026-08-28] Do not rename a CI job without checking the `Main` ruleset's required status checks. Renaming `web.name` from "Web typecheck and build" to "Web lint, test, build" left the required check waiting for a name nothing reports any more, so PR #16 sat `blocked` with all 14 checks green. Required checks match by exact string, and adding a matrix renames a job too (`Job name (leg)`). Read the ruleset with `curl /repos/OWNER/REPO/rulesets/<id>` before touching a job name.
 
+- [2026-08-28] Never add the `creation` rule to the `Release Tags` tag ruleset (21759998) without first adding a bypass actor. `release.yml`'s `create_tag` path pushes `refs/tags/$RELEASE_TAG` with `GITHUB_TOKEN`, which holds no bypass permission, so restricting creations makes every tag push 403 and the release path dies. Enabling it requires a GitHub App token (`actions/create-github-app-token`) or a deploy key registered as a bypass actor. Same reason `required_signatures` stays off: the runner's `git tag -a` is unsigned.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
@@ -63,3 +65,5 @@
 - [2026-08-28] Release job runs with caching disabled on setup-go and setup-node. A cache entry poisoned from any branch would otherwise be reachable from signed, attested artifacts. Releases are rare; a cold build is the right trade.
 - [2026-08-28] Release checkout uses persist-credentials: false; the tag push authenticates with an explicit x-access-token URL instead, so the job token never sits in .git/config while GoReleaser runs.
 - [2026-08-28] Optional-tool gates use the `CI` env var as the switch: skip with a warning on a developer machine, hard-fail on a runner. A CI check that silently no-ops when its binary is absent is worse than no check.
+- [2026-08-28] Tag ruleset "Release Tags" (id 21759998, active, ~ALL tags, no bypass actors): deletion + non_fast_forward + update. Tags are Go module versions - once anyone resolves one, sum.golang.org pins its hash forever, so moving or deleting a tag does not un-publish it, it just breaks consumers with a checksum mismatch while the proxy keeps serving the original. `update` is accepted on a tag target (confirmed empirically). `creation` and `required_signatures` are deliberately absent - both would 403 the release workflow.
+- [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.

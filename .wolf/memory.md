@@ -291,3 +291,5 @@
 | 19:06 | Re-verified: make ci green, both optional-tool guards tested in all branches | — | All green | ~4k |
 | 19:22 | Diagnosed PR #16 "stuck" check: ruleset requires renamed job name | `.github/workflows/ci.yml`, ruleset 21707865 | bug-011; not a hung runner - required check can never report | ~6k |
 | 19:25 | Documented the job-name/ruleset coupling in README + cerebrum | `README.md`, `.wolf/cerebrum.md` | Owner updating ruleset to the 11 current names | ~3k |
+| 20:13 | Check-in: owner applied both rulesets; PR #16 now mergeable_state=clean | rulesets 21707865, 21759998 | Stale required check resolved; v0.1.0 tag + draft release cleaned up first | ~5k |
+| 20:15 | Recorded the tag-ruleset constraints so a future session cannot break releases | `.wolf/cerebrum.md`, `.wolf/STATUS.md` | `creation`/`required_signatures` must stay off without a bypass actor | ~3k |
