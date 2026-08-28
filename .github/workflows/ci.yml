@@ -117,6 +117,25 @@ jobs:
       - name: vitest
         run: npm run coverage
       - run: npm run build
+      # web/dist is tracked because webui.go embeds it: `go install`-ing this
+      # module has to compile without anyone running npm. Nothing else notices
+      # when the committed bundle drifts from web/src - this job builds into an
+      # artifact and never reads the committed copy, and the binary the release
+      # ships would keep serving whatever UI was committed last.
+      - name: Verify committed web/dist matches the build
+        run: |
+          # Only the worktree column matters, matching `make web-dist-check`:
+          # a rebuilt bundle that is already staged is not drift.
+          drift=$(git status --porcelain -- dist | awk 'substr($0,2,1) != " "')
+          if [ -n "$drift" ]; then
+            {
+              echo "web/dist does not match a build of web/src:"
+              echo "$drift"
+              echo "Run 'make web-build' and commit web/dist with your change."
+            } >&2
+            exit 1
+          fi
+          echo "web/dist matches a fresh build"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: web-dist

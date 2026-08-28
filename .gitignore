@@ -19,3 +19,6 @@ web/coverage/
 
 # Isolated git worktrees created for parallel agent runs; transient.
 .claude/worktrees/
+
+# TypeScript incremental build cache; rewritten by every `tsc -b`.
+web/tsconfig.tsbuildinfo
