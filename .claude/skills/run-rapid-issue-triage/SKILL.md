@@ -39,12 +39,21 @@ make build          # npm install + vite build + go build -o triage
 `web/dist/` is committed and embedded, so a frontend change is invisible to the
 binary until you re-run `make build`.
 
-**`make build` dirties `web/dist/` even with no source change.** Its `ui` target
-runs `npm install`, not `npm ci`, so transitive deps drift and Vite emits a
-bundle with a different content hash — leaving `web/dist/index.html` plus a
-renamed `assets/index-*.js` in your diff. Check `git status` after building and
-`git checkout -- web/dist/` (and delete the stray asset) unless you actually
-changed the UI.
+**`make build` and `make web-ci` install web deps differently.** `make build`'s
+`ui` target runs `npm install`; `web-ci`'s `web-build` → `web-deps` runs
+`npm ci`. When the lockfile and `npm install`'s resolution disagree, Vite emits
+a bundle with a different content hash and `make build` leaves
+`web/dist/index.html` plus a renamed `assets/index-*.js` in your diff on an
+otherwise untouched tree. Observed once this session on an older lockfile; it
+does not reproduce on the current one, so treat it as a thing to check for, not
+a thing that always happens.
+
+`make web-dist-check` (part of `web-ci`, and a CI gate) fails when the committed
+bundle doesn't match a fresh build. It inspects only the **worktree** column of
+`git status`, so a rebuild you have already `git add`ed passes. If you changed
+the UI, stage the rebuild — that is what the gate wants. If you changed nothing
+and it still drifted, revert with `git checkout -- web/dist/` and delete the
+stray asset.
 
 ## Run (agent path)
 
@@ -124,12 +133,16 @@ Useless headless: `-no-open` matters here, since `xdg-open` has nothing to open.
 ```bash
 make test-race                 # go test -race  → ok (config, server, store)
 npm --prefix web run coverage  # 33 tests, 5 files, 100% on src/lib
-make ci                        # everything CI gates on; slow (golangci-lint)
+make web-dist-check            # → "web/dist matches a fresh build"
+make quality                   # go mod tidy -diff + deadcode → "no unreachable functions"
 ```
 
-`make test-race` and the web suite both pass here. `make ci` additionally needs
-`shellcheck` and `zizmor` for `actions-lint`; `zizmor` is on PATH, `shellcheck`
-is not, so actionlint silently skips its `run:` blocks locally.
+All four pass here. `make ci` is the full gate — `ci-go`, `web-ci`,
+`actions-lint`, `quality`, and `ci-security` (govulncheck, semgrep, licenses) —
+and is slow; the pieces above are the fast ones. Its `actions-lint` step needs
+`shellcheck`, which is **not** installed here, so actionlint silently skips
+every `run:` block locally and a clean local run proves less than it looks.
+`zizmor` is on PATH.
 
 ## Gotchas
 

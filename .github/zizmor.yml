@@ -5,10 +5,11 @@ rules:
     ignore:
       # zizmor flags actions/setup-node in any tag-triggered workflow purely
       # because the workflow publishes artifacts, regardless of the cache
-      # input. Caching is explicitly disabled on both setup-go and setup-node
-      # in the release job, so there is no cache entry for a PR branch to
-      # poison. Node cannot be dropped: .goreleaser.yaml's before-hooks run
-      # `npm ci` and `npm run build` to produce the embedded UI.
+      # input. Caching is explicitly disabled on setup-go, setup-node, and
+      # setup-buildx (`cache-binary: false`) in the release job, so there is
+      # no cache entry for a PR branch to poison. Node cannot be dropped:
+      # .goreleaser.yaml's before-hooks run `npm ci` and `npm run build` to
+      # produce the embedded UI.
       - release.yml
   dangerous-triggers:
     ignore:

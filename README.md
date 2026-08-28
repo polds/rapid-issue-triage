@@ -32,6 +32,34 @@ First run kicks off a full sync of metadata plus every issue matching the
 configured filter (default: workflow state type `triage`). The queue fills as
 the sync streams in.
 
+### Docker
+
+Every release publishes a multi-platform image (linux/amd64, linux/arm64) to
+GHCR, tagged with the version, the `MAJOR.MINOR` line, and `latest`:
+
+```sh
+docker run --rm \
+  -p 127.0.0.1:7333:7333 \
+  -v rapid-triage:/data \
+  -e LINEAR_API_KEY=lin_api_... \
+  ghcr.io/polds/rapid-issue-triage:latest
+```
+
+- **Publish it to `127.0.0.1` only.** The container listens on `0.0.0.0:7333`
+  because loopback inside a network namespace is reachable from nothing; the
+  `-p 127.0.0.1:7333:7333` above is what keeps the *host* exposure the same as
+  running the binary. `-p 7333:7333` would put an API that spawns subprocesses
+  on every interface. See [SECURITY.md](SECURITY.md).
+- **`/data` is the state directory** — it is `$HOME` inside the image, so the
+  sqlite index lands in `/data/.rapid-triage/` and survives `docker rm`. The
+  image runs as uid 65532; a bind mount needs to be writable by it, a named
+  volume just works.
+- **AI enrichment is off in the container** unless you mount a `claude` binary
+  into it: the image is distroless and ships only `triage`.
+- The image carries the standard OCI labels and annotations, so
+  `docker buildx imagetools inspect ghcr.io/polds/rapid-issue-triage:latest`
+  reports the exact version, commit, and base image it was built from.
+
 ## Configuration
 
 Copy `rapid-triage.example.yaml` to `./rapid-triage.yaml` or
@@ -83,6 +111,17 @@ Every push and pull request to `main` runs `.github/workflows/ci.yml`:
 - `actionlint` + `zizmor` over the workflows themselves
 - `govulncheck`, `npm audit --audit-level=high`, gitleaks, and a
   dependency review that blocks PRs adding a high-severity advisory
+- **SAST:** semgrep over Go *and* the TypeScript/React UI (`p/golang`,
+  `p/gosec`, `p/typescript`, `p/react`, `p/dockerfile`, `p/secrets`), findings
+  uploaded to the Security tab as SARIF
+- **License scan:** every Go module compiled into the binary and every npm
+  package bundled into `web/dist` is held to a permissive allow-list. Dev-only
+  npm packages are executed rather than redistributed, so they clear a
+  narrower deny-list instead (GPL, AGPL, source-available, non-commercial).
+  Dependency review applies the strict list to what a PR adds at runtime scope
+- **Code quality:** `go mod tidy -diff` and whole-program `deadcode`, on top
+  of golangci-lint (`gocyclo`, `dupl`, `unused`, `revive`) for Go and
+  eslint + `eslint-plugin-sonarjs` for the UI
 
 > **Job names are load-bearing.** The `Main` ruleset lists CI job names as
 > required status checks, and GitHub matches them by exact string. Renaming a
@@ -105,7 +144,10 @@ cannot reach a signed, attested artifact. Deliberate zizmor exceptions live in
 Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
 
 Local equivalent: `make ci` — `ci-go` (fmt, fix, vet, lint, `test -race`, coverage),
-`web-ci` (eslint, vitest, build), and `actions-lint` (actionlint, zizmor).
+`web-ci` (eslint, vitest, build, `web/dist` freshness), `actions-lint`
+(actionlint, zizmor), `quality` (`go mod tidy -diff`, `deadcode`), and
+`ci-security` (`vuln`, `sast`, `licenses`). `make licenses-report` prints every
+dependency license rather than only the ones that fail.
 
 Install the git hook with `make hooks`. It runs only the gates a commit
 actually touches, so a web-only change does not pay for the Go race suite:
@@ -113,14 +155,35 @@ actually touches, so a web-only change does not pay for the Go race suite:
 | Staged paths | Runs |
 |---|---|
 | `*.go`, `go.mod`/`go.sum`, `Makefile`, `.golangci.yml` | `make ci-go` |
+| `*.go`, `go.mod`/`go.sum`, `Makefile` | `make quality` |
+| `go.mod`/`go.sum`, `web/package*.json`, `Makefile`, the license script | `make licenses` |
 | `web/**` (excluding `web/dist/`) | `make web-ci` |
 | `.github/workflows/**`, `.github/zizmor.yml` | `make actions-lint` |
 
+`make sast` is deliberately *not* in the hook: semgrep fetches its rulesets
+from the registry, so it needs network and roughly 40s — per-commit is how you
+teach people to reach for `--no-verify`. It runs in `make ci`, under
+`PRE_COMMIT_ALL=1`, and on every push.
+
 `PRE_COMMIT_ALL=1 git commit` forces the full `make ci`; `--no-verify` skips it.
 
+### The committed `web/dist`
+
+`webui.go` embeds `web/dist` with `go:embed`, so the built bundle is tracked:
+without it `go install github.com/polds/rapid-issue-triage/cmd/triage@latest`
+does not compile. That means the UI a plain checkout serves is whatever was
+committed, not whatever `web/src` currently says, and CI builds into an
+artifact it never compares against the committed copy.
+
+`make web-dist-check` (part of `web-ci`, and a step in the CI web job) rebuilds
+and fails when the two disagree. When it does, run `make web-build` and stage
+`web/dist` alongside your source change - the check ignores an already-staged
+rebuild, so it is satisfied in the same commit.
+
 `make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
-`make vuln` runs the pinned govulncheck. zizmor is optional locally (`pipx install zizmor==1.29.0`)
-and required in CI, so a missing binary can never silently skip the audit.
+`make vuln` runs the pinned govulncheck. zizmor and semgrep are optional
+locally (`pipx install zizmor==1.29.0`, `pipx install semgrep==1.175.0`) and
+required in CI, so a missing binary can never silently skip the audit.
 
 ## Releasing
 
@@ -138,12 +201,24 @@ git tag v0.1.0
 git push upstream v0.1.0
 ```
 
+The same run publishes the container image described under
+[Docker](#docker) to `ghcr.io/polds/rapid-issue-triage`, built from those same
+binaries rather than from source, with a BuildKit SBOM attestation and the same
+build provenance:
+
+```sh
+gh attestation verify oci://ghcr.io/polds/rapid-issue-triage:0.1.1 --owner polds
+```
+
 `workflow_dispatch` on the Release workflow takes a `tag` input and a
 `create_tag` checkbox:
 
 - **Empty `tag`** — snapshot dry run. Builds and packages everything but
   publishes nothing; the archives, packages, SBOMs, and checksums are uploaded as
-  a `snapshot-dist` workflow artifact so you can inspect them.
+  a `snapshot-dist` workflow artifact so you can inspect them. The container
+  image is built too — per-platform and local-only, since buildx cannot assemble
+  a multi-platform manifest without pushing it — so a broken `Dockerfile` fails
+  the dry run rather than a real release.
 - **`tag` set, `create_tag` unchecked** — publishes that existing tag's GitHub
   Release from a manual run, exactly as a tag push would.
 - **`tag` set, `create_tag` checked** — creates the tag at the dispatched ref,
@@ -168,5 +243,14 @@ Two consequences worth knowing:
   fails. The tag name is then burnt and you have to bump the version.
 - A run that dies mid-upload leaves a draft behind. `replace_existing_draft`
   clears it, so re-running the same tag works.
+
+The container image is not covered by that immutability: a re-run of the same
+tag overwrites the image tags it pushed. The digest of the previous push stays
+resolvable, and the release's own attestations pin digests, not tags.
+
+The GHCR package is created private on its first push. Make it public once, in
+the package settings, if the image is meant to be pullable anonymously — the
+`org.opencontainers.image.source` label is what links the package to this
+repository so those settings are reachable from it.
 
 [immutable]: https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases

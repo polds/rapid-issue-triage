@@ -19,6 +19,11 @@ within a week.
 
 `triage` runs on a developer's own machine, binds `127.0.0.1:7333`, and holds a
 Linear API key plus any configured MCP source keys in a local sqlite database.
+The published container listens on `0.0.0.0:7333` *inside its own network
+namespace* — loopback there reaches nothing — and is documented to be published
+to the host's loopback (`-p 127.0.0.1:7333:7333`). Publishing it to every
+interface exposes an API that spawns subprocesses; that is a misconfiguration,
+not a vulnerability, but the container defaulting to anything wider would be.
 Findings that are in scope include:
 
 - Anything that exposes stored keys to another local user or to the network
@@ -37,4 +42,11 @@ provenance. Verify a download before running it:
 
 ```sh
 gh attestation verify triage_<version>_<platform>.tar.gz --repo polds/rapid-issue-triage
+```
+
+The container image carries the same provenance, plus a BuildKit SBOM
+attestation:
+
+```sh
+gh attestation verify oci://ghcr.io/polds/rapid-issue-triage:<version> --repo polds/rapid-issue-triage
 ```

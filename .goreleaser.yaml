@@ -147,6 +147,65 @@ nfpms:
         file_info:
           mode: 0644
 
+# Container images. Built from the binaries above rather than from source, so
+# the image ships the byte-identical `triage` that the archives and the SLSA
+# provenance cover. Images are built in the *publish* phase (buildx cannot
+# assemble a multi-platform manifest without pushing it), which is why a
+# snapshot run builds per-platform images with a platform suffix and pushes
+# nothing -- exactly the dry run the release workflow wants.
+dockers_v2:
+  - id: triage
+    ids:
+      - posix
+    images:
+      - ghcr.io/polds/rapid-issue-triage
+    # No bare `{{ .Major }}` tag: on a 0.x line a moving `0` tag would promise
+    # compatibility that semver does not give before 1.0. Add it at v1.
+    tags:
+      - "{{ .Version }}"
+      - "{{ if not .Prerelease }}{{ .Major }}.{{ .Minor }}{{ end }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    # The image redistributes the binary, so it redistributes the work: Apache
+    # 2.0 section 4 wants the licence to travel with it, exactly as the archives
+    # and the deb/rpm/apk already do.
+    extra_files:
+      - LICENSE
+    # Passed to the Dockerfile's ARGs, which turn them into OCI labels. Uses
+    # .CommitDate, not .Date: the release builds under SOURCE_DATE_EPOCH, and a
+    # wall-clock timestamp would be the one thing in the image that changes
+    # between two builds of the same tag.
+    build_args:
+      VERSION: "{{ .Version }}"
+      REVISION: "{{ .FullCommit }}"
+      CREATED: "{{ .CommitDate }}"
+      SOURCE: https://github.com/polds/rapid-issue-triage
+    # Annotations, unlike labels, land on the image index and the per-platform
+    # manifests -- the metadata a registry reads without pulling the config
+    # blob. `index,manifest:` applies each to both. .BaseImage/.BaseImageDigest
+    # are read off the Dockerfile's FROM, so they cannot drift from what is
+    # actually pinned there.
+    annotations:
+      "index,manifest:org.opencontainers.image.title": "rapid-issue-triage"
+      "index,manifest:org.opencontainers.image.description": "Local-only, keyboard-first triage for Linear backlogs"
+      "index,manifest:org.opencontainers.image.version": "{{ .Version }}"
+      "index,manifest:org.opencontainers.image.revision": "{{ .FullCommit }}"
+      "index,manifest:org.opencontainers.image.created": "{{ .CommitDate }}"
+      "index,manifest:org.opencontainers.image.source": https://github.com/polds/rapid-issue-triage
+      "index,manifest:org.opencontainers.image.url": https://github.com/polds/rapid-issue-triage
+      "index,manifest:org.opencontainers.image.documentation": https://github.com/polds/rapid-issue-triage#readme
+      "index,manifest:org.opencontainers.image.licenses": Apache-2.0
+      "index,manifest:org.opencontainers.image.vendor": polds
+      "index,manifest:org.opencontainers.image.base.name": "{{ .BaseImage }}"
+      "index,manifest:org.opencontainers.image.base.digest": "{{ .BaseImageDigest }}"
+    # Attach a BuildKit SBOM attestation to what gets pushed (the default, kept
+    # explicit: it is the image's counterpart to the Syft SPDX documents the
+    # archives and packages get below). Only the publish path uses it; a
+    # snapshot builds no attestations because it pushes nothing.
+    sbom: true
+
 source:
   enabled: true
   name_template: "{{ .ProjectName }}_{{ .Version }}_source"
@@ -178,6 +237,14 @@ checksum:
   algorithm: sha256
   extra_files:
     - glob: dist/*.spdx.json
+
+# The digests of every image and manifest pushed, in the checksum-file shape
+# `actions/attest` consumes, so container images get the same SLSA provenance
+# as the archives. Only written when something was actually pushed: a snapshot
+# run produces no digests.txt, which is why the workflow's attest step is
+# gated on a release tag.
+docker_digest:
+  name_template: digests.txt
 
 changelog:
   sort: asc

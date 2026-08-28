@@ -1,6 +1,6 @@
 # .github/ — CI, security scanning, releases
 
-Six workflows plus Dependabot. Local equivalents live in the `Makefile`, and
+Five workflows plus Dependabot. Local equivalents live in the `Makefile`, and
 CI calls those `make` targets rather than spelling out commands twice — so
 `make ci` and CI cannot drift. Keep it that way. The pinned tool versions are
 part of that rule: they live in the `Makefile` and CI resolves them with
@@ -8,18 +8,51 @@ part of that rule: they live in the `Makefile` and CI resolves them with
 
 | File | What it does | Local equivalent |
 |---|---|---|
-| `workflows/ci.yml` | 7 jobs: Go, golangci-lint, workflow lint, web, 3-OS binary compile, security, dependency review. | `make ci` |
+| `workflows/ci.yml` | 10 jobs: Go, golangci-lint, workflow lint, web, 3-OS binary compile, security, SAST, license scan, code quality, dependency review. | `make ci` |
 | `workflows/codeql.yml` | CodeQL `security-extended` over Go + TypeScript; PR and weekly. | — |
-| `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, optional tag minting. | `goreleaser check` |
+| `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, the GHCR container image, optional tag minting. | `goreleaser check` |
 | `workflows/scorecard.yml` | OpenSSF Scorecard → SARIF in the Security tab. | — |
 | `workflows/dependabot-auto-merge.yml` | Enables auto-merge on patch/minor Dependabot PRs. Not a gate. | — |
-| `dependabot.yml` | Weekly gomod / npm(`/web`) / actions PRs. | — |
+| `dependabot.yml` | Weekly gomod / npm(`/web`) / actions / docker PRs. | — |
 | `zizmor.yml` | Reviewed audit exceptions. Every entry is deliberate; the default is to fix a finding, not list it. | — |
+
+## Which check owns which risk
+
+Two scanners covering the same ground is not duplication here — different rule
+authors miss different things — but knowing which one is *authoritative* for a
+class of problem is what keeps a finding from being triaged twice.
+
+| Risk | Gate | Where |
+|---|---|---|
+| Code-level vulnerabilities, Go | CodeQL (`security-extended`) + semgrep `p/golang`,`p/gosec` + golangci-lint's `gosec` | `codeql.yml`, `SAST`, `golangci-lint` |
+| Code-level vulnerabilities, TS/React | CodeQL + semgrep `p/typescript`,`p/react` + the eslint security rules | `codeql.yml`, `SAST`, `Web` |
+| Released image | semgrep `p/dockerfile` over the root `Dockerfile` | `SAST` |
+| Vulnerable dependency, Go | `govulncheck` (reachability-aware) | `Security` |
+| Vulnerable dependency, npm | `npm audit --audit-level=high` | `Security` |
+| Vulnerable dependency, newly added | `dependency-review-action` | `Dependency review` |
+| Committed secret | gitleaks over full history + semgrep `p/secrets` | `Security`, `SAST` |
+| Dependency license, redistributed | `go-licenses` + the npm policy script, allow-list over the whole graph | `License scan` |
+| Dependency license, dev-only | the same script's second tier: GPL/AGPL/source-available/non-commercial deny-list | `License scan` |
+| Dependency license, newly added | `dependency-review-action` deny-list | `Dependency review` |
+| Complexity / duplication / dead code | golangci-lint (Go), eslint + sonarjs (TS), `deadcode` + `go mod tidy -diff` (whole program) | `golangci-lint`, `Web`, `Code quality` |
+
+The **SAST** job uploads SARIF, so semgrep findings land in the Security tab
+next to CodeQL's. Its upload step is `if: ${{ !cancelled() }}` on purpose — a
+red job whose findings are invisible is the worst of both.
+
+**Semgrep is pinned in the `Makefile` and installed from PyPI**, not run
+through `semgrep/semgrep-action`: that action wants a Semgrep AppSec Platform
+token and sends findings to a SaaS backend. This project keeps scanning local
+for the same reason it binds to `127.0.0.1`.
+
+GitHub's own **secret scanning with push protection** is a repository setting,
+not a workflow, and is the layer that stops a secret *before* it is committed.
+gitleaks is the in-CI backstop; neither replaces the other.
 
 ## ⚠️ Job names are load-bearing
 
-The repo's **`Main` branch ruleset lists all 11 CI job names as required
-status checks, and GitHub matches them by exact string.** Renaming a job whose
+The repo's **`Main` branch ruleset lists every CI job name as a required
+status check, and GitHub matches them by exact string.** Renaming a job whose
 name is required leaves that check at "Expected — waiting for status to be
 reported" forever, silently blocking every PR while all of CI is green. This
 has already happened once (`Web typecheck and build` → `Web lint, test,
@@ -27,6 +60,11 @@ build`).
 
 Adding a matrix renames a job too — it then reports once per leg as
 `Job name (leg)`.
+
+The three checks added with the scanning work — **`SAST`**, **`License
+scan`**, **`Code quality`** — take the required set from 11 to 14. Adding a
+job to `ci.yml` does not make it required; until each is added to the ruleset
+it runs and reports but cannot block a merge.
 
 **Read the ruleset before touching a `name:`**, and change the job and the
 ruleset in the same PR, or not at all:
@@ -45,7 +83,7 @@ ruleset in the same PR, or not at all:
 - **Optional tools gate on the `CI` env var**: warn on a developer machine,
   hard-fail on a runner. A check that silently no-ops when its binary is
   missing is worse than no check. This is why `make actions-lint` fails in CI
-  without `shellcheck` or `zizmor`.
+  without `shellcheck` or `zizmor`, and `make sast` without `semgrep`.
 - Rejected on purpose: StepSecurity `harden-runner` — a broad third-party
   action proxying all runner egress is itself supply-chain surface, and every
   action here is already SHA-pinned.
@@ -63,6 +101,45 @@ Triggers: a `v*.*.*` tag push, or `workflow_dispatch` with two inputs.
 Because the tag is minted and released inside one job, nothing depends on the
 tag push re-triggering the workflow — a `GITHUB_TOKEN` push deliberately does
 not do that, and that absence is what prevents a double release.
+
+### The container image
+
+`dockers_v2` in `.goreleaser.yaml` builds `ghcr.io/polds/rapid-issue-triage`
+for linux/amd64 + linux/arm64 from the **binaries GoReleaser already built** —
+the root `Dockerfile` only `COPY`s `$TARGETPLATFORM/triage`. Never give it a
+builder stage: the image would then ship a different binary from the one the
+archives and the provenance attest.
+
+- **Images are built in the publish phase**, not the build phase — buildx
+  cannot assemble a multi-platform manifest without pushing it. Anything that
+  skips publishing skips the image; a snapshot run instead builds one
+  `--load`ed image per platform, with a `-linux-amd64` style tag suffix, and
+  pushes nothing.
+- **`docker/setup-buildx-action` is not optional.** The runner's default
+  builder uses the `docker` driver, which cannot build for another platform,
+  and which also rejects `index:`-scoped annotations on a single-platform
+  export ("index annotations not supported for single platform export") — so a
+  local `goreleaser release --snapshot` needs `docker buildx create --use`
+  first. QEMU is *not* needed — nothing executes under the target platform.
+- **OCI metadata lives in two places on purpose.** Labels (image config) come
+  from the `Dockerfile`'s `ARG`s, fed by `build_args`, so a hand-run build gets
+  them too. Annotations (index + per-platform manifests) come from
+  `dockers_v2.annotations`, because no Dockerfile can annotate the manifest
+  that wraps it. `base.name` / `base.digest` are annotations only: GoReleaser
+  reads them off the `FROM` line, so a Dependabot digest bump cannot leave a
+  stale label behind.
+- **`created` uses `.CommitDate`, not `.Date`.** The release builds under
+  `SOURCE_DATE_EPOCH`; a wall-clock label would be the one thing that changes
+  between two builds of the same tag.
+- **`docker_digest` writes `dist/digests.txt`**, which the second
+  `actions/attest` step consumes. It only exists when something was pushed —
+  hence the `RELEASE_TAG != ''` gate, same as the checksums attestation.
+- **Image tags are not immutable** the way the GitHub Release is. A re-run of
+  the same tag overwrites `:0.1.1`. Digests and the attestations that pin them
+  are unaffected.
+- The GHCR package is **private until someone makes it public** once, by hand,
+  in the package settings. `org.opencontainers.image.source` is what links the
+  package to this repo.
 
 ### Release traps (each of these has cost a version number)
 
@@ -93,7 +170,8 @@ not do that, and that absence is what prevents a double release.
 ## Dependabot commit scopes
 
 The scope names the **repo area, not `deps`**: `build(backend)` (gomod),
-`build(frontend)` / `chore(frontend)` (npm devDeps), `ci(actions)`.
+`build(frontend)` / `chore(frontend)` (npm devDeps), `ci(actions)`,
+`build(docker)` (the `Dockerfile` base image).
 
 Never combine a scoped prefix with `include: "scope"` — Dependabot appends its
 own `(deps)`, producing `build(backend)(deps): …`, which is not a valid
@@ -112,12 +190,14 @@ Two things always wait for a person:
 - **Major bumps.** CI catches the ones that break the build, but a major that
   happens to compile can still change behaviour.
 - **Actions no pull request executes** — `actions/attest`,
-  `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`.
-  They appear only in `release.yml` / `scorecard.yml`; CI lints those files but
-  never runs the action, so a bump is unvalidated until a release fires — and a
-  failed release burns a tag name. Every other action is also used by `ci.yml`
-  or `codeql.yml`, so the PR's own run is the proof. **Keep that list in step
-  with where actions are actually used.**
+  `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`,
+  `docker/login-action`, `docker/setup-buildx-action` — plus the container base
+  image, `gcr.io/distroless/static-debian13`. They appear only in `release.yml` /
+  `scorecard.yml`; CI lints those files but never runs the action or builds the
+  image, so a bump is unvalidated until a release fires — and a failed release
+  burns a tag name. Every other action is also used by `ci.yml` or `codeql.yml`,
+  so the PR's own run is the proof. **Keep that list in step with where actions
+  are actually used.**
 
 It must use `pull_request_target`: a `pull_request` run from Dependabot gets a
 read-only token that cannot enable auto-merge. That trigger is safe here only
@@ -151,11 +231,30 @@ people off `--no-verify`. `PRE_COMMIT_ALL=1` forces the full run.
 ## Maintenance
 
 Adding a job → the table above **and** the `Main` ruleset's required checks,
-or the gate is unenforced. Changing a `make` target CI calls → verify both
+or the gate is unenforced.
+
+Widening a license allow-list or narrowing a deny-list → do it in
+`Makefile` (`GO_LICENSE_ALLOW`, `WEB_LICENSE_ALLOW`, `WEB_LICENSE_DENY`) and
+in `ci.yml`'s `deny-licenses` together, with a comment saying why. The two
+express the same policy at different moments: whole graph vs. what a PR adds.
+
+They are deliberately **not** the same list. `ci.yml` pins
+`fail-on-scopes: runtime`, so its stricter deny-list only ever judges code we
+redistribute; the Makefile's `WEB_LICENSE_DENY` is the looser dev-only tier,
+where a tool is executed rather than conveyed. Keep that asymmetry — flattening
+the two would either let copyleft into the binary or ban an LGPL lint plugin.
+
+**Write license ids however SPDX does today, and trust the normaliser, not the
+string.** `check-licenses.mjs` folds `-only`, `-or-later` and `+` onto the bare
+id before comparing, because `LGPL-3.0` and `LGPL-3.0-only` are the same
+license and a raw string compare silently misses whichever spelling the policy
+was not written in. That exact miss shipped once. The script self-tests the
+matcher on every run; do not remove that. Changing a `make` target CI calls → verify both
 sides still line up.
 
 Bumping a pinned tool (`GOLANGCI_LINT_VERSION`, `GOVULNCHECK_VERSION`,
-`ACTIONLINT_VERSION`, `ZIZMOR_VERSION`) → edit the `Makefile` only; CI reads it
+`ACTIONLINT_VERSION`, `ZIZMOR_VERSION`, `SEMGREP_VERSION`,
+`GO_LICENSES_VERSION`, `DEADCODE_VERSION`) → edit the `Makefile` only; CI reads it
 back through `make -s print-<VAR>`. Dependabot does **not** track these — it
 bumps `uses:` refs, not a version a make target hands to `go run` or `pip`, so
 they are watched by hand. Do not try to fix that with one shared `tools/go.mod`:

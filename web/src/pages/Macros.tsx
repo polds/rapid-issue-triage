@@ -84,11 +84,14 @@ export function MacrosPage() {
   };
 
   const labelNames = useMemo(
-    () => [...new Set((meta?.labels ?? []).filter((l) => !l.isGroup).map((l) => l.name))].sort(),
+    () =>
+      [...new Set((meta?.labels ?? []).filter((l) => !l.isGroup).map((l) => l.name))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
     [meta],
   );
   const stateNames = useMemo(
-    () => [...new Set((meta?.states ?? []).map((s) => s.name))].sort(),
+    () => [...new Set((meta?.states ?? []).map((s) => s.name))].sort((a, b) => a.localeCompare(b)),
     [meta],
   );
   const projectName = (id: string) => meta?.projects.find((p) => p.id === id)?.name ?? id;
