@@ -1,7 +1,8 @@
 // Minimal toast system with an optional Undo action.
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToastContext, type ToastCtx } from "./use-toast";
 
 interface Toast {
   id: number;
@@ -10,16 +11,6 @@ interface Toast {
   onUndo?: () => void;
   action?: { label: string; onClick: () => void };
 }
-
-interface ToastCtx {
-  toast: (
-    text: string,
-    opts?: { tone?: "default" | "error"; onUndo?: () => void; action?: { label: string; onClick: () => void } },
-  ) => void;
-}
-
-const Ctx = createContext<ToastCtx>({ toast: () => {} });
-export const useToast = () => useContext(Ctx);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -35,7 +26,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ toast }}>
+    <ToastContext.Provider value={{ toast }}>
       {children}
       <div className="pointer-events-none fixed bottom-16 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2">
         {toasts.map((t) => (
@@ -68,6 +59,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           </div>
         ))}
       </div>
-    </Ctx.Provider>
+    </ToastContext.Provider>
   );
 }

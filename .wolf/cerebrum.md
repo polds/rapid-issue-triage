@@ -27,7 +27,7 @@
 - `go run <tool>@<ver>` picks its toolchain from the TOOL's go.mod, not this module's. For a go1.27 module, pin `GOTOOLCHAIN=go$(go list -m -f '{{.GoVersion}}')` or the tool is built with an older Go and cannot parse the source at all.
 - `./...` does not skip `node_modules`. web/node_modules ships a Go file (eslint -> flat-cache -> flatted), so Makefile targets filter it out and .golangci.yml excludes the path.
 - eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
-- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They are off here: adopting them is a rendering change, not a lint fix.
+- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They were all deferred when the lint gate landed; they are being re-enabled one rule per PR. `static-components` is enabled as of PR #23 (zero violations - verify a rule is actually loaded with `npx eslint --print-config <file>` before trusting a clean run).
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 

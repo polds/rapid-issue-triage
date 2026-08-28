@@ -13,10 +13,11 @@ import {
   User,
 } from "lucide-react";
 import type { Card } from "@/lib/store";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { api } from "@/lib/api";
 import type { Comment, Enrichment } from "@/lib/types";
-import { formatReportComment, LiveRun, ReportView } from "./DeepPanel";
+import { LiveRun, ReportView } from "./DeepPanel";
+import { formatReportComment } from "./report-format";
 
 import { Markdown, MarkdownInline } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
@@ -75,7 +76,7 @@ function AIPanel({ card }: { card: Card }) {
   // Lazily resolve the run id backing a stored report (for the action log).
   useEffect(() => {
     if (e?.report && !logRunId) {
-      api.latestRun(card.issue.id).then((r) => r.run && setLogRunId(r.run.id));
+      void api.latestRun(card.issue.id).then((r) => r.run && setLogRunId(r.run.id));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [e?.report, card.issue.id]);

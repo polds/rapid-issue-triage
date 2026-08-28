@@ -1,7 +1,7 @@
 // Quick edit: fast keyboard pickers that apply single-field ops to the
 // current issue immediately (no card advance).
 import { Hash, Layers, Repeat, Tag, User, Workflow } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { Button } from "@/components/ui/button";
 import { Picker, type PickerOption } from "@/components/ui/picker";
 import { DuplicateOfPicker } from "./DuplicateOfPicker";
@@ -148,7 +148,7 @@ export function QuickEditRow({
         desc = id === "clear" ? "Unassigned" : "Assigned";
         break;
     }
-    applyOps([op], desc);
+    void applyOps([op], desc);
   };
 
   return (
@@ -186,7 +186,7 @@ export function QuickEditRow({
           identifier={issue.identifier}
           report={issue.enrichment?.report}
           onPick={(canonicalId) => {
-            applyOps(
+            void applyOps(
               [{ type: "set_state", stateId: duplicateState, duplicateOfId: canonicalId }],
               `Status → ${meta.states.find((s) => s.id === duplicateState)?.name ?? "Duplicate"}`,
             );

@@ -1,5 +1,5 @@
 import { Clock3, SkipForward } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Macro } from "@/lib/types";
