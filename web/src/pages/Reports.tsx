@@ -94,11 +94,12 @@ function Donut({ counts }: { counts: Record<string, number> }) {
     return <p className="py-10 text-center text-sm text-muted-foreground">No activity yet. Go triage something!</p>;
 
   const R = 68, r = 44, C = 88;
-  let acc = 0;
-  const arcs = entries.map((e) => {
-    const start = (acc / total) * Math.PI * 2 - Math.PI / 2;
-    acc += e.value;
-    const end = (acc / total) * Math.PI * 2 - Math.PI / 2;
+  // Each slice derives its own offset from the entries before it, so the map
+  // callback stays pure: nothing is reassigned across renders.
+  const arcs = entries.map((e, i) => {
+    const before = entries.slice(0, i).reduce((s, x) => s + x.value, 0);
+    const start = (before / total) * Math.PI * 2 - Math.PI / 2;
+    const end = ((before + e.value) / total) * Math.PI * 2 - Math.PI / 2;
     const large = end - start > Math.PI ? 1 : 0;
     const p = (a: number, rad: number) => `${C + rad * Math.cos(a)} ${C + rad * Math.sin(a)}`;
     return {

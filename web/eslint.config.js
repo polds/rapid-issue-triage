@@ -70,6 +70,11 @@ export default tseslint.config(
       // `.catch()` where the user needs to see it.
       "@typescript-eslint/no-floating-promises": "error",
 
+      // React Compiler immutability: reassigning a captured binding after
+      // render, or mutating a value a hook already captured, is a
+      // correctness bug rather than a style preference.
+      "react-hooks/immutability": "error",
+
       // Type safety. `req()` in api.ts decodes into `unknown` and asserts the
       // response shape in exactly one place, so no `any` escapes the fetch
       // wrapper into its callers. Keep it that way.
@@ -87,10 +92,9 @@ export default tseslint.config(
       // silently missing from the config.
       // ---------------------------------------------------------------
 
-      // The remaining React Compiler rules new in eslint-plugin-react-hooks
-      // v7. They flag real immutability and effect-ordering issues, but
-      // adopting them is a rendering change, not a lint fix.
-      "react-hooks/immutability": "off",
+      // The last React Compiler rule from eslint-plugin-react-hooks v7 still
+      // deferred. It flags real effect-ordering issues, but adopting it is a
+      // rendering change, not a lint fix.
       "react-hooks/set-state-in-effect": "off",
     },
   },
