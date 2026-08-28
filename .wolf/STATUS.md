@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (first release cut as v0.1.1)
+> Last updated: 2026-08-28 (CI/CD hardening on PR #16; first release cut as v0.1.1)
 
 ---
 
@@ -13,6 +13,7 @@
 - Repository "Browse" opens a native OS folder picker (`POST /api/pick`). Claude path Browse uses the file picker.
 - GitHub Actions CI (fmt, go fix, vet, golangci-lint v2.13, tests, 70% coverage on config/store, web build, binary compile, govulncheck, npm audit, gitleaks), Dependabot, and tagged GoReleaser releases (multi-OS, SPDX SBOM, SLSA provenance, reproducible builds).
 - Go 1.27 + `go fix` modernizers. golangci-lint is pedantic (`default: all`) with **gocyclo min-complexity 15**.
+- CI/CD hardening (PR #16, draft): ESLint 10 + Vitest for the frontend (33 tests, 90% floor scoped to the pure `src/lib` modules), `actionlint` + `zizmor` over the workflows, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, dependency review, `SECURITY.md`. `persist-credentials: false` everywhere, per-job timeouts, `go test -race`, 3-OS binary compile, pinned govulncheck. Release job runs cache-free so a poisoned cache cannot reach attested artifacts.
 - Release workflow publishes. `workflow_dispatch` takes an optional `tag` input: empty = snapshot dry run (uploads `snapshot-dist`), a `v*.*.*` tag = real `goreleaser release --clean` + provenance attestation. Diagnosed from run 33144134442, which was snapshot-only.
 
 ---
@@ -55,10 +56,15 @@
 
 ```bash
 make build
-make ci                 # fmt, go fix, vet, lint, test, coverage
+make ci                 # fmt, go fix, vet, lint, test -race, coverage
+make vuln               # pinned govulncheck
 make hooks              # install .githooks/pre-commit
 go run ./cmd/triage -no-open
-cd web && npm run dev   # UI :5173, proxies /api → :7333
+cd web && npm run dev       # UI :5173, proxies /api → :7333
+cd web && npm run lint      # ESLint (0 errors gates CI; warnings advisory)
+cd web && npm run coverage  # Vitest + scoped coverage floor
+go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.9
+zizmor .github/workflows    # pipx install zizmor==1.29.0
 ```
 
 ---
