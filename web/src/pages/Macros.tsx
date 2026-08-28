@@ -194,7 +194,7 @@ export function MacrosPage() {
             onDrop={(e) => {
               e.preventDefault();
               setDragOver(null);
-              if (dragFrom.current !== null) reorder(dragFrom.current, idx);
+              if (dragFrom.current !== null) void reorder(dragFrom.current, idx);
               dragFrom.current = null;
             }}
             className={`cursor-grab rounded-xl border p-4 shadow-card transition-shadow hover:shadow-pop active:cursor-grabbing ${TONE_RING[m.outcome] ?? TONE_RING.custom} ${

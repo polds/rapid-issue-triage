@@ -76,7 +76,7 @@ function AIPanel({ card }: { card: Card }) {
   // Lazily resolve the run id backing a stored report (for the action log).
   useEffect(() => {
     if (e?.report && !logRunId) {
-      api.latestRun(card.issue.id).then((r) => r.run && setLogRunId(r.run.id));
+      void api.latestRun(card.issue.id).then((r) => r.run && setLogRunId(r.run.id));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [e?.report, card.issue.id]);

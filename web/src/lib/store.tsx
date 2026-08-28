@@ -125,14 +125,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
 
   // Initial loads.
   useEffect(() => {
-    loadMeta();
-    reloadMacros();
+    void loadMeta();
+    void reloadMacros();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    fetchMore(true);
+    void fetchMore(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewFilter]);
 
@@ -144,8 +144,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         const st = await api.syncStatus();
         setSync(st);
         if (prevSyncState.current === "syncing" && st.state === "idle") {
-          loadMeta();
-          if (cardsRef.current.length === 0) fetchMore(true);
+          void loadMeta();
+          if (cardsRef.current.length === 0) void fetchMore(true);
         }
         prevSyncState.current = st.state;
       } catch {
@@ -158,7 +158,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   // Buffer refill: keep at least 8 pending cards ahead of the cursor.
   useEffect(() => {
     const ahead = cards.slice(index).filter((c) => c.status === "pending").length;
-    if (!loading && ahead < 8 && cards.length < remaining) fetchMore(false);
+    if (!loading && ahead < 8 && cards.length < remaining) void fetchMore(false);
   }, [cards, index, remaining, loading, fetchMore]);
 
   // Reset the per-card timer whenever the visible card changes.
@@ -420,7 +420,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           finish("error", { error: msg });
           toast(`Enrichment failed: ${identifier} — ${msg}`, { tone: "error" });
         } else if (ev.kind === "status" && ev.payload?.state === "done") {
-          api.latestRun(issueId).then((r) => {
+          void api.latestRun(issueId).then((r) => {
             let verdict: string | undefined;
             if (r.run?.report) {
               try {
@@ -502,7 +502,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshSync = useCallback(() => {
-    api.syncRefresh().then(() => {
+    void api.syncRefresh().then(() => {
       setSync((s) => (s ? { ...s, state: "syncing" } : s));
       prevSyncState.current = "syncing";
     });
