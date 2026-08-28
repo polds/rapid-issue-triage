@@ -200,5 +200,7 @@ release:
   # collide on retry. Replacing it keeps a re-run of the same tag possible.
   replace_existing_draft: true
   name_template: "{{.Tag}}"
-  extra_files:
-    - glob: dist/*.spdx.json
+  # No extra_files here. GoReleaser already uploads every SBOM-typed artifact
+  # to the release, so globbing dist/*.spdx.json queued each of the 42 SBOMs a
+  # second time and the duplicate POST failed with 422 already_exists. Snapshot
+  # runs never upload, which is why this only surfaced on the first real tag.

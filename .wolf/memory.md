@@ -270,3 +270,4 @@
 | 10:45 | Tried to push v0.1.0; diagnosed HTTP 403 on refs/tags/* | git | Session cannot push tags; branch pushes fine | ~5k |
 | 11:00 | Researched GitHub immutable releases vs GoReleaser | web | Workflow already compatible (draft->upload->publish); Releases UI path burns the tag | ~8k |
 | 11:05 | Added `create_tag` dispatch mode + replace_existing_draft + semver guard | `release.yml`, `.goreleaser.yaml`, `README.md` | actionlint + `goreleaser check` clean; PR #12 | ~10k |
+| 11:10 | v0.1.0 release run failed on 422 duplicate SBOM upload | `.goreleaser.yaml` | Root cause: release.extra_files double-queued 42 SBOMs; draft left unpublished so v0.1.0 not burnt | ~9k |
