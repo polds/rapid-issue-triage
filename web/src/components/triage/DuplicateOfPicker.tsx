@@ -38,7 +38,7 @@ export function DuplicateOfPicker({
     const mySeq = ++seq.current;
     setLoading(true);
     const t = setTimeout(() => {
-      api
+      void api
         .linearSearch(q)
         .then((r) => {
           if (seq.current === mySeq) {

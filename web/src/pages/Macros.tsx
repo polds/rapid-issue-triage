@@ -3,9 +3,9 @@ import { useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Picker } from "@/components/ui/picker";
 import { labelColor } from "@/lib/colors";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { api } from "@/lib/api";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
@@ -194,7 +194,7 @@ export function MacrosPage() {
             onDrop={(e) => {
               e.preventDefault();
               setDragOver(null);
-              if (dragFrom.current !== null) reorder(dragFrom.current, idx);
+              if (dragFrom.current !== null) void reorder(dragFrom.current, idx);
               dragFrom.current = null;
             }}
             className={`cursor-grab rounded-xl border p-4 shadow-card transition-shadow hover:shadow-pop active:cursor-grabbing ${TONE_RING[m.outcome] ?? TONE_RING.custom} ${

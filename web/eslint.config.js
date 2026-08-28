@@ -26,7 +26,7 @@ export default tseslint.config(
     },
     plugins: { "react-refresh": reactRefresh },
     rules: {
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
 
       // Unused code is an error, but a `_` prefix is the explicit
       // "intentionally ignored" marker (rest destructuring, unused args).
@@ -55,6 +55,16 @@ export default tseslint.config(
         { checksVoidReturn: { attributes: false } },
       ],
 
+      // Components declared inside another component are a new identity on
+      // every render, so React unmounts and remounts their subtree (losing
+      // DOM and local state). No call sites do this today; keep it that way.
+      "react-hooks/static-components": "error",
+
+      // Fire-and-forget is allowed, but it has to be spelled out: `void` for
+      // calls whose failure is already handled inside the callee, or a real
+      // `.catch()` where the user needs to see it.
+      "@typescript-eslint/no-floating-promises": "error",
+
       // Type safety. `req()` in api.ts decodes into `unknown` and asserts the
       // response shape in exactly one place, so no `any` escapes the fetch
       // wrapper into its callers. Keep it that way.
@@ -72,18 +82,12 @@ export default tseslint.config(
       // silently missing from the config.
       // ---------------------------------------------------------------
 
-      // ~17 fire-and-forget calls (background refresh, telemetry) that are
-      // deliberate. Each needs a `void` marker or a rejection handler.
-      "@typescript-eslint/no-floating-promises": "off",
-
-      // React Compiler rules new in eslint-plugin-react-hooks v7. They flag
-      // real memoization and purity issues, but adopting them is a rendering
-      // change, not a lint fix.
+      // The remaining React Compiler rules new in eslint-plugin-react-hooks
+      // v7. They flag real immutability and purity issues, but adopting them
+      // is a rendering change, not a lint fix.
       "react-hooks/immutability": "off",
-      "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
-      "react-hooks/static-components": "off",
     },
   },
 
