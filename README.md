@@ -103,10 +103,35 @@ git tag v0.1.0
 git push upstream v0.1.0
 ```
 
-`workflow_dispatch` on the Release workflow takes an optional `tag` input:
+`workflow_dispatch` on the Release workflow takes a `tag` input and a
+`create_tag` checkbox:
 
-- Leave it empty for a snapshot dry run. This builds and packages everything but
+- **Empty `tag`** — snapshot dry run. Builds and packages everything but
   publishes nothing; the archives, packages, SBOMs, and checksums are uploaded as
   a `snapshot-dist` workflow artifact so you can inspect them.
-- Set it to an existing `v*.*.*` tag to publish that tag's GitHub Release from a
-  manual run, exactly as a tag push would.
+- **`tag` set, `create_tag` unchecked** — publishes that existing tag's GitHub
+  Release from a manual run, exactly as a tag push would.
+- **`tag` set, `create_tag` checked** — creates the tag at the dispatched ref,
+  then releases it in the same run. Use this to cut a release without a local
+  git checkout. The run fails if the tag already exists.
+
+Because the tag is minted and released inside one job, nothing depends on the
+tag push re-triggering the workflow — a `GITHUB_TOKEN` push deliberately does
+not do that.
+
+### Immutable releases
+
+This repo has GitHub's [immutable releases][immutable] enabled: once a release
+is published, its assets and tag are frozen, and the tag name can never be
+reused. The workflow is built for that — GoReleaser creates the release as a
+draft, uploads every artifact, and only then publishes it.
+
+Two consequences worth knowing:
+
+- **Never create the release by hand in the Releases UI.** That publishes it
+  immediately, so GoReleaser has nowhere to attach the archives and the run
+  fails. The tag name is then burnt and you have to bump the version.
+- A run that dies mid-upload leaves a draft behind. `replace_existing_draft`
+  clears it, so re-running the same tag works.
+
+[immutable]: https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases

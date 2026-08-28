@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing v*.*.* tag to publish. Leave empty for a snapshot dry run (builds and packages, publishes nothing)."
+        description: "v*.*.* tag to publish. Leave empty for a snapshot dry run (builds and packages, publishes nothing)."
         required: false
         type: string
+      create_tag:
+        description: "Create the tag above at the dispatched ref first, then release it. Leave unchecked if the tag already exists."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -25,21 +30,42 @@ jobs:
       # push, or a manual run that named an existing tag. A manual run with no
       # tag leaves this empty and stays a snapshot dry run.
       RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+      # True only for a manual run that asked to mint the tag itself. The tag is
+      # created and released in this same job, so nothing depends on a tag push
+      # re-triggering the workflow (a GITHUB_TOKEN push would not).
+      CREATE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.create_tag && inputs.tag != '' }}
     steps:
       - name: Validate release tag
         if: env.RELEASE_TAG != ''
         run: |
-          case "$RELEASE_TAG" in
-            v*.*.*) ;;
-            *) echo "::error::RELEASE_TAG '$RELEASE_TAG' is not a v*.*.* tag"; exit 1 ;;
-          esac
+          # Stricter than the v*.*.* trigger glob on purpose: this job can now
+          # mint the tag, and GoReleaser only rejects a non-semver tag after it
+          # has already been pushed, which would leave a junk tag behind.
+          if ! printf '%s' "$RELEASE_TAG" |
+            grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'; then
+            echo "::error::RELEASE_TAG '$RELEASE_TAG' is not a semver v*.*.* tag"
+            exit 1
+          fi
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          # Publishing runs check out the tag itself so GoReleaser sees it as
-          # the current version; dry runs stay on the dispatched ref.
-          ref: ${{ env.RELEASE_TAG || github.ref }}
+          # Publishing an existing tag checks out that tag so GoReleaser sees it
+          # as the current version. When minting the tag we stay on the
+          # dispatched ref, since the tag does not exist yet; dry runs too.
+          ref: ${{ env.CREATE_TAG == 'true' && github.ref || env.RELEASE_TAG || github.ref }}
           fetch-depth: 0
+
+      - name: Create and push tag
+        if: env.CREATE_TAG == 'true'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $RELEASE_TAG already exists. Re-run with 'create_tag' unchecked to publish it."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" -m "$RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Reproducible timestamps
         run: |
