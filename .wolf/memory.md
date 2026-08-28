@@ -321,3 +321,5 @@
 | 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
 | 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
 | 22:05 | reconciled cerebrum union contradiction: .gitattributes union'd cerebrum.md (PR #35) while Key Learnings still said never to | .wolf/cerebrum.md | 3 bullets + Decision Log entry; empirically verified merge-attribute timing in a scratch worktree | ~4k |
+| 22:06 | adopted OpenWolf bootstrap from sibling repo: .claude/hooks/session-start.sh + settings.json SessionStart entry + designqc rule | .claude/hooks/session-start.sh, .claude/settings.json, .claude/rules/openwolf.md | merged not overwritten (kept PreCompact hook + STATUS.md rules); hook run-tested, openwolf 2.5.0 installed | ~6k |
+| 22:07 | ran the real `openwolf scan` for the first time this session | .wolf/anatomy.md, .wolf/anatomy-index.json | 121 files indexed, replaces my hand-edit; symbols now via `openwolf find` | ~2k |

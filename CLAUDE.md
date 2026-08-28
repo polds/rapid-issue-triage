@@ -34,6 +34,23 @@ release process), [`SECURITY.md`](SECURITY.md),
 [`.wolf/buglog.json`](.wolf/buglog.json) (read **before** fixing a bug — the
 fix may already be known).
 
+## Session tooling
+
+`.claude/settings.json` registers the OpenWolf hooks plus a bootstrap script,
+`.claude/hooks/session-start.sh`, which runs first on every session start.
+
+The six `.wolf/hooks/*.js` are committed and dependency-free, so they work on a
+fresh clone with no install. The **`openwolf` CLI is not** — and the protocol
+depends on it (`openwolf scan` regenerates `.wolf/anatomy.md`, `openwolf find`
+retrieves symbols, `openwolf designqc` captures screenshots). Claude Code on
+the web uses ephemeral containers, so a global npm install does not survive
+into the next session; the bootstrap reinstalls it each time.
+
+It is guarded to remote sessions (`CLAUDE_CODE_REMOTE=true`), idempotent, and
+fail-soft — a failed install logs and exits 0, never blocking the session.
+Because `.wolf/` is tracked here, its `openwolf init` step is always skipped;
+the install is the part that matters.
+
 ## Directory index
 
 Each of these carries that directory's invariants, layout, and gotchas.

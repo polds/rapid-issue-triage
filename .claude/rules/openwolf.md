@@ -13,4 +13,5 @@ globs: **/*
 - BEFORE fixing any bug or error: read .wolf/buglog.json for known fixes
 - AFTER fixing any bug, error, failed test, failed build, or user-reported problem: ALWAYS log to .wolf/buglog.json with error_message, root_cause, fix, and tags
 - If you edit a file more than twice in a session, that likely indicates a bug — log it to .wolf/buglog.json
+- When the user asks to check/evaluate UI design: run `openwolf designqc` to capture screenshots, then read them from .wolf/designqc-captures/
 - When the user asks to change/pick/migrate UI framework: read .wolf/reframe-frameworks.md, ask decision questions, recommend a framework, then execute with the framework's prompt

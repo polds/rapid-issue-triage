@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled)
+> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
 
 ## User Preferences
 
@@ -47,6 +47,31 @@
 - v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They were all deferred when the lint gate landed; they are being re-enabled one rule per PR. `static-components` is enabled as of PR #23 (zero violations - verify a rule is actually loaded with `npx eslint --print-config <file>` before trusting a clean run).
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
+
+### OpenWolf tooling in Claude Code (2026-08-28)
+- **The committed hooks and the CLI are two separate things.** `.wolf/hooks/*.js`
+  are tracked, dependency-free ESM run directly by node, so they fire on a fresh
+  clone with no install. The `openwolf` **CLI** is a global npm install and is
+  *not* in the repo - and Claude Code on the web uses ephemeral containers, so it
+  is absent every session unless something reinstalls it. Symptom: hooks work
+  fine, nothing looks broken, but `openwolf scan` / `find` / `designqc` are all
+  "command not found" and anatomy.md silently drifts. Fixed by
+  `.claude/hooks/session-start.sh`, registered first in SessionStart.
+- That bootstrap's `openwolf init` step never runs here: it guards on `.wolf/`
+  existing, and `.wolf/` is tracked in this repo. That is the correct behavior -
+  init would re-register hooks that are already committed. The install is the
+  whole point of the script here; in a repo that gitignores `.wolf/` the init
+  branch is what matters.
+- **`openwolf scan` (v2.5.0) renders a much leaner anatomy.md** than older
+  versions: 543 lines -> 189 for this tree. Per-symbol lines (`fn foo L12-30`)
+  are no longer written into the markdown; they live in `.wolf/anatomy-index.json`
+  and are retrieved on demand with `openwolf find <symbol>` / `openwolf map`.
+  Nothing is lost - do not "restore" the symbol lines by hand.
+- The scan **absorbs hand-written descriptions** from anatomy.md, as OPENWOLF.md
+  promises - the CLAUDE.md descriptions written by hand survived the regenerate
+  verbatim. It also stopped indexing `.claude/`, `.codex/` and `.cursor/`, which
+  older output covered. That is the tool's call; re-adding those sections by hand
+  just makes the index churn (see the note in `.wolf/hooks/post-write.js`).
 
 ### Git merge drivers (2026-08-28)
 - `.wolf/memory.md` carries `merge=union` in `.gitattributes`. It is append-only, so
