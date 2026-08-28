@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 import { decodeLinearFilterURL } from "./linearfilter";
 
 // Mirrors what linear.app puts in ?filter=: base64url, padding stripped.
-const encode = (o: unknown) =>
-  btoa(JSON.stringify(o))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+const encode = (o: unknown) => {
+  let b64 = btoa(JSON.stringify(o)).replace(/\+/g, "-").replace(/\//g, "_");
+  // Not `/=+$/`: that rescans from every `=` on a string that is all padding,
+  // which is quadratic. Fixture or not, the rule is right and the loop is
+  // clearer anyway -- base64 padding is never more than two characters.
+  while (b64.endsWith("=")) b64 = b64.slice(0, -1);
+  return b64;
+};
 
 describe("decodeLinearFilterURL", () => {
   const filter = { team: { key: { eq: "ENG" } }, priority: { lte: 2 } };

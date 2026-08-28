@@ -2,11 +2,35 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-28 (CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **CI scanning tier (SAST, licenses, code quality).** Three new `ci.yml` jobs,
+  each calling a `make` target so local and CI cannot drift.
+  - **SAST** — pinned semgrep (`p/golang`, `p/gosec`, `p/typescript`, `p/react`,
+    `p/secrets`) over Go *and* TSX with one engine, SARIF uploaded to the
+    Security tab beside CodeQL's. Installed from PyPI, not the semgrep action,
+    which wants a SaaS token. `make sast`.
+  - **License scan** — `go-licenses` (allow-list, `--confidence_threshold=0.8`)
+    plus a `npm query`-driven policy script: allow-list for the `.prod` tree
+    that `web/dist` bundles and `go:embed` ships, copyleft deny-list for
+    dev-only packages. `dependency-review` carries the same deny-list for what
+    a PR adds. `make licenses`, `make licenses-report`.
+  - **Code quality** — `go mod tidy -diff` + whole-program `deadcode`, the two
+    gates neither golangci-lint nor eslint owns. `make quality`.
+  - Frontend quality parity: `eslint-plugin-sonarjs` v4.2.0 at recommended with
+    a curated disable list, mirroring `.golangci.yml`'s `default: all` shape.
+  - Dependency vulnerability scanning (govulncheck, `npm audit`, dependency
+    review) and secret scanning (gitleaks) were **already present** and were
+    left alone; semgrep's `p/secrets` is a second pass over the latter.
+- **ReDoS fixed in `web/src/components/Markdown.tsx`** — found by the new
+  `sonarjs/super-linear-regex` rule on its first run. The link alternative's
+  `[^)]+` target was unbounded, so `"[a](".repeat(n)` — ordinary issue-body
+  text — rescanned to end-of-string from every `[`. 2529ms → 1ms at 160KB.
+  Cost: a link target with a space or paren renders as text.
 
 - **Container image in the release.** `dockers_v2` + `docker_digest` in
   `.goreleaser.yaml` publish `ghcr.io/polds/rapid-issue-triage` (linux/amd64 +
@@ -71,6 +95,12 @@
 ---
 
 ## ⚠️ External blockers (don't block coding)
+
+- **The `Main` ruleset still requires 11 contexts, not 14.** `SAST`,
+  `License scan` and `Code quality` run and report but cannot block a merge
+  until they are added to the ruleset's required checks
+  (`GET/PUT /repos/polds/rapid-issue-triage/rulesets/<id>`). Needs admin;
+  the session that added the jobs had no ruleset API access.
 
 - The existing `triage` process on `127.0.0.1:7333` is still the pre-change binary. Restart it (or `make build && ./triage`) to use these features. A verify instance was run on `:7334`.
 
