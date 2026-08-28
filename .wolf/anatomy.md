@@ -35,6 +35,7 @@
 
 - `ci.yml` — Go, web lint/test/build, workflow lint, 3-OS binary, security, dependency review (~2001 tok)
 - `codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~555 tok)
+- `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~420 tok)
 - `release.yml` — GoReleaser publish, SBOM, provenance, tag minting (~1676 tok)
 - `scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~359 tok)
 

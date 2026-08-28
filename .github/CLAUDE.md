@@ -1,8 +1,10 @@
 # .github/ — CI, security scanning, releases
 
-Five workflows plus Dependabot. Local equivalents live in the `Makefile`, and
+Six workflows plus Dependabot. Local equivalents live in the `Makefile`, and
 CI calls those `make` targets rather than spelling out commands twice — so
-`make ci` and CI cannot drift. Keep it that way.
+`make ci` and CI cannot drift. Keep it that way. The pinned tool versions are
+part of that rule: they live in the `Makefile` and CI resolves them with
+`make -s print-<VAR>`, never as a second literal in a workflow.
 
 | File | What it does | Local equivalent |
 |---|---|---|
@@ -10,6 +12,7 @@ CI calls those `make` targets rather than spelling out commands twice — so
 | `workflows/codeql.yml` | CodeQL `security-extended` over Go + TypeScript; PR and weekly. | — |
 | `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, optional tag minting. | `goreleaser check` |
 | `workflows/scorecard.yml` | OpenSSF Scorecard → SARIF in the Security tab. | — |
+| `workflows/dependabot-auto-merge.yml` | Enables auto-merge on patch/minor Dependabot PRs. Not a gate. | — |
 | `dependabot.yml` | Weekly gomod / npm(`/web`) / actions PRs. | — |
 | `zizmor.yml` | Reviewed audit exceptions. Every entry is deliberate; the default is to fix a finding, not list it. | — |
 
@@ -97,6 +100,33 @@ own `(deps)`, producing `build(backend)(deps): …`, which is not a valid
 Conventional Commit. Nothing enforces this in CI, so this config is the only
 specification.
 
+## Dependabot auto-merge
+
+`workflows/dependabot-auto-merge.yml` calls `gh pr merge --auto` on Dependabot
+PRs. It **bypasses nothing**: `--auto` queues behind the same 11 required
+checks, and the `Main` ruleset requires 0 approving reviews, so the only thing
+removed is a human clicking merge on an already-green PR.
+
+Two things always wait for a person:
+
+- **Major bumps.** CI catches the ones that break the build, but a major that
+  happens to compile can still change behaviour.
+- **Actions no pull request executes** — `actions/attest`,
+  `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`.
+  They appear only in `release.yml` / `scorecard.yml`; CI lints those files but
+  never runs the action, so a bump is unvalidated until a release fires — and a
+  failed release burns a tag name. Every other action is also used by `ci.yml`
+  or `codeql.yml`, so the PR's own run is the proof. **Keep that list in step
+  with where actions are actually used.**
+
+It must use `pull_request_target`: a `pull_request` run from Dependabot gets a
+read-only token that cannot enable auto-merge. That trigger is safe here only
+because the workflow has **no `actions/checkout`** — never add one, or the
+zizmor exception in `zizmor.yml` stops being true.
+
+Its job is deliberately **not** a required status check. It is an automation,
+not a gate, and it is skipped on human PRs.
+
 ## Local gates before pushing
 
 ```sh
@@ -123,3 +153,12 @@ people off `--no-verify`. `PRE_COMMIT_ALL=1` forces the full run.
 Adding a job → the table above **and** the `Main` ruleset's required checks,
 or the gate is unenforced. Changing a `make` target CI calls → verify both
 sides still line up.
+
+Bumping a pinned tool (`GOLANGCI_LINT_VERSION`, `GOVULNCHECK_VERSION`,
+`ACTIONLINT_VERSION`, `ZIZMOR_VERSION`) → edit the `Makefile` only; CI reads it
+back through `make -s print-<VAR>`. Dependabot does **not** track these — it
+bumps `uses:` refs, not a version a make target hands to `go run` or `pip`, so
+they are watched by hand. Do not try to fix that with one shared `tools/go.mod`:
+MVS unifies every tool's graph, and golangci-lint raising `go.yaml.in/yaml/v4`
+past what actionlint compiles against breaks `make actions-lint`. One module
+per tool, or leave it.
