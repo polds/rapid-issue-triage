@@ -262,3 +262,11 @@
 |------|--------|---------|---------|--------|
 | 10:40 | Diagnosed run 33144134442: snapshot-only, no Release published | GH Actions logs | Root cause: workflow_dispatch on main → ref_type='branch' → `release --snapshot --clean` | ~12k |
 | 10:45 | Added `tag` dispatch input + RELEASE_TAG gating; snapshot artifacts upload | `.github/workflows/release.yml`, `README.md` | actionlint clean on all workflows | ~6k |
+
+## Session: 2026-08-28 (tag minting + immutable releases)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:45 | Tried to push v0.1.0; diagnosed HTTP 403 on refs/tags/* | git | Session cannot push tags; branch pushes fine | ~5k |
+| 11:00 | Researched GitHub immutable releases vs GoReleaser | web | Workflow already compatible (draft->upload->publish); Releases UI path burns the tag | ~8k |
+| 11:05 | Added `create_tag` dispatch mode + replace_existing_draft + semver guard | `release.yml`, `.goreleaser.yaml`, `README.md` | actionlint + `goreleaser check` clean; PR #12 | ~10k |

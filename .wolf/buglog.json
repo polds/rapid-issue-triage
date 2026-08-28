@@ -34,6 +34,28 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T10:40:00-07:00"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-08-28T11:00:00-07:00",
+      "error_message": "Could not push tag v0.1.0: 'error: RPC failed; HTTP 403' on git-receive-pack for refs/tags/*",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "A Claude Code remote session's git credentials permit branch pushes (claude/*) but refuse refs/tags/*. Separately, the obvious workaround \u2014 creating the release in the GitHub Releases UI \u2014 is unsafe with immutable releases enabled: it publishes instantly, so GoReleaser cannot attach assets and the tag name is permanently burnt.",
+      "fix": "Added a create_tag checkbox to the Release workflow's workflow_dispatch so the job mints the tag and releases it in one run. Added replace_existing_draft so a mid-upload failure can be retried, and tightened tag validation to a real semver regex since a bad tag would otherwise be pushed before GoReleaser rejects it.",
+      "tags": [
+        "ci",
+        "release",
+        "goreleaser",
+        "immutable-releases",
+        "git",
+        "403",
+        "tags"
+      ],
+      "related_bugs": [
+        "bug-002"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T11:00:00-07:00"
     }
   ]
 }

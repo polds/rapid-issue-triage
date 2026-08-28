@@ -191,8 +191,14 @@ snapshot:
   version_template: "{{ .ShortCommit }}-snapshot"
 
 release:
+  # GoReleaser always creates the release as a draft, uploads every artifact,
+  # then un-drafts it here. That is exactly the flow GitHub's immutable
+  # releases require: assets cannot be added once a release is published.
   draft: false
   prerelease: auto
+  # A run that dies mid-upload leaves that draft behind, which would otherwise
+  # collide on retry. Replacing it keeps a re-run of the same tag possible.
+  replace_existing_draft: true
   name_template: "{{.Tag}}"
   extra_files:
     - glob: dist/*.spdx.json
