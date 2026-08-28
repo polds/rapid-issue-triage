@@ -76,9 +76,11 @@ jobs:
 
       - name: Reproducible timestamps
         run: |
-          echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> "$GITHUB_ENV"
-          echo "TZ=UTC" >> "$GITHUB_ENV"
-          echo "LANG=C" >> "$GITHUB_ENV"
+          {
+            echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)"
+            echo "TZ=UTC"
+            echo "LANG=C"
+          } >> "$GITHUB_ENV"
 
       # Caching is deliberately off in the release path: a cache entry poisoned
       # from any branch would otherwise land inside signed, attested artifacts.

@@ -285,3 +285,7 @@
 | 18:38 | Added CodeQL (Go + TS, security-extended) and OpenSSF Scorecard workflows | `codeql.yml`, `scorecard.yml` | Public repo, so both run on the free tier | ~7k |
 | 18:41 | Found node_modules Go file polluting ./... and the go1.26/1.27 toolchain trap | `Makefile`, `.golangci.yml` | bug-006, bug-007 logged; `make ci` green locally | ~11k |
 | 18:47 | Full verification: make ci, npm lint/coverage/build, actionlint, zizmor | — | All green | ~5k |
+| 18:55 | Scoped the pre-commit hook to staged paths; added web-ci / actions-lint / ci-go targets | `.githooks/pre-commit`, `Makefile` | Routing verified against 9 synthetic staged-file sets | ~9k |
+| 19:00 | CI 'Workflow lint' failed: actionlint+shellcheck found SC2129 in release.yml | `.github/workflows/release.yml` | bug-009; local actionlint was blind without shellcheck installed | ~7k |
+| 19:02 | zizmor panicked (401) without --no-online-audits | `Makefile`, `.github/workflows/ci.yml` | bug-010; CI now calls `make actions-lint` so both share one definition | ~6k |
+| 19:06 | Re-verified: make ci green, both optional-tool guards tested in all branches | — | All green | ~4k |

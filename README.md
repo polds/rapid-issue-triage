@@ -96,9 +96,23 @@ cannot reach a signed, attested artifact. Deliberate zizmor exceptions live in
 
 Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
 
-Local equivalent: `make ci` (or `make pre-commit`). Install the git hook with `make hooks` so those checks run before each commit.
+Local equivalent: `make ci` — `ci-go` (fmt, fix, vet, lint, `test -race`, coverage),
+`web-ci` (eslint, vitest, build), and `actions-lint` (actionlint, zizmor).
+
+Install the git hook with `make hooks`. It runs only the gates a commit
+actually touches, so a web-only change does not pay for the Go race suite:
+
+| Staged paths | Runs |
+|---|---|
+| `*.go`, `go.mod`/`go.sum`, `Makefile`, `.golangci.yml` | `make ci-go` |
+| `web/**` (excluding `web/dist/`) | `make web-ci` |
+| `.github/workflows/**`, `.github/zizmor.yml` | `make actions-lint` |
+
+`PRE_COMMIT_ALL=1 git commit` forces the full `make ci`; `--no-verify` skips it.
+
 `make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
-`make vuln` runs the pinned govulncheck. In `web/`: `npm run lint`, `npm test`, `npm run coverage`.
+`make vuln` runs the pinned govulncheck. zizmor is optional locally (`pipx install zizmor==1.29.0`)
+and required in CI, so a missing binary can never silently skip the audit.
 
 ## Releasing
 

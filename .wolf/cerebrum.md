@@ -45,6 +45,10 @@
 - [2026-08-28] Do not add an ESLint gate that requires refactoring the whole app. The first type-checked run produced 127 errors; the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) are turned off with a written reason in eslint.config.js so the debt is visible in review, and everything else gates as an error. A lint job that cannot pass is not a CI improvement.
 - [2026-08-28] Do not assume a tool failing locally means CI is broken. `make lint` and `make vuln` both failed here on the go1.26/go1.27 toolchain mismatch while every CI run on main was green - CI uses a prebuilt golangci-lint binary and a setup-go environment. Check the actual run conclusions before reporting a red pipeline.
 
+- [2026-08-28] Do not trust a green local `actionlint`. It shells out to shellcheck for `run:` blocks only when shellcheck is on PATH, and silently skips them otherwise while still exiting 0. GitHub runners have it; dev containers often do not. `make actions-lint` now warns locally and hard-fails in CI when it is missing.
+- [2026-08-28] Do not run zizmor without `--no-online-audits` unless a GitHub token is present. Unauthenticated it does not degrade, it panics with a 401 and performs no audit at all.
+- [2026-08-28] A pre-commit hook must not just call `make ci`. Scope each gate to the staged paths (Go / web / workflows), or a one-line web tweak pays for the Go race suite and people start using --no-verify.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
@@ -56,3 +60,4 @@
 - [2026-08-28] CI/CD hardening. Adopted actionlint + zizmor over the workflows, ESLint + Vitest for the frontend, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, and dependency-review. Rejected StepSecurity harden-runner: adding a broad third-party action that proxies all runner egress is itself supply-chain surface, and the repo already pins every action to a SHA.
 - [2026-08-28] Release job runs with caching disabled on setup-go and setup-node. A cache entry poisoned from any branch would otherwise be reachable from signed, attested artifacts. Releases are rare; a cold build is the right trade.
 - [2026-08-28] Release checkout uses persist-credentials: false; the tag push authenticates with an explicit x-access-token URL instead, so the job token never sits in .git/config while GoReleaser runs.
+- [2026-08-28] Optional-tool gates use the `CI` env var as the switch: skip with a warning on a developer machine, hard-fail on a runner. A CI check that silently no-ops when its binary is absent is worse than no check.

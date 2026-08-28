@@ -157,6 +157,46 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-08-28T19:05:00-07:00",
+      "error_message": "CI 'Workflow lint' job failed: .github/workflows/release.yml:78:9: shellcheck reported issue in this script: SC2129:style: Consider using { cmd1; cmd2; } >> file instead of individual redirects [shellcheck]",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "actionlint shells out to shellcheck for every `run:` block, but only if shellcheck is on PATH - otherwise it silently skips that check and still exits 0. GitHub's ubuntu runners ship shellcheck; this dev container did not. So the local actionlint run looked clean while CI failed on a pre-existing SC2129 in the 'Reproducible timestamps' step (three separate >> \"$GITHUB_ENV\" redirects). A green local actionlint proves much less than it appears when shellcheck is missing.",
+      "fix": "Grouped the three echoes into a single { ... } >> \"$GITHUB_ENV\" redirect. Installed shellcheck locally and reproduced the failure before fixing. Added a guard to the Makefile actions-lint target: if shellcheck is absent it warns loudly that run: blocks are being skipped, and hard-fails when CI is set, so the blind spot cannot recur silently.",
+      "tags": [
+        "actionlint",
+        "shellcheck",
+        "github-actions",
+        "ci",
+        "silent-skip"
+      ],
+      "related_bugs": [
+        "bug-010"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:05:00-07:00"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-08-28T19:05:00-07:00",
+      "error_message": "fatal: no audit was performed / 'artipacked' audit failed ... couldn't list tags for actions/checkout ... HTTP status client error (401 Unauthorized) for url (https://github.com/actions/checkout.git/git-upload-pack)",
+      "file": "Makefile",
+      "root_cause": "zizmor runs online audits by default, which call the GitHub API. Unauthenticated, it does not degrade - it panics and exits non-zero, so no audit runs at all. Every earlier local run had used --no-online-audits, so the first invocation without it (via the new `make actions-lint`) crashed. The CI step as originally written also passed no token and would have hit the same 401 once actionlint stopped failing first.",
+      "fix": "Pass --no-online-audits in the Makefile target that both CI and the pre-commit hook call. Deterministic, needs no token, identical locally and in CI; the online audits only check ref freshness, which Dependabot already covers. zizmor stays optional locally but the target hard-fails when CI is set, so a missing binary cannot silently skip the audit.",
+      "tags": [
+        "zizmor",
+        "github-actions",
+        "ci",
+        "auth",
+        "silent-skip"
+      ],
+      "related_bugs": [
+        "bug-009"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:05:00-07:00"
     }
   ]
 }

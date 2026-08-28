@@ -1,7 +1,56 @@
 #!/bin/sh
-# Mirror the CI quality gates that are cheap enough to run on every commit.
+# Mirror the CI quality gates, scoped to what this commit actually touches.
+#
+# CI runs every job on every push; a hook that did the same would make a
+# one-line web tweak pay for the Go race suite. Each block below maps to a job
+# in .github/workflows/ci.yml and runs only when a file it covers is staged.
+#
+# Skip once with `git commit --no-verify`, or set PRE_COMMIT_ALL=1 to force the
+# full `make ci` regardless of what changed.
 set -e
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
-echo "pre-commit: make pre-commit"
-make pre-commit
+
+if [ "${PRE_COMMIT_ALL:-}" = "1" ]; then
+  echo "pre-commit: make ci (PRE_COMMIT_ALL=1)"
+  make ci
+  exit 0
+fi
+
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+# Staged paths matching the extended regex in $1?
+touched() {
+  printf '%s\n' "$staged" | grep -qE "$1"
+}
+
+ran=0
+
+# Go job: sources, module files, and the configs that change how they are read.
+if touched '\.go$|^go\.(mod|sum)$|^Makefile$|^\.golangci\.yml$'; then
+  echo "pre-commit: Go gates (fmt, fix, vet, lint, test -race, coverage)"
+  make ci-go
+  ran=1
+fi
+
+# Web job. web/dist is build output: a commit that only refreshes it does not
+# need the frontend gates run again, so it is filtered out here.
+if printf '%s\n' "$staged" | grep -E '^web/' | grep -qv '^web/dist/'; then
+  echo "pre-commit: web gates (eslint, vitest, build)"
+  make web-ci
+  ran=1
+fi
+
+# Workflow job: the workflows themselves and the zizmor exception list.
+if touched '^\.github/workflows/|^\.github/zizmor\.yml$'; then
+  echo "pre-commit: workflow gates (actionlint, zizmor)"
+  make actions-lint
+  ran=1
+fi
+
+if [ "$ran" = "0" ]; then
+  echo "pre-commit: no gated paths staged, nothing to run"
+fi

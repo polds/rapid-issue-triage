@@ -56,15 +56,14 @@
 
 ```bash
 make build
-make ci                 # fmt, go fix, vet, lint, test -race, coverage
+make ci                 # ci-go + web-ci + actions-lint (everything CI gates on)
+make ci-go              # fmt, go fix, vet, lint, test -race, coverage
+make web-ci             # eslint, vitest + coverage floor, vite build
+make actions-lint       # actionlint + zizmor (zizmor optional locally)
 make vuln               # pinned govulncheck
-make hooks              # install .githooks/pre-commit
+make hooks              # install .githooks/pre-commit (path-scoped)
 go run ./cmd/triage -no-open
-cd web && npm run dev       # UI :5173, proxies /api → :7333
-cd web && npm run lint      # ESLint (0 errors gates CI; warnings advisory)
-cd web && npm run coverage  # Vitest + scoped coverage floor
-go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.9
-zizmor .github/workflows    # pipx install zizmor==1.29.0
+cd web && npm run dev   # UI :5173, proxies /api → :7333
 ```
 
 ---
