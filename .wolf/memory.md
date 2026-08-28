@@ -300,3 +300,4 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 21:05 | Give Dependabot Conventional Commit prefixes scoped by repo area | .github/dependabot.yml, .wolf/anatomy.md | build(backend) / build(frontend)+chore(frontend) / ci(actions); YAML validated | ~4k |
+| 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
