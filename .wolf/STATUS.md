@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (release workflow can mint its own tag)
+> Last updated: 2026-08-28 (first release cut as v0.1.1)
 
 ---
 
@@ -19,12 +19,12 @@
 
 ## 🚀 Next phase
 
-**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work; cut `v0.1.0` via Actions -> Release -> Run workflow with `tag: v0.1.0` and `create_tag` ticked (PR #12).
+**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work. First release is `v0.1.1` (run 33166540050). `v0.1.0` was abandoned: its tag predates the SBOM fix, and publishing a tag uses that tag's tree.
 
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
-3. CI is green on `main`; a `create_tag` dispatch of `v0.1.0` publishes GitHub Release archives with SBOM + provenance (no tags and no releases exist yet). Never hand-create the release in the UI - immutability burns the tag name.
+3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. Optional cleanup from a laptop: unused `v0.1.0` tag at ff9f062 and unpublished draft release id 378431198.
 
 ### Closed decisions
 - Secrets live in sqlite, not rewritten `.env` files.

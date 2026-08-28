@@ -271,3 +271,4 @@
 | 11:00 | Researched GitHub immutable releases vs GoReleaser | web | Workflow already compatible (draft->upload->publish); Releases UI path burns the tag | ~8k |
 | 11:05 | Added `create_tag` dispatch mode + replace_existing_draft + semver guard | `release.yml`, `.goreleaser.yaml`, `README.md` | actionlint + `goreleaser check` clean; PR #12 | ~10k |
 | 11:10 | v0.1.0 release run failed on 422 duplicate SBOM upload | `.goreleaser.yaml` | Root cause: release.extra_files double-queued 42 SBOMs; draft left unpublished so v0.1.0 not burnt | ~9k |
+| 11:16 | v0.1.0 retry cancelled: tag tree predates the fix; cut v0.1.1 from main instead | `.wolf/buglog.json`, `.wolf/cerebrum.md`, `.wolf/STATUS.md` | bug-005 logged: publishing a tag uses that tag's tree, not main | ~6k |
