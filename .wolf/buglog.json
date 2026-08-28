@@ -240,6 +240,25 @@
     },
     {
       "id": "bug-013",
+      "timestamp": "2026-08-28T22:07:00Z",
+      "error_message": "OpenWolf protocol commands unavailable in Claude Code sessions: `openwolf scan` / `find` / `designqc` not found, so .wolf/anatomy.md could only be maintained by hand and drifted (last scan tracked 90 files while the tree had 121).",
+      "file": ".claude/hooks/session-start.sh",
+      "root_cause": "The .wolf/hooks/*.js are committed and run under node, so the hooks fired normally and nothing looked broken - but the `openwolf` CLI they document is a global npm install, and Claude Code on the web uses ephemeral containers where a global install does not survive into the next session. Nothing reinstalled it, so every CLI-dependent step of .wolf/OPENWOLF.md silently had no way to run.",
+      "fix": "Added .claude/hooks/session-start.sh (adopted from a sibling repo) and registered it first in .claude/settings.json's SessionStart, so the CLI is reinstalled at the start of every remote session before .wolf/hooks/session-start.js runs. Guarded to CLAUDE_CODE_REMOTE=true, idempotent, fail-soft. Its `openwolf init` step is correctly skipped here because .wolf/ is tracked. Verified by running it: openwolf 2.5.0 installed, init skipped, `openwolf scan` then reindexed 121 files.",
+      "tags": [
+        "openwolf",
+        "hooks",
+        "tooling",
+        "claude-code",
+        "ephemeral-container",
+        "anatomy-drift"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T22:07:00Z"
+    },
+    {
+      "id": "bug-014",
       "timestamp": "2026-08-28T22:40:00-07:00",
       "error_message": "Confetti particles jumped mid-burst: all 60 pieces re-randomized on every re-render",
       "file": "web/src/components/triage/Confetti.tsx",
@@ -257,7 +276,7 @@
       "last_seen": "2026-08-28T22:40:00-07:00"
     },
     {
-      "id": "bug-014",
+      "id": "bug-015",
       "timestamp": "2026-08-28T22:45:00-07:00",
       "error_message": "react-hooks/set-state-in-effect still reported after prefixing the call with `void`",
       "file": "web/src/lib/store.tsx",
@@ -275,11 +294,11 @@
       "last_seen": "2026-08-28T22:45:00-07:00"
     },
     {
-      "id": "bug-015",
+      "id": "bug-016",
       "timestamp": "2026-08-28T23:10:00-07:00",
       "error_message": "Reported '7 required checks failing' on PR #26 when nothing was failing",
       "file": "(session tooling, not a tracked file)",
-      "root_cause": "The check-status script deduplicated check runs by name and kept whichever the API returned first. After a re-run, several runs share a name; the stale cancelled ones won. The real state was 8 cancelled + 7 in progress.",
+      "root_cause": "The check-status script deduplicated check runs by name and kept whichever the API returned first. After a re-run several runs share a name; the stale cancelled ones won. The real state was 8 cancelled + 7 in progress.",
       "fix": "Keep the latest run per name by started_at before evaluating conclusions.",
       "tags": [
         "github",

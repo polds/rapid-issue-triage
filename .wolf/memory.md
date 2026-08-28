@@ -317,3 +317,20 @@
 | 22:00 | Fanned out re-enablement of every deferred ESLint rule, one agent + one PR per rule | web/eslint.config.js and callers | PRs #23-#30, #32, #33 all merged; main cb8b536 | ~400k |
 | 22:10 | Verified the composed result, not just the individual PRs | web/ | `--print-config` shows all 12 rules at severity 2; lint 0 errors / 2 warnings; 33/33 tests; clean build | ~15k |
 | 22:50 | Consolidated .wolf notes after the fan-out | .wolf/anatomy.md, cerebrum.md, buglog.json, STATUS.md | 3 new modules indexed, moved symbols corrected, bug-013..015 logged, next phase set to web/dist drift | ~20k |
+## Session: 2026-08-28 21:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+### 2026-08-28 — directory-level CLAUDE.md tree
+| 21:50 | walked the tree, read every Go package header + route table + schema | (survey) | mapped 7 Go pkgs + 5 web dirs | ~35k |
+| 21:53 | wrote 16 directory CLAUDE.md files + rewrote root as an index | CLAUDE.md, cmd/triage, internal/{,ai,config,deep,linear,server,store,syncer}, web/{,src/lib,src/pages,src/components{,/triage,/ui}}, .github | ~9.7k words, every relative link verified | ~12k |
+| 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
+| 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
+| 22:03 | Add Dependabot auto-merge + sweep CI coverage of watched paths | .github/workflows/dependabot-auto-merge.yml, .github/zizmor.yml | patch/minor only, 4 release-only actions held; IFS splitting bug found and fixed by truth table; actionlint+zizmor green | ~30k |
+| 22:13 | Single-source the pinned tool versions; test Dependabot tracking via tools module | Makefile, .github/workflows/ci.yml | print-% target, ci.yml reads pins; shared tools/go.mod REJECTED - MVS breaks actionlint | ~35k |
+| 22:05 | reconciled cerebrum union contradiction: .gitattributes union'd cerebrum.md (PR #35) while Key Learnings still said never to | .wolf/cerebrum.md | 3 bullets + Decision Log entry; empirically verified merge-attribute timing in a scratch worktree | ~4k |
+| 22:06 | adopted OpenWolf bootstrap from sibling repo: .claude/hooks/session-start.sh + settings.json SessionStart entry + designqc rule | .claude/hooks/session-start.sh, .claude/settings.json, .claude/rules/openwolf.md | merged not overwritten (kept PreCompact hook + STATUS.md rules); hook run-tested, openwolf 2.5.0 installed | ~6k |
+| 22:07 | ran the real `openwolf scan` for the first time this session | .wolf/anatomy.md, .wolf/anatomy-index.json | 121 files indexed, replaces my hand-edit; symbols now via `openwolf find` | ~2k |
+| 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
+| 22:13 | merged main (#37 STATUS.md) - only the "Last updated" line conflicted; cerebrum auto-merged this time, confirming the union-timing finding | .wolf/STATUS.md, .wolf/cerebrum.md | both sides' Done entries kept; cerebrum bullet aligned with #37's wording (anatomy.md named too) | ~3k |

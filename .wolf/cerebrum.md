@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (lint fan-out: every deferred ESLint rule re-enabled)
+> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
 
 ## User Preferences
 
@@ -13,6 +13,23 @@
 ## Key Learnings
 
 - **Project:** rapid-issue-triage
+- **Agent docs are a tree, not one file.** The root `CLAUDE.md` is an index
+  (architecture, non-negotiables, vocabulary, maintenance triggers) that links
+  to 16 directory-level `CLAUDE.md` files. Read the root plus the one directory
+  you are touching - not the whole set. Each directory file carries a layout
+  table, its invariants, its path-scoped lint exclusions, and a "when you
+  change X update Y" block. The OpenWolf block in the root is wrapped in
+  `<!-- openwolf:begin/end -->` markers (like AGENTS.md) so a future
+  `openwolf init` rewrites only that block and leaves the index alone.
+- Surfaces that drift silently, documented in the maintenance tables because
+  nothing in CI checks them: Go JSON tags vs `web/src/lib/types.ts`; the route
+  table vs `web/src/lib/api.ts`; the deep-report schema across
+  `deep/scouts.go` + `server/reportcomment.go` + `triage/report-format.ts`; the
+  keyboard map across `pages/Triage.tsx` + `HelpOverlay.tsx` + README.
+- `react-refresh/only-export-components` is an **error** in this repo, which is
+  why `lib/triage-context.ts`, `ui/use-toast.ts` and `triage/report-format.ts`
+  exist as separate files. A new context, hook, or constant goes in a sibling
+  `.ts`, never next to a component.
 - Claude is probed at runtime with `exec.LookPath`. `EnrichSettings.ClaudePath` overrides config `ai.command`. Enricher/orchestrator are constructed even when the binary is missing so a later path save can enable enrichment without restart.
 - Credentials set in Settings are sqlite `meta.secrets` JSON. Resolution order: Settings → env → `.env` / `~/.rapid-triage/.env` (`config.Lookup`). The API never returns secret values, only `{set, source, hint}`.
 - The browser cannot give a real filesystem path (`showDirectoryPicker` / `<input webkitdirectory>`). Native pick is `POST /api/pick` → osascript (macOS) / zenity|kdialog (Linux) / PowerShell (Windows).
@@ -29,10 +46,36 @@
 - eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
 - v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They were all deferred when the lint gate landed; they are being re-enabled one rule per PR. `static-components` is enabled as of PR #23 (zero violations - verify a rule is actually loaded with `npx eslint --print-config <file>` before trusting a clean run).
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
-- `no-explicit-any` was blinding rules that were already enabled. `any` short-circuits type-aware analysis, so enforcing it surfaced 5 pre-existing `no-base-to-string` errors that had been silently unreachable. Expect a type-safety rule to uncover violations of its neighbours.
-- All 12 previously deferred rules are enforced as of main `cb8b536`: `react-refresh/only-export-components`, `react-hooks/{static-components,set-state-in-effect,purity,immutability}`, `preserve-manual-memoization` (via `reactHooks.configs.flat.recommended`, no explicit line), `@typescript-eslint/{no-floating-promises,no-unsafe-argument,no-unsafe-assignment,no-unsafe-call,no-unsafe-member-access,no-unsafe-return,no-explicit-any}`. `npm run lint` is 0 errors / 2 warnings (both `exhaustive-deps` in store.tsx).
-- Fast-refresh compliance drove three extractions: `web/src/lib/triage-context.ts` (out of store.tsx), `web/src/components/ui/use-toast.ts` (out of toast.tsx), `web/src/components/triage/report-format.ts` (out of DeepPanel.tsx). A component module must export only components.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
+
+- `no-explicit-any` was blinding rules that were already enabled. `any` short-circuits type-aware analysis, so enforcing it surfaced 5 pre-existing `no-base-to-string` errors that had been silently unreachable. Expect a type-safety rule to uncover violations of its neighbours.
+- All 12 previously deferred ESLint rules are enforced as of main `cb8b536`. `npm run lint` is 0 errors / 2 warnings (both `exhaustive-deps` in store.tsx).
+- `web/dist` is tracked because `webui.go` embeds it - `go install .../cmd/triage@latest` does not compile without it - and nothing verified it still matched `web/src`. It had been stale since `d7f6ae7`. `make web-dist-check` rebuilds and diffs; two consecutive Vite builds are byte-identical, so the comparison is reproducible.
+
+### OpenWolf tooling in Claude Code (2026-08-28)
+- **The committed hooks and the CLI are two separate things.** `.wolf/hooks/*.js`
+  are tracked, dependency-free ESM run directly by node, so they fire on a fresh
+  clone with no install. The `openwolf` **CLI** is a global npm install and is
+  *not* in the repo - and Claude Code on the web uses ephemeral containers, so it
+  is absent every session unless something reinstalls it. Symptom: hooks work
+  fine, nothing looks broken, but `openwolf scan` / `find` / `designqc` are all
+  "command not found" and anatomy.md silently drifts. Fixed by
+  `.claude/hooks/session-start.sh`, registered first in SessionStart.
+- That bootstrap's `openwolf init` step never runs here: it guards on `.wolf/`
+  existing, and `.wolf/` is tracked in this repo. That is the correct behavior -
+  init would re-register hooks that are already committed. The install is the
+  whole point of the script here; in a repo that gitignores `.wolf/` the init
+  branch is what matters.
+- **`openwolf scan` (v2.5.0) renders a much leaner anatomy.md** than older
+  versions: 543 lines -> 189 for this tree. Per-symbol lines (`fn foo L12-30`)
+  are no longer written into the markdown; they live in `.wolf/anatomy-index.json`
+  and are retrieved on demand with `openwolf find <symbol>` / `openwolf map`.
+  Nothing is lost - do not "restore" the symbol lines by hand.
+- The scan **absorbs hand-written descriptions** from anatomy.md, as OPENWOLF.md
+  promises - the CLAUDE.md descriptions written by hand survived the regenerate
+  verbatim. It also stopped indexing `.claude/`, `.codex/` and `.cursor/`, which
+  older output covered. That is the tool's call; re-adding those sections by hand
+  just makes the index churn (see the note in `.wolf/hooks/post-write.js`).
 
 ### Git merge drivers (2026-08-28)
 - `.wolf/memory.md` carries `merge=union` in `.gitattributes`. It is append-only, so
@@ -47,11 +90,37 @@
   degrades to a normal text conflict - it never silently resolves the wrong way. That
   makes custom drivers safe to ship, but they need per-clone `git config`, which is
   why this repo took the built-in.
-- Never widen union to the `.wolf` JSON state files (invalid JSON) or to
-  `cerebrum.md` / `STATUS.md` (edited in place, so it duplicates sections).
+- **`cerebrum.md` is union too, as of PR #35** (2026-08-28) - superseding the
+  original "never widen union past memory.md" call. It is append-mostly (12 of
+  16 changes over the last 500 commits deleted no lines), and union's failure
+  mode here - a duplicated section when a rewrite collides with an append - is
+  visible in markdown and repairable. The rationale lives in `.gitattributes`.
+- Still never union: the `.wolf` JSON state files (two appends interleave into
+  invalid JSON that git reports as a *successful* merge), `STATUS.md`, and the
+  generated `anatomy.md` - all rewritten in place rather than appended to, so
+  union duplicates sections. `.gitattributes` names exactly two files; keep it
+  that way.
+- **A newly added `merge=union` line does not apply to the merge that
+  introduces it.** Git reads merge attributes from the `.gitattributes` already
+  on the branch you are merging *into*, so the rule only takes effect from the
+  next merge onward. Verified empirically on PR #36: merging main (which
+  carried the new cerebrum union line) into a branch whose `.gitattributes`
+  predated it conflicted on `cerebrum.md` while `memory.md` resolved silently;
+  replaying the identical merge with the line pre-staged auto-resolved
+  `cerebrum.md`. So expect one last manual conflict on any file the moment you
+  union it - that is not the rule failing.
 
 ## Do-Not-Repeat
 
+- [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
+  2026-08-28T02:20 scan tracked 90 files and silently omitted five real
+  modules (`web/src/lib/linear.ts`, `linearfilter.ts`, `triage-context.ts`,
+  `components/ui/use-toast.ts`, `components/triage/report-format.ts`) plus
+  `.golangci.yml`, `.goreleaser.yaml`, `.githooks/pre-commit` and two test
+  files. Use it to decide whether to read a file, never to decide whether a
+  file exists - `git ls-files <dir>` is the authority.
+- [2026-08-28] Do not apply `merge=union` to any JSON file, however append-only it looks. `.wolf/buglog.json` measured 8/10 append-only changes, but two concurrent appends union into interleaved keys inside a single object (`"fix": "a"` immediately followed by `"id": ...`), which is invalid JSON - and git reports it as a *successful* merge, so nothing warns you. A conflict is strictly better than silent corruption. Same reasoning bars go.sum and lockfiles.
+- [2026-08-28] Do not untrack `web/dist/`, however much it churns (26 tracked files, #3 by commit count). `webui.go` declares `//go:embed all:web/dist`, so the tree must be present at compile time; without it `go build` fails and `go install` from the module proxy has no Node toolchain to regenerate it. The churn is the deliberate price of installability. Note that merely running `npm run build` rewrites the hashed bundle and index.html, so revert `web/dist/` before committing unrelated work.
 - [2026-08-28] Do not expect `.gitattributes merge=union` to keep a PR out of GitHub's conflicted state. It is applied by local git only. PR #31 proved it: with `.gitattributes` present `git merge-tree HEAD origin/main` returned a clean tree (exit 0), the identical merge with the file stripped hit `CONFLICT (content) in .wolf/memory.md`, and GitHub reported `mergeable_state: dirty` throughout. Worse, a conflicted PR produces no merge ref, so the `pull_request` workflows never run and the required checks silently never report - the PR looks stalled rather than conflicted. The fix is the same as always: merge the base branch locally, where union resolves it without a prompt, and push the merge commit. Union saves the manual conflict edit, not the merge commit.
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
 - [2026-08-27] Never commit `.wolf/dashboard-token`. It is the OpenWolf dashboard auth secret (64-hex, mode 0600). Roll by deleting the file; the next `openwolf dashboard` / daemon start mints a new one. Gitignore it.
@@ -75,14 +144,18 @@
 
 - [2026-08-28] Do not put `tag_name_pattern` (or any metadata-restriction rule: `branch_name_pattern`, `commit_message_pattern`, `commit_author_email_pattern`) in a ruleset for this repo. It is a user-owned repo, and those rules 422 with `Invalid rule 'tag_name_pattern':`. The structural rules (`creation`, `update`, `deletion`, `non_fast_forward`) do work here - the "Release Tags" ruleset uses three of them. Semver enforcement therefore lives only in release.yml's own regex guard, which is fine: the release trigger glob is `v*.*.*`, so a non-semver tag cannot fire a release.
 - [2026-08-28] Do not combine a scoped Dependabot `commit-message.prefix` with `include: "scope"`. Dependabot appends its own `(deps)` / `(deps-dev)` scope to whatever prefix you give it, so `prefix: "build(backend)"` plus `include: scope` emits `build(backend)(deps): ...`, which is not a valid Conventional Commit. Pick one: either the area lives in the prefix's scope (what this repo does) or you let Dependabot own the scope with `deps`.
+- [2026-08-28] Do not set `IFS=','` to split Dependabot's `dependency-names` while a space-separated allow/hold list is also being split in the same scope. The inner `for held in $held_actions` then sees one long word and matches nothing, so the hold list silently passes everything - an auto-merge gate that always says yes. Translate with `tr ',' ' '` and leave IFS alone. Caught only because the step's script was extracted from the YAML and run against a truth table; actionlint and shellcheck both pass on it.
+- [2026-08-28] Do not expect `pull_request` to work for Dependabot auto-merge. Workflows Dependabot triggers get a read-only GITHUB_TOKEN, so `gh pr merge --auto` 403s. `pull_request_target` is the documented fix and keeps a writable token because the PR's *base* ref (main) is not Dependabot-created. zizmor flags it `dangerous-triggers`/high; the exception is justified only because the workflow has no `actions/checkout` - never add one to that file.
+- [2026-08-28] Do not consolidate this repo's Go CLI tools into one `tools/go.mod` with `tool` directives to get Dependabot tracking them. A shared module runs MVS across every tool's graph: actionlint v1.7.9 requires `go.yaml.in/yaml/v4 v4.0.0-rc.3`, golangci-lint v2.13.2 pulls the same module to rc.6, and rc.6's breaking API change (`yaml.ParserError`, `e.Line`) means actionlint no longer compiles - `make actions-lint` dies. `go run <tool>@<version>` is immune because each tool builds against its own go.mod. If tracking is ever wanted, it needs one module per tool, not one shared one. (Measured: a shared module was 230 lines of go.mod and 956 of go.sum.)
+- [2026-08-28] `.PHONY: print-%` does nothing - make does not expand patterns in .PHONY. Verified by creating a file named `print-TESTVAR`, which shadowed the rule and printed nothing. Use a `FORCE` prerequisite if a pattern rule genuinely needs phony protection; do not list the pattern and assume it is covered.
 
 - [2026-08-28] `void somePromise` does not satisfy `react-hooks/set-state-in-effect`. The rule tracks the setter call, not the floating promise, so `void load()` inside an effect still reports. The shape that passes is an IIFE the effect owns: `void (async () => { ... })()`. Reaching for `void` because `no-floating-promises` is also on will silence one rule and leave the other red.
 
-- [2026-08-28] Do not close and reopen a PR to kick CI, ever. On a *conflicted* PR it does nothing anyway: GitHub cannot build a merge ref, so `pull_request` workflows never fire and the PR shows **zero** check runs - not failures. The fix is to merge the base branch in and resolve. Reopening #26 only cancelled 8 in-flight runs and dropped the event subscription.
+- [2026-08-28] Do not close and reopen a PR to kick CI, ever. On a *conflicted* PR it does nothing anyway - no merge ref means the `pull_request` workflows never fire and the PR shows **zero** check runs, not failures. The fix is to merge the base branch in and resolve. Reopening #26 only cancelled 8 in-flight runs and dropped the event subscription.
 
 - [2026-08-28] Do not deduplicate check runs by name and keep an arbitrary one. A re-run leaves several runs sharing a name (cancelled, queued, in progress); keeping whichever the API returned first reported "7 required checks failing" on #26 when nothing was failing. Sort by `started_at` and keep the latest run per name.
 
-- [2026-08-28] A worktree-isolated agent must verify its cwd before its first edit. One fan-out agent edited `/home/user/rapid-issue-triage/web/eslint.config.js` - the shared checkout - instead of its own worktree, putting an unrelated rule into the main tree. Also: the scratchpad directory is shared across agents, not per-agent; two agents writing `commit-msg.txt` overwrote each other.
+- [2026-08-28] A worktree-isolated agent must verify its cwd before its first edit. One fan-out agent edited the shared checkout's `web/eslint.config.js` instead of its own worktree, putting an unrelated rule into the main tree. The scratchpad directory is shared across agents too, not per-agent; two agents writing `commit-msg.txt` overwrote each other.
 
 ## Decision Log
 
@@ -101,4 +174,11 @@
 
 - [2026-08-28] Dependabot writes Conventional Commits whose **scope is the repo area, not `deps`**: `build(backend)` for gomod, `build(frontend)` / `chore(frontend)` (devDependencies) for npm in `/web`, `ci(actions)` for github-actions. `build` is the Conventional Commits type for dependency/build-system changes; `ci` for the workflow toolchain. Chose the area over `deps` because the repo is a Go backend plus a `/web` frontend in one tree and the ecosystem alone does not say which half a PR touches. Nothing enforces this in CI - metadata rulesets (`commit_message_pattern`) 422 on this user-owned repo - so the config is the only place it is specified.
 
-- [2026-08-28] Re-enabled the deferred lint rules as one PR per rule, fanned out to an agent each, rather than one sweeping PR. Every PR touched the same deferred block in eslint.config.js, so conflicts were constant and each had to merge main before landing - the cost of the approach. It bought reviewable, revertable diffs and let each agent root-cause its own rule; two real bugs (Confetti re-randomizing mid-burst, 5 hidden `no-base-to-string` errors) were found that a bulk suppression pass would have buried.
+- [2026-08-28] Dependabot auto-merge is gated on `patch`/`minor` only, plus a hold list of actions that **no pull request ever executes**: `actions/attest`, `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`. Those live solely in release.yml / scorecard.yml, so CI only lints the workflow file - a bad bump surfaces at release time, and a failed release burns a tag name permanently. Every other action is also used by ci.yml or codeql.yml, so the PR's own run validates it. Auto-merge changes no gate: `--auto` queues behind all 11 required contexts, and the Main ruleset needs 0 approvals, so nothing waits on a human review.
+- [2026-08-28] CI has no `paths:` filters - every job runs on every PR. That is what makes auto-merge safe here (no required context can go permanently unreported) and should stay that way; adding a path filter to a required job would hang every PR that misses it.
+
+- [2026-08-28] Pinned tool versions live in the Makefile and CI reads them through `make -s print-<VAR>`, rather than each workflow repeating the literal. Only golangci-lint and zizmor were duplicated (ci.yml had `version: v2.13.2` and `zizmor==1.29.0`); govulncheck and actionlint were already single-source because CI calls `make vuln` / `make actions-lint`. None of the four is Dependabot-tracked - it bumps `uses:` refs only, never a version a make target hands to `go run` or `pip` - so they are bumped by hand, and the point of the change is that a hand bump can no longer leave a stale copy in a workflow.
+- [2026-08-28] `.wolf/cerebrum.md` joined `.wolf/memory.md` under `merge=union` (PR #35), reversing the earlier "union stops at memory.md" call. The trade-off was accepted knowingly: cerebrum is append-mostly, so union removes a conflict that has no decision in it, and when it does misfire (a rewrite colliding with an append) it duplicates a markdown section — loud and repairable. That is categorically unlike union on JSON, which yields invalid output git reports as a clean merge. `STATUS.md` stays excluded because it is rewritten in place every phase, which is union's actual bad case. Scope is two files, named explicitly in `.gitattributes`; widening it further needs the same append-mostly evidence.
+
+- [2026-08-28] Re-enabled the deferred lint rules as one PR per rule, fanned out to an agent each, rather than one sweeping PR. Every PR touched the same deferred block in eslint.config.js, so conflicts were constant - the cost of the approach. It bought reviewable, revertable diffs and let each agent root-cause its own rule; two real bugs (Confetti re-randomizing mid-burst, 5 hidden `no-base-to-string` errors) were found that a bulk suppression pass would have buried.
+- [2026-08-28] The `web/dist` freshness gate verifies rather than regenerates: it fails a PR whose committed bundle does not match a fresh build, instead of a bot rebuilding and committing. A workflow that pushes generated output needs write access on every PR and turns an unreviewed build into a commit. It rides in the existing `Web lint, test, build` job rather than a new one, so the `Main` ruleset's required contexts do not change. It reads only the worktree column of `git status`, so an already-staged rebuild passes - otherwise the pre-commit hook could never be satisfied.

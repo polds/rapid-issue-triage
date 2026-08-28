@@ -150,3 +150,10 @@ hooks:
 clean:
 	rm -f $(BINARY) coverage.out
 	rm -rf web/dist web/node_modules dist
+
+## print-<VAR>: echo one variable's value. CI resolves the pinned tool versions
+## through this instead of repeating them, so a bump here cannot leave a stale
+## copy behind in a workflow. Not listed in .PHONY: make does not expand
+## patterns there, so the entry would read as protection it does not give.
+print-%:
+	@echo "$($*)"
