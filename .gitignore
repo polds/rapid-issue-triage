@@ -6,6 +6,7 @@ node_modules/
 .env
 .env.*
 .wolf/dashboard-token
+.wolf/hooks/_session.json
 /dist/
 coverage.out
 
