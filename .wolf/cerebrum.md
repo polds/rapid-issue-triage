@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (dependabot commit scopes)
+> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
 
 ## User Preferences
 
@@ -13,6 +13,23 @@
 ## Key Learnings
 
 - **Project:** rapid-issue-triage
+- **Agent docs are a tree, not one file.** The root `CLAUDE.md` is an index
+  (architecture, non-negotiables, vocabulary, maintenance triggers) that links
+  to 16 directory-level `CLAUDE.md` files. Read the root plus the one directory
+  you are touching - not the whole set. Each directory file carries a layout
+  table, its invariants, its path-scoped lint exclusions, and a "when you
+  change X update Y" block. The OpenWolf block in the root is wrapped in
+  `<!-- openwolf:begin/end -->` markers (like AGENTS.md) so a future
+  `openwolf init` rewrites only that block and leaves the index alone.
+- Surfaces that drift silently, documented in the maintenance tables because
+  nothing in CI checks them: Go JSON tags vs `web/src/lib/types.ts`; the route
+  table vs `web/src/lib/api.ts`; the deep-report schema across
+  `deep/scouts.go` + `server/reportcomment.go` + `triage/report-format.ts`; the
+  keyboard map across `pages/Triage.tsx` + `HelpOverlay.tsx` + README.
+- `react-refresh/only-export-components` is an **error** in this repo, which is
+  why `lib/triage-context.ts`, `ui/use-toast.ts` and `triage/report-format.ts`
+  exist as separate files. A new context, hook, or constant goes in a sibling
+  `.ts`, never next to a component.
 - Claude is probed at runtime with `exec.LookPath`. `EnrichSettings.ClaudePath` overrides config `ai.command`. Enricher/orchestrator are constructed even when the binary is missing so a later path save can enable enrichment without restart.
 - Credentials set in Settings are sqlite `meta.secrets` JSON. Resolution order: Settings → env → `.env` / `~/.rapid-triage/.env` (`config.Lookup`). The API never returns secret values, only `{set, source, hint}`.
 - The browser cannot give a real filesystem path (`showDirectoryPicker` / `<input webkitdirectory>`). Native pick is `POST /api/pick` → osascript (macOS) / zenity|kdialog (Linux) / PowerShell (Windows).
@@ -31,6 +48,31 @@
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
+### OpenWolf tooling in Claude Code (2026-08-28)
+- **The committed hooks and the CLI are two separate things.** `.wolf/hooks/*.js`
+  are tracked, dependency-free ESM run directly by node, so they fire on a fresh
+  clone with no install. The `openwolf` **CLI** is a global npm install and is
+  *not* in the repo - and Claude Code on the web uses ephemeral containers, so it
+  is absent every session unless something reinstalls it. Symptom: hooks work
+  fine, nothing looks broken, but `openwolf scan` / `find` / `designqc` are all
+  "command not found" and anatomy.md silently drifts. Fixed by
+  `.claude/hooks/session-start.sh`, registered first in SessionStart.
+- That bootstrap's `openwolf init` step never runs here: it guards on `.wolf/`
+  existing, and `.wolf/` is tracked in this repo. That is the correct behavior -
+  init would re-register hooks that are already committed. The install is the
+  whole point of the script here; in a repo that gitignores `.wolf/` the init
+  branch is what matters.
+- **`openwolf scan` (v2.5.0) renders a much leaner anatomy.md** than older
+  versions: 543 lines -> 189 for this tree. Per-symbol lines (`fn foo L12-30`)
+  are no longer written into the markdown; they live in `.wolf/anatomy-index.json`
+  and are retrieved on demand with `openwolf find <symbol>` / `openwolf map`.
+  Nothing is lost - do not "restore" the symbol lines by hand.
+- The scan **absorbs hand-written descriptions** from anatomy.md, as OPENWOLF.md
+  promises - the CLAUDE.md descriptions written by hand survived the regenerate
+  verbatim. It also stopped indexing `.claude/`, `.codex/` and `.cursor/`, which
+  older output covered. That is the tool's call; re-adding those sections by hand
+  just makes the index churn (see the note in `.wolf/hooks/post-write.js`).
+
 ### Git merge drivers (2026-08-28)
 - `.wolf/memory.md` carries `merge=union` in `.gitattributes`. It is append-only, so
   parallel branches collide on the same tail with no real decision to make.
@@ -44,11 +86,35 @@
   degrades to a normal text conflict - it never silently resolves the wrong way. That
   makes custom drivers safe to ship, but they need per-clone `git config`, which is
   why this repo took the built-in.
-- Never widen union to the `.wolf` JSON state files (invalid JSON) or to
-  `cerebrum.md` / `STATUS.md` (edited in place, so it duplicates sections).
+- **`cerebrum.md` is union too, as of PR #35** (2026-08-28) - superseding the
+  original "never widen union past memory.md" call. It is append-mostly (12 of
+  16 changes over the last 500 commits deleted no lines), and union's failure
+  mode here - a duplicated section when a rewrite collides with an append - is
+  visible in markdown and repairable. The rationale lives in `.gitattributes`.
+- Still never union: the `.wolf` JSON state files (two appends interleave into
+  invalid JSON that git reports as a *successful* merge), `STATUS.md`, and the
+  generated `anatomy.md` - all rewritten in place rather than appended to, so
+  union duplicates sections. `.gitattributes` names exactly two files; keep it
+  that way.
+- **A newly added `merge=union` line does not apply to the merge that
+  introduces it.** Git reads merge attributes from the `.gitattributes` already
+  on the branch you are merging *into*, so the rule only takes effect from the
+  next merge onward. Verified empirically on PR #36: merging main (which
+  carried the new cerebrum union line) into a branch whose `.gitattributes`
+  predated it conflicted on `cerebrum.md` while `memory.md` resolved silently;
+  replaying the identical merge with the line pre-staged auto-resolved
+  `cerebrum.md`. So expect one last manual conflict on any file the moment you
+  union it - that is not the rule failing.
 
 ## Do-Not-Repeat
 
+- [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
+  2026-08-28T02:20 scan tracked 90 files and silently omitted five real
+  modules (`web/src/lib/linear.ts`, `linearfilter.ts`, `triage-context.ts`,
+  `components/ui/use-toast.ts`, `components/triage/report-format.ts`) plus
+  `.golangci.yml`, `.goreleaser.yaml`, `.githooks/pre-commit` and two test
+  files. Use it to decide whether to read a file, never to decide whether a
+  file exists - `git ls-files <dir>` is the authority.
 - [2026-08-28] Do not apply `merge=union` to any JSON file, however append-only it looks. `.wolf/buglog.json` measured 8/10 append-only changes, but two concurrent appends union into interleaved keys inside a single object (`"fix": "a"` immediately followed by `"id": ...`), which is invalid JSON - and git reports it as a *successful* merge, so nothing warns you. A conflict is strictly better than silent corruption. Same reasoning bars go.sum and lockfiles.
 - [2026-08-28] Do not untrack `web/dist/`, however much it churns (26 tracked files, #3 by commit count). `webui.go` declares `//go:embed all:web/dist`, so the tree must be present at compile time; without it `go build` fails and `go install` from the module proxy has no Node toolchain to regenerate it. The churn is the deliberate price of installability. Note that merely running `npm run build` rewrites the hashed bundle and index.html, so revert `web/dist/` before committing unrelated work.
 - [2026-08-28] Do not expect `.gitattributes merge=union` to keep a PR out of GitHub's conflicted state. It is applied by local git only. PR #31 proved it: with `.gitattributes` present `git merge-tree HEAD origin/main` returned a clean tree (exit 0), the identical merge with the file stripped hit `CONFLICT (content) in .wolf/memory.md`, and GitHub reported `mergeable_state: dirty` throughout. Worse, a conflicted PR produces no merge ref, so the `pull_request` workflows never run and the required checks silently never report - the PR looks stalled rather than conflicted. The fix is the same as always: merge the base branch locally, where union resolves it without a prompt, and push the merge commit. Union saves the manual conflict edit, not the merge commit.
@@ -91,3 +157,5 @@
 - [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.
 
 - [2026-08-28] Dependabot writes Conventional Commits whose **scope is the repo area, not `deps`**: `build(backend)` for gomod, `build(frontend)` / `chore(frontend)` (devDependencies) for npm in `/web`, `ci(actions)` for github-actions. `build` is the Conventional Commits type for dependency/build-system changes; `ci` for the workflow toolchain. Chose the area over `deps` because the repo is a Go backend plus a `/web` frontend in one tree and the ecosystem alone does not say which half a PR touches. Nothing enforces this in CI - metadata rulesets (`commit_message_pattern`) 422 on this user-owned repo - so the config is the only place it is specified.
+
+- [2026-08-28] `.wolf/cerebrum.md` joined `.wolf/memory.md` under `merge=union` (PR #35), reversing the earlier "union stops at memory.md" call. The trade-off was accepted knowingly: cerebrum is append-mostly, so union removes a conflict that has no decision in it, and when it does misfire (a rewrite colliding with an append) it duplicates a markdown section — loud and repairable. That is categorically unlike union on JSON, which yields invalid output git reports as a clean merge. `STATUS.md` stays excluded because it is rewritten in place every phase, which is union's actual bad case. Scope is two files, named explicitly in `.gitattributes`; widening it further needs the same append-mostly evidence.

@@ -309,5 +309,19 @@
 | 21:35 | Added `.gitattributes` with `merge=union` for the append-only session log | `.gitattributes` | Scoped to `.wolf/memory.md` only; verified with `git check-attr` | ~5k |
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
 | 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
+
+## Session: 2026-08-28 21:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+### 2026-08-28 — directory-level CLAUDE.md tree
+| 21:50 | walked the tree, read every Go package header + route table + schema | (survey) | mapped 7 Go pkgs + 5 web dirs | ~35k |
+| 21:53 | wrote 16 directory CLAUDE.md files + rewrote root as an index | CLAUDE.md, cmd/triage, internal/{,ai,config,deep,linear,server,store,syncer}, web/{,src/lib,src/pages,src/components{,/triage,/ui}}, .github | ~9.7k words, every relative link verified | ~12k |
+| 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
 | 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
+| 22:05 | reconciled cerebrum union contradiction: .gitattributes union'd cerebrum.md (PR #35) while Key Learnings still said never to | .wolf/cerebrum.md | 3 bullets + Decision Log entry; empirically verified merge-attribute timing in a scratch worktree | ~4k |
+| 22:06 | adopted OpenWolf bootstrap from sibling repo: .claude/hooks/session-start.sh + settings.json SessionStart entry + designqc rule | .claude/hooks/session-start.sh, .claude/settings.json, .claude/rules/openwolf.md | merged not overwritten (kept PreCompact hook + STATUS.md rules); hook run-tested, openwolf 2.5.0 installed | ~6k |
+| 22:07 | ran the real `openwolf scan` for the first time this session | .wolf/anatomy.md, .wolf/anatomy-index.json | 121 files indexed, replaces my hand-edit; symbols now via `openwolf find` | ~2k |
 | 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
+| 22:13 | merged main (#37 STATUS.md) - only the "Last updated" line conflicted; cerebrum auto-merged this time, confirming the union-timing finding | .wolf/STATUS.md, .wolf/cerebrum.md | both sides' Done entries kept; cerebrum bullet aligned with #37's wording (anatomy.md named too) | ~3k |
