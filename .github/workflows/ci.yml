@@ -11,6 +11,7 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege by default; jobs opt into more only where they must.
 permissions:
   contents: read
 
@@ -18,38 +19,43 @@ jobs:
   go:
     name: Go fmt, vet, test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
           cache: true
+      # These call the same make targets a contributor runs via `make ci`, so
+      # local and CI cannot drift apart. The targets also filter out
+      # web/node_modules, which ships Go sources of its own.
       - name: gofmt
-        run: |
-          files="$(gofmt -l .)"
-          if [ -n "$files" ]; then
-            echo "unformatted Go files:"
-            echo "$files"
-            exit 1
-          fi
+        run: make fmt-check
       - name: go fix
-        run: go fix -diff ./...
+        run: make fix-check
       - name: go vet
-        run: go vet ./...
-      - name: go test
-        run: go test ./...
+        run: make vet
+      # -race catches the data races a single-threaded run hides; this server
+      # fans enrichment out across goroutines.
+      - name: go test (race)
+        run: make test-race
       - name: coverage floor
         run: make cover-go
 
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: read
       checks: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
@@ -58,20 +64,57 @@ jobs:
         with:
           version: v2.13.2
 
-  web:
-    name: Web typecheck and build
+  actions:
+    name: Workflow lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      # actionlint validates workflow syntax, expressions, and `runs-on`
+      # labels, and shellchecks every `run:` block. Built from source at a
+      # pinned tag rather than curl|sh from a release.
+      - name: actionlint
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.9 -color
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+      # zizmor is the security-focused counterpart: it finds template
+      # injection, credential persistence, cache poisoning and over-broad
+      # permissions that actionlint does not model.
+      - name: zizmor
+        run: |
+          python -m pip install --disable-pip-version-check zizmor==1.29.0
+          zizmor --format plain .github/workflows
+
+  web:
+    name: Web lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: web
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      - name: eslint
+        run: npm run lint
+      # Coverage floor is scoped to the pure logic modules, mirroring how
+      # cover-go scopes the Go floor to internal/config + internal/store.
+      - name: vitest
+        run: npm run coverage
       - run: npm run build
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -82,9 +125,22 @@ jobs:
   build:
     name: Embed UI and compile binary
     needs: [web]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ext: ""
+          - os: macos-latest
+            ext: ""
+          - os: windows-latest
+            ext: ".exe"
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
@@ -94,19 +150,21 @@ jobs:
           name: web-dist
           path: web/dist
       - name: go build
-        run: go build -trimpath -o triage ./cmd/triage
+        run: go build -trimpath -o triage${{ matrix.ext }} ./cmd/triage
       - name: binary version
-        run: ./triage -version
+        run: ./triage${{ matrix.ext }} -version
       - name: binary help
-        run: ./triage -h
+        run: ./triage${{ matrix.ext }} -h
 
   security:
     name: Security
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
@@ -116,8 +174,11 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
+      # Pinned, not @latest: a scanner that silently changes version between
+      # runs makes a red build unreproducible and is itself a supply-chain
+      # dependency. Dependabot bumps this with everything else.
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        run: make vuln
       - name: npm audit
         working-directory: web
         run: npm audit --audit-level=high
@@ -125,3 +186,22 @@ jobs:
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-review:
+    name: Dependency review
+    # Blocks a PR that introduces a dependency with a known vulnerability or a
+    # disallowed license, before it ever reaches main.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure

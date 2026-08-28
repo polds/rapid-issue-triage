@@ -272,3 +272,16 @@
 | 11:05 | Added `create_tag` dispatch mode + replace_existing_draft + semver guard | `release.yml`, `.goreleaser.yaml`, `README.md` | actionlint + `goreleaser check` clean; PR #12 | ~10k |
 | 11:10 | v0.1.0 release run failed on 422 duplicate SBOM upload | `.goreleaser.yaml` | Root cause: release.extra_files double-queued 42 SBOMs; draft left unpublished so v0.1.0 not burnt | ~9k |
 | 11:16 | v0.1.0 retry cancelled: tag tree predates the fix; cut v0.1.1 from main instead | `.wolf/buglog.json`, `.wolf/cerebrum.md`, `.wolf/STATUS.md` | bug-005 logged: publishing a tag uses that tag's tree, not main | ~6k |
+
+## Session: 2026-08-28 18:24
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 18:26 | Audited CI: no action lint, no frontend lint/tests, npm audit only | `.github/workflows/ci.yml` | Baseline was already strong (SHA pins, govulncheck, gitleaks, coverage floor) | ~8k |
+| 18:29 | Added ESLint 10 flat config + Vitest with a scoped coverage floor | `web/eslint.config.js`, `web/vitest.config.ts`, `web/package.json` | 33 tests, 100% on the 5 pure lib modules | ~14k |
+| 18:31 | First lint run: 127 errors; fixed the real ones, deferred noisy families with written reasons | `NotificationBell.tsx`, `store.tsx`, `types.ts`, `Macros.tsx` | 0 errors, 7 advisory warnings | ~10k |
+| 18:33 | actionlint (via go run, pinned) + zizmor 1.29 wired into CI | `.github/workflows/ci.yml`, `.github/zizmor.yml` | zizmor found 6 artipacked + 2 cache-poisoning; all fixed, exit 0 | ~12k |
+| 18:36 | Hardened release: persist-credentials false, explicit tag-push credential, caching off | `.github/workflows/release.yml` | Poisoned cache can no longer reach attested artifacts | ~6k |
+| 18:38 | Added CodeQL (Go + TS, security-extended) and OpenSSF Scorecard workflows | `codeql.yml`, `scorecard.yml` | Public repo, so both run on the free tier | ~7k |
+| 18:41 | Found node_modules Go file polluting ./... and the go1.26/1.27 toolchain trap | `Makefile`, `.golangci.yml` | bug-006, bug-007 logged; `make ci` green locally | ~11k |
+| 18:47 | Full verification: make ci, npm lint/coverage/build, actionlint, zizmor | — | All green | ~5k |

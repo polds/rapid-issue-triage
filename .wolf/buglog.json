@@ -99,6 +99,64 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-28T11:16:00-07:00"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "`go test ./...` listed github.com/polds/rapid-issue-triage/web/node_modules/flatted/golang/pkg/flatted after adding ESLint",
+      "file": "Makefile",
+      "root_cause": "eslint -> file-entry-cache -> flat-cache -> flatted, and flatted vendors a Go implementation (flatted.go). Go's `./...` pattern only skips dirs named testdata or starting with . or _, so web/node_modules is walked. It is gitignored, so this only bites after a local `npm install` - CI never installs npm in the Go jobs, which is why CI stayed green.",
+      "fix": "Added GO_PKGS (go list ./... filtered through grep -v /node_modules/) and GO_FILES (git ls-files '*.go') to the Makefile and used them in test/test-race/vet/fix-check/fmt-check/vuln. Also added web/node_modules to both exclusions.paths blocks in .golangci.yml.",
+      "tags": [
+        "go",
+        "makefile",
+        "node_modules",
+        "eslint",
+        "tooling",
+        "golangci-lint"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "internal/syncer/syncer.go:4:1: package requires newer Go version go1.27 (application built with go1.26) - from `go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...` and `can't load config: the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.0)` from `make lint`",
+      "file": "Makefile",
+      "root_cause": "`go run tool@version` builds the tool in the TOOL's module context, so the toolchain is selected from the tool's go.mod, not this module's. govulncheck v1.7.0 and golangci-lint v2.13.2 both declare go1.26, so both got built with go1.26 and their go/types could not parse a go1.27 module. Local-only: CI's golangci-lint-action downloads a prebuilt binary, and setup-go's environment builds govulncheck with 1.27, so CI on main was green throughout.",
+      "fix": "Added GO_TOOLCHAIN = go$(shell go list -m -f '{{.GoVersion}}') to the Makefile (derived from go.mod, so it tracks upgrades) and prefixed the lint and vuln targets with GOTOOLCHAIN=$(GO_TOOLCHAIN). Both now pass locally.",
+      "tags": [
+        "go",
+        "gotoolchain",
+        "govulncheck",
+        "golangci-lint",
+        "makefile",
+        "go1.27"
+      ],
+      "related_bugs": [
+        "bug-006"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-08-28T18:45:00-07:00",
+      "error_message": "ESLint first run: 'X' is defined but never used (NotificationBell.tsx); assertion unnecessary (store.tsx:433); Unexpected iterable of non-Promise values passed to promise aggregator (Macros.tsx:74)",
+      "file": "web/src/components/triage/NotificationBell.tsx",
+      "root_cause": "No JS/TS linter had ever run on the frontend, so dead imports, a no-op `as Enrichment` assertion, and a Promise.all fed an array padded with nulls all went unnoticed.",
+      "fix": "Removed the unused lucide `X` import, dropped the redundant assertion, and rewrote the Macros reorder to flatMap so only real promises reach Promise.all. Also collapsed SecretField.source from '\"settings\" | \"env\" | string' (which TypeScript widens to plain string) to a documented string.",
+      "tags": [
+        "eslint",
+        "frontend",
+        "dead-code",
+        "typescript",
+        "promise"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T18:45:00-07:00"
     }
   ]
 }

@@ -76,16 +76,29 @@ dependency-light Vite + React + Tailwind v4 SPA embedded via `go:embed`.
 
 Every push and pull request to `main` runs `.github/workflows/ci.yml`:
 
-- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test ./...`
+- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test -race`
 - Coverage floor of 70% on `internal/config` and `internal/store`
-- Web `npm ci` + `tsc` + Vite build
-- Compile the embedded binary
-- `govulncheck`, `npm audit --audit-level=high`, and gitleaks
+- Web ESLint, Vitest (90% floor on the pure `src/lib` modules), `tsc`, Vite build
+- Compile the embedded binary on Linux, macOS, and Windows
+- `actionlint` + `zizmor` over the workflows themselves
+- `govulncheck`, `npm audit --audit-level=high`, gitleaks, and a
+  dependency review that blocks PRs adding a high-severity advisory
+
+`.github/workflows/codeql.yml` runs CodeQL (`security-extended`) over both Go
+and the TypeScript UI on every PR and weekly.
+`.github/workflows/scorecard.yml` reports the repository's OpenSSF Scorecard.
+
+Every action is pinned to a commit SHA, jobs declare least-privilege
+`permissions` and a timeout, and checkouts use `persist-credentials: false`.
+The release job additionally disables toolchain caching so a poisoned cache
+cannot reach a signed, attested artifact. Deliberate zizmor exceptions live in
+`.github/zizmor.yml`.
 
 Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
 
 Local equivalent: `make ci` (or `make pre-commit`). Install the git hook with `make hooks` so those checks run before each commit.
 `make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
+`make vuln` runs the pinned govulncheck. In `web/`: `npm run lint`, `npm test`, `npm run coverage`.
 
 ## Releasing
 

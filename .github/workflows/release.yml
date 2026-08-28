@@ -54,6 +54,10 @@ jobs:
           # dispatched ref, since the tag does not exist yet; dry runs too.
           ref: ${{ env.CREATE_TAG == 'true' && github.ref || env.RELEASE_TAG || github.ref }}
           fetch-depth: 0
+          # Do not leave the job token in .git/config. GoReleaser authenticates
+          # over the API with GITHUB_TOKEN, and the tag push below uses an
+          # explicit credential, so nothing here needs a persisted one.
+          persist-credentials: false
 
       - name: Create and push tag
         if: env.CREATE_TAG == 'true'
@@ -65,7 +69,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$RELEASE_TAG" -m "$RELEASE_TAG"
-          git push origin "refs/tags/$RELEASE_TAG"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "refs/tags/$RELEASE_TAG"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Reproducible timestamps
         run: |
@@ -73,16 +80,23 @@ jobs:
           echo "TZ=UTC" >> "$GITHUB_ENV"
           echo "LANG=C" >> "$GITHUB_ENV"
 
+      # Caching is deliberately off in the release path: a cache entry poisoned
+      # from any branch would otherwise land inside signed, attested artifacts.
+      # CI keeps its caches; releases are rare enough to pay for a cold build.
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
+      # zizmor flags any setup-node in a tag-triggered workflow regardless of
+      # the cache input. Caching is off here (empty string is setup-node's
+      # explicit "no cache" value), so there is no cache to poison. Node is
+      # required: .goreleaser.yaml's before-hooks run `npm ci` + `npm run build`.
+      # Suppressed in .github/zizmor.yml.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache: ""
 
       - name: Install Syft
         uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0

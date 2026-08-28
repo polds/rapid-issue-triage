@@ -1,7 +1,7 @@
 // Bell dropdown tracking background enrichments. Clicking an entry jumps
 // back to that card (pulling it into the deck if it paged out).
 import { useEffect, useRef, useState } from "react";
-import { Bell, Check, Loader2, TriangleAlert, X } from "lucide-react";
+import { Bell, Check, Loader2, TriangleAlert } from "lucide-react";
 import { useTriage } from "@/lib/store";
 import { cn, timeAgo } from "@/lib/utils";
 

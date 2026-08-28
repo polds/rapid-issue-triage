@@ -273,6 +273,7 @@ linters:
       - std-error-handling
     paths:
       - web/dist
+      - web/node_modules
       - third_party$
     rules:
       - path: _test\.go
@@ -317,3 +318,4 @@ formatters:
     generated: lax
     paths:
       - web/dist
+      - web/node_modules

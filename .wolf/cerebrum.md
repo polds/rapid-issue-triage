@@ -23,6 +23,14 @@
 - `goreleaser check` validates `.goreleaser.yaml` offline (`go install github.com/goreleaser/goreleaser/v2@latest`). Use it before claiming a config key exists.
 - `actionlint` is the fast local gate for workflow edits: `go install github.com/rhysd/actionlint/cmd/actionlint@latest`, then run it from the repo root with no args to lint every workflow.
 
+- CI and local must run the same commands. The `go` job in ci.yml calls `make fmt-check / fix-check / vet / test-race / cover-go / vuln` rather than spelling out `go ...` twice, so `make ci` and CI cannot drift.
+- `go run <tool>@<ver>` picks its toolchain from the TOOL's go.mod, not this module's. For a go1.27 module, pin `GOTOOLCHAIN=go$(go list -m -f '{{.GoVersion}}')` or the tool is built with an older Go and cannot parse the source at all.
+- `./...` does not skip `node_modules`. web/node_modules ships a Go file (eslint -> flat-cache -> flatted), so Makefile targets filter it out and .golangci.yml excludes the path.
+- eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
+- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They are off here: adopting them is a rendering change, not a lint fix.
+- zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
+- Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
+
 ## Do-Not-Repeat
 
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
@@ -34,6 +42,9 @@
 - [2026-08-28] Never create the GitHub Release by hand in the Releases UI while immutable releases are on. It publishes instantly, GoReleaser then cannot attach any archive/SBOM/checksum, the run fails on preflight, and the tag name is burnt permanently — the version must be bumped. Let the workflow create the release.
 - [2026-08-28] Do not treat a green Release run as a published release. Run 33144134442 succeeded, built every archive/SBOM, and created nothing, because a `workflow_dispatch` from `main` took the `--snapshot` branch. Check the run's resolved GoReleaser version (`8aa5c68-snapshot`, `tag: v0.0.0`) and whether the attestation step was skipped.
 
+- [2026-08-28] Do not add an ESLint gate that requires refactoring the whole app. The first type-checked run produced 127 errors; the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) are turned off with a written reason in eslint.config.js so the debt is visible in review, and everything else gates as an error. A lint job that cannot pass is not a CI improvement.
+- [2026-08-28] Do not assume a tool failing locally means CI is broken. `make lint` and `make vuln` both failed here on the go1.26/go1.27 toolchain mismatch while every CI run on main was green - CI uses a prebuilt golangci-lint binary and a setup-go environment. Check the actual run conclusions before reporting a red pipeline.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
@@ -41,3 +52,7 @@
 - [2026-08-27] HTTP server sets `ReadHeaderTimeout`; sqlite parent dir is `0700`. Coverage floor is 70% on `internal/config` + `internal/store` only.
 - [2026-08-28] **Reversed:** manual Release runs may now mint the tag, via a `create_tag` checkbox. The original objection — a `GITHUB_TOKEN` tag push does not re-trigger the tag-push workflow — only applies when the release depends on a *second* trigger. The same job continuing into GoReleaser needs no re-trigger, and the missing re-trigger is what prevents a double release. Superseded: the entry below.
 - [2026-08-28] ~~Manual Release runs publish only when given an explicit existing `v*.*.*` tag input, never by minting a tag in CI.~~ A tag pushed with `GITHUB_TOKEN` would not retrigger the tag-push workflow, so tagging stays a human `git push` step; the no-input dispatch remains a snapshot dry run and uploads `snapshot-dist` for inspection.
+
+- [2026-08-28] CI/CD hardening. Adopted actionlint + zizmor over the workflows, ESLint + Vitest for the frontend, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, and dependency-review. Rejected StepSecurity harden-runner: adding a broad third-party action that proxies all runner egress is itself supply-chain surface, and the repo already pins every action to a SHA.
+- [2026-08-28] Release job runs with caching disabled on setup-go and setup-node. A cache entry poisoned from any branch would otherwise be reachable from signed, attested artifacts. Releases are rare; a cold build is the right trade.
+- [2026-08-28] Release checkout uses persist-credentials: false; the tag push authenticates with an explicit x-access-token URL instead, so the job token never sits in .git/config while GoReleaser runs.
