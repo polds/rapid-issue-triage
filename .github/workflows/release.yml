@@ -103,7 +103,8 @@ jobs:
         with:
           subject-checksums: dist/checksums.txt
 
-      # SBOMs are published as release assets; provenance covers every
+      # SBOMs are published as release assets by GoReleaser itself (they are
+      # first-class SBOM artifacts, not extra_files); provenance covers every
       # checksums.txt subject (archives, packages, source, SBOMs).
 
       - name: Upload snapshot artifacts

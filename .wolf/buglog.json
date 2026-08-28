@@ -56,6 +56,27 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-28T11:00:00-07:00"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-08-28T11:10:00-07:00",
+      "error_message": "release failed after 6m2s - failed to upload triage_0.1.0_linux_i386.rpm.spdx.json: 422 Validation Failed [{Resource:ReleaseAsset Field:name Code:already_exists}]",
+      "file": ".goreleaser.yaml",
+      "root_cause": "release.extra_files globbed dist/*.spdx.json, but GoReleaser already uploads every SBOM-typed artifact to the release. All 42 SBOMs were therefore queued twice and the duplicate POST returned 422 already_exists. Snapshot runs never upload, so 4 green snapshot runs could not catch it - it only surfaced on the first real tagged release.",
+      "fix": "Removed release.extra_files. checksum.extra_files stays: it only adds the SBOMs as checksums.txt subjects (so provenance covers them) and uploads nothing.",
+      "tags": [
+        "release",
+        "goreleaser",
+        "sbom",
+        "422",
+        "duplicate-upload",
+        "immutable-releases"
+      ],
+      "related_bugs": [
+        "bug-002"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T11:10:00-07:00"
     }
   ]
 }
