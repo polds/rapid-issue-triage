@@ -396,7 +396,6 @@
 - `package-lock.json` — npm lock file (~28500 tok)
 - `package.json` — Node.js package manifest (~218 tok)
 - `tsconfig.json` — TypeScript configuration (~130 tok)
-- `tsconfig.tsbuildinfo` (~279 tok)
 - `vite.config.ts` — Vite build configuration (~146 tok)
 - `CLAUDE.md` — Frontend root: dist embedding, hash routing, lint contracts (~710 tok)
 

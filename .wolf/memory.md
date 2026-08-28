@@ -319,3 +319,4 @@
 | 21:50 | walked the tree, read every Go package header + route table + schema | (survey) | mapped 7 Go pkgs + 5 web dirs | ~35k |
 | 21:53 | wrote 16 directory CLAUDE.md files + rewrote root as an index | CLAUDE.md, cmd/triage, internal/{,ai,config,deep,linear,server,store,syncer}, web/{,src/lib,src/pages,src/components{,/triage,/ui}}, .github | ~9.7k words, every relative link verified | ~12k |
 | 21:56 | updated anatomy.md: 16 CLAUDE.md entries + 5 modules the last scan missed | .wolf/anatomy.md | 90 -> 110 tracked | ~2k |
+| 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |

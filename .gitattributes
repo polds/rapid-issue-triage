@@ -10,3 +10,15 @@
 # would emit structurally invalid JSON, and on cerebrum.md/STATUS.md - which
 # are edited in place rather than appended to - it would duplicate sections.
 .wolf/memory.md merge=union
+
+# cerebrum.md is append-mostly: sessions add entries under Key Learnings and
+# Do-Not-Repeat. Measured over the last 500 commits, 12 of 16 changes to it
+# deleted no lines. It is edited in place more often than memory.md, so union
+# can duplicate a section when a rewrite collides with an append - that is
+# visible in markdown and repairable, unlike the silent corruption union causes
+# in JSON (see buglog.json below).
+.wolf/cerebrum.md merge=union
+
+# Deliberately NOT union: .wolf/buglog.json and the other JSON state. Two
+# concurrent appends union into interleaved keys inside one object - invalid
+# JSON that git reports as a *successful* merge, so nothing warns you.

@@ -60,6 +60,11 @@ export default tseslint.config(
       // DOM and local state). No call sites do this today; keep it that way.
       "react-hooks/static-components": "error",
 
+      // setState in an effect body costs a second render pass, and usually
+      // means the value should be derived during render or updated by the
+      // event that causes it. Effects are for syncing with the outside world.
+      "react-hooks/set-state-in-effect": "error",
+
       // React Compiler purity: render must be deterministic. `Math.random()`,
       // `Date.now()` and friends belong in an effect, a lazy `useState`
       // initialiser, or an event handler — not in a render body.
@@ -84,18 +89,6 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-unsafe-return": "error",
       "@typescript-eslint/no-explicit-any": "error",
-
-      // ---------------------------------------------------------------
-      // Deferred, not forgotten. Each of these is legitimate but needs a
-      // codebase-wide cleanup that does not belong in a CI change. They are
-      // listed explicitly so the debt is visible in review rather than
-      // silently missing from the config.
-      // ---------------------------------------------------------------
-
-      // The last React Compiler rule from eslint-plugin-react-hooks v7 still
-      // deferred. It flags real effect-ordering issues, but adopting it is a
-      // rendering change, not a lint fix.
-      "react-hooks/set-state-in-effect": "off",
     },
   },
 
