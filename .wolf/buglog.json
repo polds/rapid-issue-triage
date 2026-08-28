@@ -364,6 +364,25 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T23:20:00-07:00"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-08-29T00:05:00-07:00",
+      "error_message": "The new License scan gate passed while eslint-plugin-sonarjs@4.2.0 (LGPL-3.0-only) sat in the tree, even though WEB_LICENSE_DENY listed LGPL-3.0. Caught by socket-security[bot] on PR #41, not by the gate.",
+      "file": "web/scripts/check-licenses.mjs",
+      "root_cause": "The deny check compared raw SPDX strings. SPDX has two spellings for every GPL-family license -- the modern `LGPL-3.0-only`/`GPL-2.0-or-later` and the deprecated bare `LGPL-3.0` -- so a policy written in one spelling silently misses the other. The gate failed open on exactly the class it existed to catch.",
+      "fix": "Normalise both sides before comparing: strip a trailing `-only`/`-or-later`/`+` and upper-case, so one policy entry matches every spelling. Added a `selftest()` that asserts the matcher against both spellings plus a dual-licensed expression on every run, and verified it fails when the normaliser is removed. Separately, the dev tier was narrowed (LGPL/MPL/EPL dropped) after a policy decision: dev tooling is executed, never conveyed.",
+      "tags": [
+        "licenses",
+        "spdx",
+        "fail-open",
+        "silent-failure",
+        "ci",
+        "supply-chain"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-29T00:05:00-07:00"
     }
   ]
 }

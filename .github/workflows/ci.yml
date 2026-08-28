@@ -319,6 +319,12 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
+          # Scope this to runtime dependencies explicitly rather than leaning
+          # on the default. It is what makes the stricter list below correct:
+          # these are the licenses that must never reach code we redistribute,
+          # and dev-only tooling is held to the looser second tier in the
+          # Makefile instead (a lint plugin is executed, never conveyed).
+          fail-on-scopes: runtime
           # Licenses a PR must not introduce. This is the incremental half of
           # the policy; the License scan job above holds the whole graph to an
           # allow-list. A deny-list is the right shape here because dependency

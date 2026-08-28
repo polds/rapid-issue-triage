@@ -115,9 +115,10 @@ Every push and pull request to `main` runs `.github/workflows/ci.yml`:
   `p/gosec`, `p/typescript`, `p/react`, `p/dockerfile`, `p/secrets`), findings
   uploaded to the Security tab as SARIF
 - **License scan:** every Go module compiled into the binary and every npm
-  package bundled into `web/dist` is held to an allow-list; dev-only npm
-  packages are held to a copyleft deny-list. Dependency review applies the
-  same deny-list to what a PR adds
+  package bundled into `web/dist` is held to a permissive allow-list. Dev-only
+  npm packages are executed rather than redistributed, so they clear a
+  narrower deny-list instead (GPL, AGPL, source-available, non-commercial).
+  Dependency review applies the strict list to what a PR adds at runtime scope
 - **Code quality:** `go mod tidy -diff` and whole-program `deadcode`, on top
   of golangci-lint (`gocyclo`, `dupl`, `unused`, `revive`) for Go and
   eslint + `eslint-plugin-sonarjs` for the UI

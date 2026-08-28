@@ -31,7 +31,8 @@ class of problem is what keeps a finding from being triaged twice.
 | Vulnerable dependency, npm | `npm audit --audit-level=high` | `Security` |
 | Vulnerable dependency, newly added | `dependency-review-action` | `Dependency review` |
 | Committed secret | gitleaks over full history + semgrep `p/secrets` | `Security`, `SAST` |
-| Dependency license | `go-licenses` + the npm policy script, whole graph | `License scan` |
+| Dependency license, redistributed | `go-licenses` + the npm policy script, allow-list over the whole graph | `License scan` |
+| Dependency license, dev-only | the same script's second tier: GPL/AGPL/source-available/non-commercial deny-list | `License scan` |
 | Dependency license, newly added | `dependency-review-action` deny-list | `Dependency review` |
 | Complexity / duplication / dead code | golangci-lint (Go), eslint + sonarjs (TS), `deadcode` + `go mod tidy -diff` (whole program) | `golangci-lint`, `Web`, `Code quality` |
 
@@ -235,7 +236,20 @@ or the gate is unenforced.
 Widening a license allow-list or narrowing a deny-list → do it in
 `Makefile` (`GO_LICENSE_ALLOW`, `WEB_LICENSE_ALLOW`, `WEB_LICENSE_DENY`) and
 in `ci.yml`'s `deny-licenses` together, with a comment saying why. The two
-express the same policy at different moments: whole graph vs. what a PR adds. Changing a `make` target CI calls → verify both
+express the same policy at different moments: whole graph vs. what a PR adds.
+
+They are deliberately **not** the same list. `ci.yml` pins
+`fail-on-scopes: runtime`, so its stricter deny-list only ever judges code we
+redistribute; the Makefile's `WEB_LICENSE_DENY` is the looser dev-only tier,
+where a tool is executed rather than conveyed. Keep that asymmetry — flattening
+the two would either let copyleft into the binary or ban an LGPL lint plugin.
+
+**Write license ids however SPDX does today, and trust the normaliser, not the
+string.** `check-licenses.mjs` folds `-only`, `-or-later` and `+` onto the bare
+id before comparing, because `LGPL-3.0` and `LGPL-3.0-only` are the same
+license and a raw string compare silently misses whichever spelling the policy
+was not written in. That exact miss shipped once. The script self-tests the
+matcher on every run; do not remove that. Changing a `make` target CI calls → verify both
 sides still line up.
 
 Bumping a pinned tool (`GOLANGCI_LINT_VERSION`, `GOVULNCHECK_VERSION`,

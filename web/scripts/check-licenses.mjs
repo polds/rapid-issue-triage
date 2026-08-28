@@ -25,12 +25,50 @@ const list = (name) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
-const allow = new Set(list("ALLOW"));
-const deny = new Set(list("DENY").map((s) => s.toUpperCase()));
+// SPDX has two spellings for every GPL-family license: the modern
+// `LGPL-3.0-only` / `GPL-2.0-or-later` and the deprecated bare `LGPL-3.0`.
+// Comparing the raw strings silently misses whichever form the policy did not
+// happen to be written in -- which is exactly how `eslint-plugin-sonarjs`
+// (LGPL-3.0-only) passed a deny-list containing `LGPL-3.0`. Normalise both
+// sides onto the bare form so the policy matches either spelling. No
+// permissive id ends in these suffixes, so nothing else is affected.
+const norm = (l) => l.trim().replace(/-(?:only|or-later)$/i, "").replace(/\+$/, "").toUpperCase();
+
+const allow = new Set(list("ALLOW").map(norm));
+const deny = new Set(list("DENY").map(norm));
 
 if (allow.size === 0 || deny.size === 0) {
   console.error("ALLOW and DENY must be set (the Makefile passes them)");
   process.exit(2);
+}
+
+// The SPDX bug this guards against was silent: the gate passed while missing
+// the license class it existed to catch, and only an external bot noticed.
+// A policy matcher that can fail open has to prove itself, so these run on
+// every `make licenses` -- they cost microseconds and need no test harness.
+function selftest() {
+  const denyProbe = new Set(["GPL-3.0", "AGPL-3.0", "BUSL-1.1"].map(norm));
+  const cases = [
+    ["GPL-3.0-only", true], // modern SPDX spelling
+    ["GPL-3.0", true], // deprecated bare spelling
+    ["GPL-3.0-or-later", true],
+    ["GPL-3.0+", true], // legacy `+` suffix
+    ["AGPL-3.0-only", true],
+    ["LGPL-3.0-only", false], // not on this probe list: suffix stripping must not over-match
+    ["MIT", false],
+    ["MIT OR GPL-3.0-only", false], // dual-licensed: MIT is choosable
+  ];
+  const failures = [];
+  for (const [expr, want] of cases) {
+    const opts = options({ license: expr });
+    const got = opts.length > 0 && opts.every((l) => denyProbe.has(norm(l)));
+    if (got !== want) failures.push(`${expr}: denied=${got}, expected ${want}`);
+  }
+  if (failures.length > 0) {
+    console.error("license matcher selftest FAILED:");
+    for (const f of failures) console.error(`  ${f}`);
+    process.exit(2);
+  }
 }
 
 function query(selector) {
@@ -45,6 +83,8 @@ function query(selector) {
 // `.location === ""` is the workspace root itself: private, unpublished, and
 // not a dependency of anything.
 const isDep = (n) => n.location !== "" && n.name;
+
+selftest();
 
 const prod = new Map(query(".prod").filter(isDep).map((n) => [`${n.name}@${n.version}`, n]));
 const all = new Map(query("*").filter(isDep).map((n) => [`${n.name}@${n.version}`, n]));
@@ -75,7 +115,7 @@ for (const [id, node] of prod) {
   const opts = options(node);
   if (opts.length === 0) {
     problems.push(`${id}: no license declared, and it ships inside web/dist`);
-  } else if (!opts.some((l) => allow.has(l))) {
+  } else if (!opts.some((l) => allow.has(norm(l)))) {
     problems.push(`${id}: ${opts.join(" OR ")} is not on the redistribution allow-list`);
   }
 }
@@ -83,7 +123,7 @@ for (const [id, node] of prod) {
 for (const [id, node] of all) {
   if (prod.has(id)) continue; // already held to the stricter bar above
   const opts = options(node);
-  if (opts.length > 0 && opts.every((l) => deny.has(l.toUpperCase()))) {
+  if (opts.length > 0 && opts.every((l) => deny.has(norm(l)))) {
     problems.push(`${id}: ${opts.join(" OR ")} is on the dev-dependency deny-list`);
   }
 }

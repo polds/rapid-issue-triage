@@ -21,17 +21,29 @@ SEMGREP_CONFIGS := --config=p/golang --config=p/gosec --config=p/typescript \
 SEMGREP_EXCLUDES := --exclude=web/dist --exclude=node_modules
 SEMGREP_SARIF := semgrep.sarif
 
-# License policy. Everything reachable from the Go build and everything npm
-# bundles into web/dist is redistributed inside the released binary, so those
-# two sets are allow-listed. Dev-only npm packages are never shipped, so they
-# get the weaker check: no copyleft or source-available license, anything else
-# permissive is fine.
+# License policy, in two tiers, because the two sets are used differently.
 #
-# OFL-1.1 is on the web list for the two @fontsource packages: it permits
-# redistribution of the font files, which is exactly what web/dist does.
+# Tier 1 -- redistributed. Everything reachable from the Go build, and
+# everything npm bundles into web/dist (which go:embed then compiles in), ships
+# inside the released binary. Both are held to an explicit allow-list of
+# permissive licenses. OFL-1.1 is on the web list for the two @fontsource
+# packages: it permits redistributing the font files, which is what web/dist
+# does.
+#
+# Tier 2 -- dev-only. A lint plugin or a bundler is *executed*, never conveyed,
+# and copyleft obligations attach to conveying a work. So the dev tier denies
+# only the licenses whose terms can bite a tool you merely run, or that signal
+# a licensing trap: GPL and AGPL (AGPL's network clause in particular), the
+# source-available licenses, and non-commercial terms. LGPL, MPL and EPL are
+# deliberately absent -- their obligations are file- or library-scoped and
+# reach nothing we distribute. This is why eslint-plugin-sonarjs (LGPL-3.0-only)
+# is allowed while nothing copyleft can reach the binary.
+#
+# Both lists are matched through the SPDX normaliser in check-licenses.mjs, so
+# `GPL-3.0`, `GPL-3.0-only` and `GPL-3.0-or-later` all match one entry here.
 GO_LICENSE_ALLOW := Apache-2.0,MIT,BSD-2-Clause,BSD-3-Clause,ISC
 WEB_LICENSE_ALLOW := Apache-2.0,MIT,BSD-2-Clause,BSD-3-Clause,ISC,0BSD,Unlicense,CC0-1.0,OFL-1.1,BlueOak-1.0.0
-WEB_LICENSE_DENY := GPL-1.0,GPL-2.0,GPL-3.0,AGPL-1.0,AGPL-3.0,LGPL-2.0,LGPL-2.1,LGPL-3.0,SSPL-1.0,BUSL-1.1,EUPL-1.1,EUPL-1.2,CDDL-1.0,CDDL-1.1,EPL-1.0,EPL-2.0,MPL-1.1,CC-BY-NC-4.0
+WEB_LICENSE_DENY := GPL-1.0,GPL-2.0,GPL-3.0,AGPL-1.0,AGPL-3.0,SSPL-1.0,BUSL-1.1,CC-BY-NC-4.0,CC-BY-NC-SA-4.0,Commons-Clause
 # go-licenses' classifier is old enough to miss BSD variants at its default
 # 0.9 confidence (modernc.org/mathutil reports Unknown). 0.8 classifies every
 # module in this graph correctly; verify with `make licenses-report`.
