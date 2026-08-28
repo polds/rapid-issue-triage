@@ -31,6 +31,22 @@
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
+### Git merge drivers (2026-08-28)
+- `.wolf/memory.md` carries `merge=union` in `.gitattributes`. It is append-only, so
+  parallel branches collide on the same tail with no real decision to make.
+- Union applies **only to hunks that actually conflict**. A change one side makes
+  alone - the 7-day memory-compression cron deleting old rows - is still resolved by
+  the normal 3-way merge, so union does not resurrect compressed entries. Verified
+  empirically, not assumed.
+- Union has no ordering: it emits ours-then-theirs, so session blocks can land out of
+  chronological order. Accepted; the alternative was a custom driver.
+- A custom driver named in `.gitattributes` but not configured in a given clone
+  degrades to a normal text conflict - it never silently resolves the wrong way. That
+  makes custom drivers safe to ship, but they need per-clone `git config`, which is
+  why this repo took the built-in.
+- Never widen union to the `.wolf` JSON state files (invalid JSON) or to
+  `cerebrum.md` / `STATUS.md` (edited in place, so it duplicates sections).
+
 ## Do-Not-Repeat
 
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.

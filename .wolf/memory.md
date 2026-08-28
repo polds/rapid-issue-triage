@@ -306,3 +306,4 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 21:20 | Untracked 5 generated `.wolf/` state files and added them to `.gitignore` | `.gitignore` | `git rm --cached` used so the running daemon keeps its local state | ~3k |
+| 21:35 | Added `.gitattributes` with `merge=union` for the append-only session log | `.gitattributes` | Scoped to `.wolf/memory.md` only; verified with `git check-attr` | ~5k |
