@@ -3,14 +3,18 @@ import { useEffect, useState } from "react";
 const TONES = ["bg-chart-1", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-primary"];
 
 export function Confetti({ trigger }: { trigger: number }) {
-  const [burst, setBurst] = useState(0);
+  // `trigger` already carries the count to celebrate, so visibility is derived
+  // from it rather than mirrored into state. State only records which trigger
+  // the timer has already dismissed — the one update an external system (the
+  // timeout) genuinely drives.
+  const [dismissed, setDismissed] = useState(0);
+  const burst = trigger === dismissed ? 0 : trigger;
 
   useEffect(() => {
-    if (!trigger) return;
-    setBurst(trigger);
-    const t = setTimeout(() => setBurst(0), 1500);
+    if (!burst) return;
+    const t = setTimeout(() => setDismissed(burst), 1500);
     return () => clearTimeout(t);
-  }, [trigger]);
+  }, [burst]);
 
   if (!burst) return null;
 

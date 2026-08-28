@@ -191,16 +191,22 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     indexRef.current = index;
   }, [index]);
 
-  // Initial loads.
+  // Initial loads. Both are fire-and-forget fetches whose state updates land in
+  // the promise continuation, not in the effect body — the `void (async …)()`
+  // wrapper says so, and keeps them running concurrently as before.
   useEffect(() => {
-    loadMeta();
-    reloadMacros();
+    void (async () => {
+      await Promise.all([loadMeta(), reloadMacros()]);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // A filter change refetches the deck. `loading` is raised by setViewFilter,
+  // where the change originates, so this effect only kicks off the request.
   useEffect(() => {
-    setLoading(true);
-    fetchMore(true);
+    void (async () => {
+      await fetchMore(true);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewFilter]);
 
@@ -238,6 +244,9 @@ export function TriageProvider({ children }: { children: ReactNode }) {
 
   const setViewFilter = useCallback((f: ViewFilter) => {
     window.localStorage.setItem("rt-viewfilter", JSON.stringify(f));
+    // The deck is stale the moment the filter changes; raise `loading` here
+    // rather than in the refetch effect, so both land in one render.
+    setLoading(true);
     setViewFilterState(f);
   }, []);
 
