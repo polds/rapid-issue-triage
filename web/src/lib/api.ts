@@ -7,14 +7,30 @@ class ApiError extends Error {
   }
 }
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+// Coerce a server-supplied value to the string the UI renders: primitives
+// stringify as before, and a missing or non-primitive field becomes "" rather
+// than the "[object Object]" a bare String() would have produced.
+function asString(v: unknown): string {
+  if (typeof v === "string") return v;
+  return typeof v === "number" || typeof v === "boolean" ? String(v) : "";
+}
+
+// A decoded response is `unknown` until something checks it. The `as T` below
+// is the one place the server's shape is trusted; keeping the body out of `any`
+// is what stops that trust silently leaking into every caller.
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
-  const body = await res.json().catch(() => ({}));
+  const body: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new ApiError(body.error ?? `HTTP ${res.status}`, res.status);
+    const err = isRecord(body) && typeof body.error === "string" ? body.error : undefined;
+    throw new ApiError(err ?? `HTTP ${res.status}`, res.status);
   }
   return body as T;
 }
@@ -51,19 +67,21 @@ export const api = {
       body: JSON.stringify({ durationMs, duplicateOfId }),
     }),
   linearSearch: async (q: string): Promise<LinearSearchHit[]> => {
-    const r = await req<any>(`/api/linear/search?q=${encodeURIComponent(q)}`);
-    const raw: any[] = Array.isArray(r.issues) ? r.issues : r.identifier ? [r] : [];
+    const r = await req<unknown>(`/api/linear/search?q=${encodeURIComponent(q)}`);
+    const issues: unknown = isRecord(r) ? r.issues : undefined;
+    const raw: unknown[] = Array.isArray(issues) ? issues : isRecord(r) && r.identifier ? [r] : [];
     // Normalize: an identifier lookup and a text search take different code
     // paths in Linear, so coerce every field to the primitive the UI renders.
     return raw
-      .filter((h) => h && h.id && h.identifier)
+      .filter(isRecord)
+      .filter((h) => h.id && h.identifier)
       .map((h) => ({
-        id: String(h.id),
-        identifier: String(h.identifier),
-        title: String(h.title ?? ""),
-        state: typeof h.state === "string" ? h.state : (h.state?.name ?? ""),
-        updatedAt: String(h.updatedAt ?? ""),
-        url: String(h.url ?? ""),
+        id: asString(h.id),
+        identifier: asString(h.identifier),
+        title: asString(h.title),
+        state: typeof h.state === "string" ? h.state : isRecord(h.state) ? asString(h.state.name) : "",
+        updatedAt: asString(h.updatedAt),
+        url: asString(h.url),
       }));
   },
   skip: (id: string, durationMs?: number) =>

@@ -7,6 +7,11 @@ node_modules/
 .env.*
 .wolf/dashboard-token
 .wolf/hooks/_session.json
+.wolf/.honcho-sync-state.json
+.wolf/_scan-state.json
+.wolf/cron-state.json
+.wolf/daemon.log
+.wolf/token-ledger.json
 /dist/
 coverage.out
 
