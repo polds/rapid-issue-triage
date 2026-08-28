@@ -13,10 +13,11 @@ import {
   User,
 } from "lucide-react";
 import type { Card } from "@/lib/store";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { api } from "@/lib/api";
 import type { Comment, Enrichment } from "@/lib/types";
-import { formatReportComment, LiveRun, ReportView } from "./DeepPanel";
+import { LiveRun, ReportView } from "./DeepPanel";
+import { formatReportComment } from "./report-format";
 
 import { Markdown, MarkdownInline } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";

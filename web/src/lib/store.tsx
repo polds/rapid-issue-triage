@@ -2,9 +2,7 @@
 // action. Actions are optimistic — the card animates away immediately while
 // the Linear call runs; failures roll the card back with an error toast.
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -13,86 +11,20 @@ import {
 } from "react";
 import { api } from "./api";
 import { getEnrichInfo } from "./enrichmode";
-import { useToast } from "@/components/ui/toast";
-import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import { useToast } from "@/components/ui/use-toast";
+import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import {
+  TriageContext,
+  type Card,
+  type CardStatus,
+  type EnrichNotice,
+  type Swipe,
+  type TriageCtx,
+} from "./triage-context";
 
-export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
-export type Swipe = "left" | "right" | "down" | null;
-
-export interface Card {
-  issue: Issue;
-  status: CardStatus;
-  outcome?: string;
-  activityId?: number;
-}
-
-interface TriageCtx {
-  meta: Meta | null;
-  metaError: string | null;
-  sync: SyncStatus | null;
-  refreshSync: () => void;
-  macros: Macro[];
-  reloadMacros: () => Promise<void>;
-
-  viewFilter: ViewFilter;
-  setViewFilter: (f: ViewFilter) => void;
-
-  cards: Card[];
-  index: number;
-  current: Card | null;
-  remaining: number;
-  loading: boolean;
-  swipe: Swipe;
-  busy: boolean;
-
-  sessionTriaged: number;
-  milestone: number;
-
-  next: () => void;
-  prev: () => void;
-  skip: () => void;
-  snooze: () => void;
-  applyMacro: (m: Macro, duplicateOfId?: string) => void;
-  // Set when a macro needs the canonical issue before entering a
-  // duplicate-type state; TriagePage renders the picker.
-  duplicatePrompt: Macro | null;
-  cancelDuplicatePrompt: () => void;
-  applyOps: (ops: Op[], description: string) => Promise<void>;
-  undo: () => void;
-  canUndo: boolean;
-  enrich: () => Promise<void>;
-  enriching: boolean;
-  reloadMeta: () => Promise<void>;
-  setIssueEnrichment: (issueId: string, e: Enrichment) => void;
-  // Background deep-run tracking: notices feed the bell dropdown and toasts;
-  // event buffers feed the live panel; focusIssue jumps back to a card.
-  notices: EnrichNotice[];
-  markNoticesRead: () => void;
-  clearDoneNotices: () => void;
-  activeRunFor: (issueId: string) => string | null;
-  getRunEvents: (runId: string) => EnrichEvent[];
-  eventsTick: number;
-  focusIssue: (issueId: string) => Promise<boolean>;
-}
-
-export interface EnrichNotice {
-  runId: string;
-  issueId: string;
-  identifier: string;
-  status: "running" | "done" | "error";
-  verdict?: string;
-  error?: string;
-  at: string;
-  read: boolean;
-}
-
-const Ctx = createContext<TriageCtx | null>(null);
-
-export function useTriage(): TriageCtx {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useTriage outside provider");
-  return v;
-}
+// The context object, its hook and the shared deck types live in
+// ./triage-context so this module exports only components (react-refresh).
+export type { Card, CardStatus, EnrichNotice, Swipe };
 
 const BATCH = 25;
 const SWIPE_MS = 300;
@@ -596,5 +528,5 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <TriageContext.Provider value={value}>{children}</TriageContext.Provider>;
 }

@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateEnrichInfo } from "@/lib/enrichmode";
-import { useTriage } from "@/lib/store";
-import { useToast } from "@/components/ui/toast";
+import { useTriage } from "@/lib/triage-context";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
