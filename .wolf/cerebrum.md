@@ -23,6 +23,14 @@
 - `goreleaser check` validates `.goreleaser.yaml` offline (`go install github.com/goreleaser/goreleaser/v2@latest`). Use it before claiming a config key exists.
 - `actionlint` is the fast local gate for workflow edits: `go install github.com/rhysd/actionlint/cmd/actionlint@latest`, then run it from the repo root with no args to lint every workflow.
 
+- CI and local must run the same commands. The `go` job in ci.yml calls `make fmt-check / fix-check / vet / test-race / cover-go / vuln` rather than spelling out `go ...` twice, so `make ci` and CI cannot drift.
+- `go run <tool>@<ver>` picks its toolchain from the TOOL's go.mod, not this module's. For a go1.27 module, pin `GOTOOLCHAIN=go$(go list -m -f '{{.GoVersion}}')` or the tool is built with an older Go and cannot parse the source at all.
+- `./...` does not skip `node_modules`. web/node_modules ships a Go file (eslint -> flat-cache -> flatted), so Makefile targets filter it out and .golangci.yml excludes the path.
+- eslint-plugin-react-hooks v7: the flat config is `configs.flat.recommended`. `configs["recommended-latest"]` is still the eslintrc shape and ESLint 10 rejects it ("plugins" as an array of strings).
+- v7 also ships the React Compiler rules (immutability, purity, set-state-in-effect, preserve-manual-memoization, static-components). They are off here: adopting them is a rendering change, not a lint fix.
+- zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
+- Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
+
 ## Do-Not-Repeat
 
 - [2026-08-27] Do not gate MCP key fields on `src.enabled`. Datadog then showed "set keys in Settings" with no inputs. Always render secret rows for sources that declare them.
@@ -34,6 +42,19 @@
 - [2026-08-28] Never create the GitHub Release by hand in the Releases UI while immutable releases are on. It publishes instantly, GoReleaser then cannot attach any archive/SBOM/checksum, the run fails on preflight, and the tag name is burnt permanently — the version must be bumped. Let the workflow create the release.
 - [2026-08-28] Do not treat a green Release run as a published release. Run 33144134442 succeeded, built every archive/SBOM, and created nothing, because a `workflow_dispatch` from `main` took the `--snapshot` branch. Check the run's resolved GoReleaser version (`8aa5c68-snapshot`, `tag: v0.0.0`) and whether the attestation step was skipped.
 
+- [2026-08-28] Do not add an ESLint gate that requires refactoring the whole app. The first type-checked run produced 127 errors; the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) are turned off with a written reason in eslint.config.js so the debt is visible in review, and everything else gates as an error. A lint job that cannot pass is not a CI improvement.
+- [2026-08-28] Do not assume a tool failing locally means CI is broken. `make lint` and `make vuln` both failed here on the go1.26/go1.27 toolchain mismatch while every CI run on main was green - CI uses a prebuilt golangci-lint binary and a setup-go environment. Check the actual run conclusions before reporting a red pipeline.
+
+- [2026-08-28] Do not trust a green local `actionlint`. It shells out to shellcheck for `run:` blocks only when shellcheck is on PATH, and silently skips them otherwise while still exiting 0. GitHub runners have it; dev containers often do not. `make actions-lint` now warns locally and hard-fails in CI when it is missing.
+- [2026-08-28] Do not run zizmor without `--no-online-audits` unless a GitHub token is present. Unauthenticated it does not degrade, it panics with a 401 and performs no audit at all.
+- [2026-08-28] A pre-commit hook must not just call `make ci`. Scope each gate to the staged paths (Go / web / workflows), or a one-line web tweak pays for the Go race suite and people start using --no-verify.
+
+- [2026-08-28] Do not rename a CI job without checking the `Main` ruleset's required status checks. Renaming `web.name` from "Web typecheck and build" to "Web lint, test, build" left the required check waiting for a name nothing reports any more, so PR #16 sat `blocked` with all 14 checks green. Required checks match by exact string, and adding a matrix renames a job too (`Job name (leg)`). Read the ruleset with `curl /repos/OWNER/REPO/rulesets/<id>` before touching a job name.
+
+- [2026-08-28] Never add the `creation` rule to the `Release Tags` tag ruleset (21759998) without first adding a bypass actor. `release.yml`'s `create_tag` path pushes `refs/tags/$RELEASE_TAG` with `GITHUB_TOKEN`, which holds no bypass permission, so restricting creations makes every tag push 403 and the release path dies. Enabling it requires a GitHub App token (`actions/create-github-app-token`) or a deploy key registered as a bypass actor. Same reason `required_signatures` stays off: the runner's `git tag -a` is unsigned.
+
+- [2026-08-28] Do not put `tag_name_pattern` (or any metadata-restriction rule: `branch_name_pattern`, `commit_message_pattern`, `commit_author_email_pattern`) in a ruleset for this repo. It is a user-owned repo, and those rules 422 with `Invalid rule 'tag_name_pattern':`. The structural rules (`creation`, `update`, `deletion`, `non_fast_forward`) do work here - the "Release Tags" ruleset uses three of them. Semver enforcement therefore lives only in release.yml's own regex guard, which is fine: the release trigger glob is `v*.*.*`, so a non-semver tag cannot fire a release.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
@@ -41,3 +62,10 @@
 - [2026-08-27] HTTP server sets `ReadHeaderTimeout`; sqlite parent dir is `0700`. Coverage floor is 70% on `internal/config` + `internal/store` only.
 - [2026-08-28] **Reversed:** manual Release runs may now mint the tag, via a `create_tag` checkbox. The original objection — a `GITHUB_TOKEN` tag push does not re-trigger the tag-push workflow — only applies when the release depends on a *second* trigger. The same job continuing into GoReleaser needs no re-trigger, and the missing re-trigger is what prevents a double release. Superseded: the entry below.
 - [2026-08-28] ~~Manual Release runs publish only when given an explicit existing `v*.*.*` tag input, never by minting a tag in CI.~~ A tag pushed with `GITHUB_TOKEN` would not retrigger the tag-push workflow, so tagging stays a human `git push` step; the no-input dispatch remains a snapshot dry run and uploads `snapshot-dist` for inspection.
+
+- [2026-08-28] CI/CD hardening. Adopted actionlint + zizmor over the workflows, ESLint + Vitest for the frontend, CodeQL (Go + TS, security-extended), OpenSSF Scorecard, and dependency-review. Rejected StepSecurity harden-runner: adding a broad third-party action that proxies all runner egress is itself supply-chain surface, and the repo already pins every action to a SHA.
+- [2026-08-28] Release job runs with caching disabled on setup-go and setup-node. A cache entry poisoned from any branch would otherwise be reachable from signed, attested artifacts. Releases are rare; a cold build is the right trade.
+- [2026-08-28] Release checkout uses persist-credentials: false; the tag push authenticates with an explicit x-access-token URL instead, so the job token never sits in .git/config while GoReleaser runs.
+- [2026-08-28] Optional-tool gates use the `CI` env var as the switch: skip with a warning on a developer machine, hard-fail on a runner. A CI check that silently no-ops when its binary is absent is worse than no check.
+- [2026-08-28] Tag ruleset "Release Tags" (id 21759998, active, ~ALL tags, no bypass actors): deletion + non_fast_forward + update. Tags are Go module versions - once anyone resolves one, sum.golang.org pins its hash forever, so moving or deleting a tag does not un-publish it, it just breaks consumers with a checksum mismatch while the proxy keeps serving the original. `update` is accepted on a tag target (confirmed empirically). `creation` and `required_signatures` are deliberately absent - both would 403 the release workflow.
+- [2026-08-28] Branch ruleset "Main" now requires all 11 CI contexts, not 3. Adding a job to ci.yml without adding its name here leaves the gate unenforced; renaming one leaves a required check that can never report.

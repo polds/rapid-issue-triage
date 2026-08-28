@@ -71,8 +71,10 @@ export function MacrosPage() {
     next.splice(to, 0, moved);
     try {
       await Promise.all(
-        next.map((m, i) =>
-          m.position !== i || m.id === moved.id ? api.updateMacro({ ...m, position: i }) : null,
+        // flatMap, not map+null: Promise.all over an array padded with nulls
+        // works but obscures that unmoved macros are simply not written.
+        next.flatMap((m, i) =>
+          m.position !== i || m.id === moved.id ? [api.updateMacro({ ...m, position: i })] : [],
         ),
       );
       await reloadMacros();

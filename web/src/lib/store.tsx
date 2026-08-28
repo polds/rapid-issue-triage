@@ -430,7 +430,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       }
       const r = await api.enrich(card.issue.id);
       updateCard(card.issue.id, {
-        issue: { ...card.issue, enrichment: r.enrichment as Enrichment },
+        issue: { ...card.issue, enrichment: r.enrichment },
       });
     } catch (e) {
       toast(`Enrichment failed: ${(e as Error).message}`, { tone: "error" });

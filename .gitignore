@@ -10,3 +10,4 @@ node_modules/
 /dist/
 coverage.out
 
+web/coverage/
