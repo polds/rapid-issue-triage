@@ -46,7 +46,8 @@ jobs:
       #      patch bump is unvalidated until a release fires -- and a broken
       #      release burns a tag name permanently under immutable releases.
       #      Every other action here is also used by ci.yml or codeql.yml, so
-      #      the PR's own run is the proof.
+      #      the PR's own run is the proof. The container base image is held
+      #      for the same reason: only release.yml ever builds the image.
       - name: Decide whether this bump can merge itself
         id: decide
         env:
@@ -55,8 +56,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Actions exercised only by release.yml / scorecard.yml.
+          # Actions exercised only by release.yml / scorecard.yml, plus the
+          # Dockerfile base image, which only release.yml ever builds on.
           held_actions="actions/attest anchore/sbom-action goreleaser/goreleaser-action ossf/scorecard-action"
+          held_actions="$held_actions docker/login-action docker/setup-buildx-action"
+          held_actions="$held_actions gcr.io/distroless/static-debian13"
 
           reason=""
           # Fail closed: if the metadata action told us nothing, we cannot
@@ -78,7 +82,7 @@ jobs:
             for dep in $(printf '%s' "$DEPENDENCY_NAMES" | tr ',' ' '); do
               for held in $held_actions; do
                 if [ "$dep" = "$held" ]; then
-                  reason="$dep runs only in release.yml/scorecard.yml, which no pull request executes"
+                  reason="$dep is used only by release.yml/scorecard.yml, which no pull request executes"
                 fi
               done
             done

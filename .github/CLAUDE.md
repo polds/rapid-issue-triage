@@ -10,10 +10,10 @@ part of that rule: they live in the `Makefile` and CI resolves them with
 |---|---|---|
 | `workflows/ci.yml` | 7 jobs: Go, golangci-lint, workflow lint, web, 3-OS binary compile, security, dependency review. | `make ci` |
 | `workflows/codeql.yml` | CodeQL `security-extended` over Go + TypeScript; PR and weekly. | — |
-| `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, optional tag minting. | `goreleaser check` |
+| `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, the GHCR container image, optional tag minting. | `goreleaser check` |
 | `workflows/scorecard.yml` | OpenSSF Scorecard → SARIF in the Security tab. | — |
 | `workflows/dependabot-auto-merge.yml` | Enables auto-merge on patch/minor Dependabot PRs. Not a gate. | — |
-| `dependabot.yml` | Weekly gomod / npm(`/web`) / actions PRs. | — |
+| `dependabot.yml` | Weekly gomod / npm(`/web`) / actions / docker PRs. | — |
 | `zizmor.yml` | Reviewed audit exceptions. Every entry is deliberate; the default is to fix a finding, not list it. | — |
 
 ## ⚠️ Job names are load-bearing
@@ -64,6 +64,45 @@ Because the tag is minted and released inside one job, nothing depends on the
 tag push re-triggering the workflow — a `GITHUB_TOKEN` push deliberately does
 not do that, and that absence is what prevents a double release.
 
+### The container image
+
+`dockers_v2` in `.goreleaser.yaml` builds `ghcr.io/polds/rapid-issue-triage`
+for linux/amd64 + linux/arm64 from the **binaries GoReleaser already built** —
+the root `Dockerfile` only `COPY`s `$TARGETPLATFORM/triage`. Never give it a
+builder stage: the image would then ship a different binary from the one the
+archives and the provenance attest.
+
+- **Images are built in the publish phase**, not the build phase — buildx
+  cannot assemble a multi-platform manifest without pushing it. Anything that
+  skips publishing skips the image; a snapshot run instead builds one
+  `--load`ed image per platform, with a `-linux-amd64` style tag suffix, and
+  pushes nothing.
+- **`docker/setup-buildx-action` is not optional.** The runner's default
+  builder uses the `docker` driver, which cannot build for another platform,
+  and which also rejects `index:`-scoped annotations on a single-platform
+  export ("index annotations not supported for single platform export") — so a
+  local `goreleaser release --snapshot` needs `docker buildx create --use`
+  first. QEMU is *not* needed — nothing executes under the target platform.
+- **OCI metadata lives in two places on purpose.** Labels (image config) come
+  from the `Dockerfile`'s `ARG`s, fed by `build_args`, so a hand-run build gets
+  them too. Annotations (index + per-platform manifests) come from
+  `dockers_v2.annotations`, because no Dockerfile can annotate the manifest
+  that wraps it. `base.name` / `base.digest` are annotations only: GoReleaser
+  reads them off the `FROM` line, so a Dependabot digest bump cannot leave a
+  stale label behind.
+- **`created` uses `.CommitDate`, not `.Date`.** The release builds under
+  `SOURCE_DATE_EPOCH`; a wall-clock label would be the one thing that changes
+  between two builds of the same tag.
+- **`docker_digest` writes `dist/digests.txt`**, which the second
+  `actions/attest` step consumes. It only exists when something was pushed —
+  hence the `RELEASE_TAG != ''` gate, same as the checksums attestation.
+- **Image tags are not immutable** the way the GitHub Release is. A re-run of
+  the same tag overwrites `:0.1.1`. Digests and the attestations that pin them
+  are unaffected.
+- The GHCR package is **private until someone makes it public** once, by hand,
+  in the package settings. `org.opencontainers.image.source` is what links the
+  package to this repo.
+
 ### Release traps (each of these has cost a version number)
 
 - **A green run is not a published release.** `--snapshot` never touches the
@@ -93,7 +132,8 @@ not do that, and that absence is what prevents a double release.
 ## Dependabot commit scopes
 
 The scope names the **repo area, not `deps`**: `build(backend)` (gomod),
-`build(frontend)` / `chore(frontend)` (npm devDeps), `ci(actions)`.
+`build(frontend)` / `chore(frontend)` (npm devDeps), `ci(actions)`,
+`build(docker)` (the `Dockerfile` base image).
 
 Never combine a scoped prefix with `include: "scope"` — Dependabot appends its
 own `(deps)`, producing `build(backend)(deps): …`, which is not a valid
@@ -112,12 +152,14 @@ Two things always wait for a person:
 - **Major bumps.** CI catches the ones that break the build, but a major that
   happens to compile can still change behaviour.
 - **Actions no pull request executes** — `actions/attest`,
-  `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`.
-  They appear only in `release.yml` / `scorecard.yml`; CI lints those files but
-  never runs the action, so a bump is unvalidated until a release fires — and a
-  failed release burns a tag name. Every other action is also used by `ci.yml`
-  or `codeql.yml`, so the PR's own run is the proof. **Keep that list in step
-  with where actions are actually used.**
+  `anchore/sbom-action`, `goreleaser/goreleaser-action`, `ossf/scorecard-action`,
+  `docker/login-action`, `docker/setup-buildx-action` — plus the container base
+  image, `gcr.io/distroless/static-debian13`. They appear only in `release.yml` /
+  `scorecard.yml`; CI lints those files but never runs the action or builds the
+  image, so a bump is unvalidated until a release fires — and a failed release
+  burns a tag name. Every other action is also used by `ci.yml` or `codeql.yml`,
+  so the PR's own run is the proof. **Keep that list in step with where actions
+  are actually used.**
 
 It must use `pull_request_target`: a `pull_request` run from Dependabot gets a
 read-only token that cannot enable auto-merge. That trigger is safe here only

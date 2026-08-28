@@ -327,3 +327,11 @@
 | 22:07 | ran the real `openwolf scan` for the first time this session | .wolf/anatomy.md, .wolf/anatomy-index.json | 121 files indexed, replaces my hand-edit; symbols now via `openwolf find` | ~2k |
 | 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
 | 22:13 | merged main (#37 STATUS.md) - only the "Last updated" line conflicted; cerebrum auto-merged this time, confirming the union-timing finding | .wolf/STATUS.md, .wolf/cerebrum.md | both sides' Done entries kept; cerebrum bullet aligned with #37's wording (anatomy.md named too) | ~3k |
+
+## Session: 2026-08-28 22:38
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:55 | Added the release container: `Dockerfile` (distroless, prebuilt binary, OCI labels from build args) + `dockers_v2`/`docker_digest` in goreleaser | Dockerfile, .goreleaser.yaml, .github/workflows/release.yml | `goreleaser check` + actionlint/shellcheck/zizmor green; images publish to ghcr.io on a release tag only | ~35k |
+| 22:58 | Wired image provenance + base-image maintenance | .github/workflows/release.yml, .github/dependabot.yml, .github/workflows/dependabot-auto-merge.yml | second actions/attest over dist/digests.txt; docker ecosystem added to Dependabot and held from auto-merge | ~6k |
+| 23:02 | Documented the container everywhere it is load-bearing | README.md, SECURITY.md, CLAUDE.md, .github/CLAUDE.md, .wolf/anatomy.md | loopback-publishing rule stated in three places; anatomy regenerated at 123 files | ~8k |
