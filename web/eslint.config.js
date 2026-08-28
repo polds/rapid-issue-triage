@@ -55,6 +55,11 @@ export default tseslint.config(
         { checksVoidReturn: { attributes: false } },
       ],
 
+      // Components declared inside another component are a new identity on
+      // every render, so React unmounts and remounts their subtree (losing
+      // DOM and local state). No call sites do this today; keep it that way.
+      "react-hooks/static-components": "error",
+
       // React Compiler purity: render must be deterministic. `Math.random()`,
       // `Date.now()` and friends belong in an effect, a lazy `useState`
       // initialiser, or an event handler — not in a render body.
@@ -81,13 +86,12 @@ export default tseslint.config(
       // deliberate. Each needs a `void` marker or a rejection handler.
       "@typescript-eslint/no-floating-promises": "off",
 
-      // React Compiler rules new in eslint-plugin-react-hooks v7. They flag
-      // real memoization issues, but adopting them is a rendering change, not
-      // a lint fix. (`react-hooks/purity` is enabled — see the rules above.)
+      // The remaining React Compiler rules new in eslint-plugin-react-hooks
+      // v7. They flag real memoization issues, but adopting them is a
+      // rendering change, not a lint fix.
       "react-hooks/immutability": "off",
       "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/set-state-in-effect": "off",
-      "react-hooks/static-components": "off",
     },
   },
 
