@@ -45,7 +45,7 @@ end try
 		if canceled(err, string(out)) {
 			return "", errPickCanceled
 		}
-		if ee, ok := err.(*exec.ExitError); ok {
+		if ee, ok := errors.AsType[*exec.ExitError](err); ok {
 			return "", fmt.Errorf("folder picker: %s", firstLine(string(ee.Stderr)))
 		}
 		return "", fmt.Errorf("folder picker: %w", err)
@@ -79,7 +79,7 @@ func pickLinux(kind string) (string, error) {
 		if canceled(err, string(out)) {
 			return "", errPickCanceled
 		}
-		if ee, ok := err.(*exec.ExitError); ok && ee.ExitCode() == 1 {
+		if ee, ok := errors.AsType[*exec.ExitError](err); ok && ee.ExitCode() == 1 {
 			return "", errPickCanceled
 		}
 		return "", fmt.Errorf("folder picker: %w", err)

@@ -253,7 +253,7 @@ func (t *Toolbox) datadogLogs(ctx context.Context, query string, hours int) (any
 		},
 		"page": map[string]any{"limit": 10},
 	})
-	req, err := http.NewRequestWithContext(ctx, "POST",
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		fmt.Sprintf("https://api.%s/api/v2/logs/events/search", t.ddSite()), bytes.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -265,7 +265,7 @@ func (t *Toolbox) datadogLogs(ctx context.Context, query string, hours int) (any
 }
 
 func (t *Toolbox) datadogMonitors(ctx context.Context, query string) (any, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET",
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		fmt.Sprintf("https://api.%s/api/v1/monitor/search?query=%s", t.ddSite(), strings.ReplaceAll(query, " ", "%20")), nil)
 	if err != nil {
 		return nil, err

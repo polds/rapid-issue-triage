@@ -249,3 +249,4 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 21:36 | Made golangci-lint CI-green; committing CI/Go 1.27/release | `.golangci.yml`, workflows, Go packages | lint 0 issues; tests + 87.2% cover | ~8k |

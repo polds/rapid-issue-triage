@@ -43,60 +43,75 @@ func (c *Client) Do(ctx context.Context, query string, vars map[string]any, out 
 		return err
 	}
 	var lastErr error
-	for attempt := 0; attempt < 3; attempt++ {
+	for attempt := range 3 {
 		if attempt > 0 {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(time.Duration(attempt) * 2 * time.Second):
+			if err := waitAttempt(ctx, attempt); err != nil {
+				return err
 			}
 		}
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
-		if err != nil {
+		retry, err := c.roundTrip(ctx, body, out)
+		if err != nil && !retry {
 			return err
 		}
-		c.mu.RLock()
-		key := c.apiKey
-		c.mu.RUnlock()
-		// Personal API keys are passed directly, without a Bearer prefix.
-		req.Header.Set("Authorization", key)
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := c.http.Do(req)
-		if err != nil {
-			lastErr = err
-			continue
+		if err == nil {
+			return nil
 		}
-		raw, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
-			lastErr = fmt.Errorf("linear: http %d: %s", resp.StatusCode, truncate(raw, 300))
-			continue
-		}
-		var envelope struct {
-			Data   json.RawMessage `json:"data"`
-			Errors []gqlError      `json:"errors"`
-		}
-		if err := json.Unmarshal(raw, &envelope); err != nil {
-			return fmt.Errorf("linear: decode response (http %d): %w: %s", resp.StatusCode, err, truncate(raw, 300))
-		}
-		if len(envelope.Errors) > 0 {
-			return fmt.Errorf("linear: %s", envelope.Errors[0].Message)
-		}
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("linear: http %d: %s", resp.StatusCode, truncate(raw, 300))
-		}
-		if out != nil {
-			if err := json.Unmarshal(envelope.Data, out); err != nil {
-				return fmt.Errorf("linear: decode data: %w", err)
-			}
-		}
-		return nil
+		lastErr = err
 	}
 	return lastErr
+}
+
+func waitAttempt(ctx context.Context, attempt int) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(time.Duration(attempt) * 2 * time.Second):
+		return nil
+	}
+}
+
+func (c *Client) roundTrip(ctx context.Context, body []byte, out any) (retry bool, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return false, err
+	}
+	c.mu.RLock()
+	key := c.apiKey
+	c.mu.RUnlock()
+	// Personal API keys are passed directly, without a Bearer prefix.
+	req.Header.Set("Authorization", key)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return true, err
+	}
+	raw, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return true, err
+	}
+	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
+		return true, fmt.Errorf("linear: http %d: %s", resp.StatusCode, truncate(raw, 300))
+	}
+	var envelope struct {
+		Data   json.RawMessage `json:"data"`
+		Errors []gqlError      `json:"errors"`
+	}
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return false, fmt.Errorf("linear: decode response (http %d): %w: %s", resp.StatusCode, err, truncate(raw, 300))
+	}
+	if len(envelope.Errors) > 0 {
+		return false, fmt.Errorf("linear: %s", envelope.Errors[0].Message)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("linear: http %d: %s", resp.StatusCode, truncate(raw, 300))
+	}
+	if out != nil {
+		if err := json.Unmarshal(envelope.Data, out); err != nil {
+			return false, fmt.Errorf("linear: decode data: %w", err)
+		}
+	}
+	return false, nil
 }
 
 func truncate(b []byte, n int) string {

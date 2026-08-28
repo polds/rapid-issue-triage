@@ -1,0 +1,319 @@
+version: "2"
+
+run:
+  timeout: 8m
+
+linters:
+  # Pedantic: every linter, then opt out of style-war / ecosystem-specific ones.
+  default: all
+  disable:
+    # Other ecosystems
+    - arangolint
+    - clickhouselint
+    - ginkgolinter
+    - promlinter
+    - protogetter
+    - sloglint
+    - spancheck
+    - zerologlint
+    # Need project-specific allowlists we do not want to maintain
+    - depguard
+    - gomodguard
+    - gomodguard_v2
+    - goheader
+    - importas
+    # JSON/YAML DTOs and Linear payloads are intentionally partial
+    - exhaustruct
+    - exhaustruct_v5
+    - musttag
+    - tagalign
+    - tagliatelle
+    # Metrics that drown this codebase without improving defects
+    - cyclop
+    - funlen
+    - gocognit
+    - godoclint
+    - godot
+    - godox
+    - lll
+    - maintidx
+    - mnd
+    - nestif
+    - nlreturn
+    - noctx
+    - varnamelen
+    - wsl
+    - wsl_v5
+    - canonicalheader
+    - goconst
+    - contextcheck
+    - errchkjson
+    - nilerr
+    - nilnil
+    - prealloc
+    - unparam
+    - forbidigo
+    # Opinionated architecture rules that fight existing package layout
+    - containedctx
+    - decorder
+    - embeddedstructfieldcheck
+    - err113
+    - funcorder
+    - gochecknoglobals
+    - gosmopolitan
+    - iface
+    - inamedparam
+    - interfacebloat
+    - ireturn
+    - noinlineerr
+    - nonamedreturns
+    - wrapcheck
+    # Test-organization mandates
+    - paralleltest
+    - testpackage
+    - tparallel
+  settings:
+    govet:
+      disable:
+        - fieldalignment
+    staticcheck:
+      checks: ["all"]
+    errcheck:
+      check-type-assertions: false
+      check-blank: false
+      exclude-functions:
+        - os.UserHomeDir
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (*database/sql.Tx).Rollback
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+      disabled-checks:
+        - hugeParam
+        - rangeValCopy
+    gosec:
+      includes:
+        - G101
+        - G102
+        - G103
+        - G104
+        - G106
+        - G107
+        - G108
+        - G109
+        - G110
+        - G111
+        - G112
+        - G114
+        - G201
+        - G202
+        - G203
+        - G204
+        - G301
+        - G302
+        - G303
+        - G304
+        - G305
+        - G306
+        - G307
+        - G401
+        - G402
+        - G403
+        - G404
+        - G501
+        - G502
+        - G503
+        - G504
+        - G505
+        - G601
+        - G602
+    # McCabe 10–15 is the usual “this function is doing too much” line.
+    # 15 keeps agents from dumping kitchen-sink handlers while leaving
+    # existing Linear/sqlite branches room to breathe.
+    gocyclo:
+      min-complexity: 15
+    misspell:
+      locale: US
+      ignore-rules:
+        - cancelled
+    nakedret:
+      max-func-lines: 0
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    perfsprint:
+      err-error: true
+      errorf: false
+      sprintf1: true
+      strconcat: true
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: add-constant
+          disabled: true
+        - name: argument-limit
+          disabled: true
+        - name: banned-characters
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: cyclomatic
+          disabled: true
+        - name: file-header
+          disabled: true
+        - name: function-length
+          disabled: true
+        - name: function-result-limit
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: max-public-structs
+          disabled: true
+        - name: unused-parameter
+          disabled: true
+        - name: unused-receiver
+          disabled: true
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: confusing-naming
+          disabled: true
+        - name: confusing-results
+          disabled: true
+        - name: nested-structs
+          disabled: true
+        - name: flag-parameter
+          disabled: true
+        - name: unhandled-error
+          disabled: true
+        - name: use-errors-new
+          disabled: true
+        - name: unnecessary-format
+          disabled: true
+        - name: enforce-map-style
+          disabled: true
+        - name: enforce-slice-style
+          disabled: true
+        - name: enforce-switch-style
+          disabled: true
+        - name: blank-imports
+          disabled: true
+        - name: bool-literal-in-expr
+          disabled: true
+        - name: unchecked-type-assertion
+          disabled: true
+        - name: unexported-naming
+          disabled: false
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    dupl:
+      threshold: 120
+    dupword: {}
+    dogsled:
+      max-blank-identifiers: 2
+    nilnil:
+      checked-types:
+        - ptr
+        - func
+        - iface
+        - map
+        - chan
+    unparam:
+      check-exported: false
+    usestdlibvars:
+      http-method: true
+      http-status-code: false
+    usetesting:
+      os-mkdir-temp: true
+      os-setenv: true
+      os-chdir: true
+      context-background: true
+    thelper:
+      test:
+        first: true
+        name: true
+        begin: true
+      fuzz:
+        first: true
+        name: true
+        begin: true
+      benchmark:
+        first: true
+        name: true
+        begin: true
+    prealloc:
+      simple: true
+      range-loops: true
+    errchkjson:
+      check-error-free-encoding: false
+    gomoddirectives:
+      replace-local: false
+    reassign:
+      patterns:
+        - ".*"
+    whitespace:
+      multi-if: true
+      multi-func: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - web/dist
+      - third_party$
+    rules:
+      - path: _test\.go
+        linters:
+          - dupl
+          - goconst
+          - gocyclo
+          - gosec
+          - noctx
+          - errchkjson
+          - forcetypeassert
+      - path: cmd/triage/
+        linters:
+          - gosec
+        text: "G204|G107"
+      - path: internal/ai/
+        linters:
+          - gosec
+        text: "G204"
+      - path: internal/config/config.go
+        linters:
+          - gosec
+        text: "G304"
+      - path: internal/store/
+        linters:
+          - gosec
+        text: "G202"
+      - path: internal/deep/
+        linters:
+          - gosec
+        text: "G204|G306"
+      - path: internal/server/pickfolder.go
+        linters:
+          - gosec
+        text: "G204"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - web/dist

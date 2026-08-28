@@ -39,7 +39,7 @@ Copy `rapid-triage.example.yaml` to `./rapid-triage.yaml` or
 [Linear IssueFilter](https://developers.linear.app/docs/graphql/filtering)
 passed through verbatim, so any filter Linear supports defines your queue.
 
-Flags: `-config path`, `-addr host:port`, `-no-open`.
+Flags: `-config path`, `-addr host:port`, `-no-open`, `-version`.
 
 ## Keyboard map
 
@@ -71,3 +71,37 @@ cd web && npm run dev          # UI on :5173, proxies /api to :7333
 
 The UI design was generated with Lovable ("Triage Dash") and ported to a
 dependency-light Vite + React + Tailwind v4 SPA embedded via `go:embed`.
+
+## CI
+
+Every push and pull request to `main` runs `.github/workflows/ci.yml`:
+
+- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test ./...`
+- Coverage floor of 70% on `internal/config` and `internal/store`
+- Web `npm ci` + `tsc` + Vite build
+- Compile the embedded binary
+- `govulncheck`, `npm audit --audit-level=high`, and gitleaks
+
+Dependabot opens weekly PRs for Go modules, `web/` npm, and Actions.
+
+Local equivalent: `make ci` (or `make pre-commit`). Install the git hook with `make hooks` so those checks run before each commit.
+`make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
+
+## Releasing
+
+Tag a semver and push. GoReleaser builds CGO-free, reproducible (`-trimpath`, `-buildid=`, `SOURCE_DATE_EPOCH`) binaries for:
+
+- macOS universal (amd64 + arm64)
+- Linux amd64, arm64, 386, armv7, riscv64, ppc64le, s390x, loong64 (plus deb/rpm/apk)
+- Windows amd64, arm64, 386
+- FreeBSD / OpenBSD amd64+arm64, NetBSD amd64
+
+Each archive gets an SPDX SBOM (Syft). The workflow attests SLSA build provenance (`gh attestation verify --owner polds <file>`). Checksums are SHA-256.
+
+```sh
+git tag v0.1.0
+git push upstream v0.1.0
+```
+
+`workflow_dispatch` on the Release workflow runs a snapshot build without
+publishing.

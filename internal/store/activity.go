@@ -43,54 +43,68 @@ func (s *Store) Report() (map[string]any, error) {
 	dayStart := time.Date(nowT.Year(), nowT.Month(), nowT.Day(), 0, 0, 0, 0, nowT.Location())
 	weekStart := dayStart.AddDate(0, 0, -int(nowT.Weekday()))
 
-	count := func(since time.Time, triageOnly bool) (int, error) {
-		q := `SELECT COUNT(*) FROM activity WHERE undone = 0 AND created_at >= ?`
-		if triageOnly {
-			q += ` AND kind IN ('macro', 'edit')`
-		}
-		var n int
-		err := s.db.QueryRow(q, since.UTC().Format(time.RFC3339)).Scan(&n)
-		return n, err
-	}
 	var err error
-	if out["today"], err = count(dayStart, true); err != nil {
+	if out["today"], err = s.activityCount(dayStart, true); err != nil {
 		return nil, err
 	}
-	if out["week"], err = count(weekStart, true); err != nil {
+	if out["week"], err = s.activityCount(weekStart, true); err != nil {
 		return nil, err
 	}
-	if out["allTime"], err = count(time.Time{}, true); err != nil {
+	if out["allTime"], err = s.activityCount(time.Time{}, true); err != nil {
 		return nil, err
 	}
+	if out["byDay"], err = s.activityByDay(dayStart, 14); err != nil {
+		return nil, err
+	}
+	if out["streakDays"], err = s.activityStreak(dayStart); err != nil {
+		return nil, err
+	}
+	if out["byOutcome"], err = s.activityByOutcome(); err != nil {
+		return nil, err
+	}
+	if err := s.activitySpeed(out); err != nil {
+		return nil, err
+	}
+	if out["recent"], err = s.activityFeed(30); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
-	// Per-day triage counts for the last 14 days (local days).
-	days := []map[string]any{}
-	for i := 13; i >= 0; i-- {
+func (s *Store) activityCount(since time.Time, triageOnly bool) (int, error) {
+	q := `SELECT COUNT(*) FROM activity WHERE undone = 0 AND created_at >= ?`
+	if triageOnly {
+		q += ` AND kind IN ('macro', 'edit')`
+	}
+	var n int
+	err := s.db.QueryRow(q, since.UTC().Format(time.RFC3339)).Scan(&n)
+	return n, err
+}
+
+func (s *Store) activityByDay(dayStart time.Time, days int) ([]map[string]any, error) {
+	out := make([]map[string]any, 0, days)
+	for i := days - 1; i >= 0; i-- {
 		d := dayStart.AddDate(0, 0, -i)
-		var n int
-		err := s.db.QueryRow(`SELECT COUNT(*) FROM activity WHERE undone = 0
-		  AND kind IN ('macro','edit') AND created_at >= ? AND created_at < ?`,
-			d.UTC().Format(time.RFC3339), d.AddDate(0, 0, 1).UTC().Format(time.RFC3339)).Scan(&n)
+		n, err := s.triageCountBetween(d, d.AddDate(0, 0, 1))
 		if err != nil {
 			return nil, err
 		}
-		days = append(days, map[string]any{"date": d.Format("2006-01-02"), "count": n})
+		out = append(out, map[string]any{"date": d.Format("2006-01-02"), "count": n})
 	}
-	out["byDay"] = days
+	return out, nil
+}
 
-	// Streak: consecutive days (ending today or yesterday) with >= 1 triage.
+func (s *Store) activityStreak(dayStart time.Time) (int, error) {
 	streak := 0
 	for i := 0; ; i++ {
 		d := dayStart.AddDate(0, 0, -i)
-		var n int
-		if err := s.db.QueryRow(`SELECT COUNT(*) FROM activity WHERE undone = 0
-		  AND kind IN ('macro','edit') AND created_at >= ? AND created_at < ?`,
-			d.UTC().Format(time.RFC3339), d.AddDate(0, 0, 1).UTC().Format(time.RFC3339)).Scan(&n); err != nil {
-			return nil, err
+		n, err := s.triageCountBetween(d, d.AddDate(0, 0, 1))
+		if err != nil {
+			return 0, err
 		}
 		if n == 0 {
 			if i == 0 {
-				continue // today can still be zero without breaking the streak
+				continue
 			}
 			break
 		}
@@ -99,54 +113,63 @@ func (s *Store) Report() (map[string]any, error) {
 			break
 		}
 	}
-	out["streakDays"] = streak
+	return streak, nil
+}
 
-	// Outcome breakdown.
+func (s *Store) triageCountBetween(from, to time.Time) (int, error) {
+	var n int
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM activity WHERE undone = 0
+	  AND kind IN ('macro','edit') AND created_at >= ? AND created_at < ?`,
+		from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339)).Scan(&n)
+	return n, err
+}
+
+func (s *Store) activityByOutcome() (map[string]int, error) {
 	rows, err := s.db.Query(`SELECT outcome, COUNT(*) FROM activity WHERE undone = 0 GROUP BY outcome`)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	byOutcome := map[string]int{}
 	for rows.Next() {
 		var o string
 		var n int
 		if err := rows.Scan(&o, &n); err != nil {
-			rows.Close()
 			return nil, err
 		}
 		byOutcome[o] = n
 	}
-	rows.Close()
-	out["byOutcome"] = byOutcome
+	return byOutcome, rows.Err()
+}
 
-	// Speed stats over triage actions with a recorded duration.
+func (s *Store) activitySpeed(out map[string]any) error {
 	var avg, fastest sql.NullFloat64
-	err = s.db.QueryRow(`SELECT AVG(duration_ms), MIN(duration_ms) FROM activity
+	err := s.db.QueryRow(`SELECT AVG(duration_ms), MIN(duration_ms) FROM activity
 	  WHERE undone = 0 AND kind IN ('macro','edit') AND duration_ms > 0`).Scan(&avg, &fastest)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	out["avgMs"] = avg.Float64
 	out["fastestMs"] = fastest.Float64
+	return nil
+}
 
-	// Recent activity feed.
-	feed := []Activity{}
-	rows, err = s.db.Query(`SELECT id, issue_id, issue_identifier, issue_title, kind, outcome,
+func (s *Store) activityFeed(limit int) ([]Activity, error) {
+	rows, err := s.db.Query(`SELECT id, issue_id, issue_identifier, issue_title, kind, outcome,
 	  COALESCE(detail_json,''), undone, duration_ms, created_at
-	  FROM activity ORDER BY id DESC LIMIT 30`)
+	  FROM activity ORDER BY id DESC LIMIT ?`, limit)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+	feed := []Activity{}
 	for rows.Next() {
 		var a Activity
 		if err := rows.Scan(&a.ID, &a.IssueID, &a.IssueIdentifier, &a.IssueTitle, &a.Kind,
 			&a.Outcome, &a.DetailJSON, &a.Undone, &a.DurationMS, &a.CreatedAt); err != nil {
-			rows.Close()
 			return nil, err
 		}
 		feed = append(feed, a)
 	}
-	rows.Close()
-	out["recent"] = feed
-	return out, nil
+	return feed, rows.Err()
 }

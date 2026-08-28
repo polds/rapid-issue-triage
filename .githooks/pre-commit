@@ -1,0 +1,7 @@
+#!/bin/sh
+# Mirror the CI quality gates that are cheap enough to run on every commit.
+set -e
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+echo "pre-commit: make pre-commit"
+make pre-commit

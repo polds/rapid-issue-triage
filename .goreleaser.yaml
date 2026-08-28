@@ -1,0 +1,198 @@
+version: 2
+
+project_name: triage
+
+before:
+  hooks:
+    - npm --prefix web ci
+    - npm --prefix web run build
+
+gomod:
+  proxy: true
+
+builds:
+  - id: posix
+    main: ./cmd/triage
+    binary: triage
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - freebsd
+      - openbsd
+      - netbsd
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: netbsd
+        goarch: arm64
+    flags:
+      - -trimpath
+      - -buildvcs=false
+    ldflags:
+      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+  - id: windows
+    main: ./cmd/triage
+    binary: triage
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    flags:
+      - -trimpath
+      - -buildvcs=false
+    ldflags:
+      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+  - id: linux-extra
+    main: ./cmd/triage
+    binary: triage
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - "386"
+      - arm
+      - riscv64
+      - ppc64le
+      - s390x
+      - loong64
+    goarm:
+      - "7"
+    flags:
+      - -trimpath
+      - -buildvcs=false
+    ldflags:
+      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+universal_binaries:
+  - id: macos-universal
+    ids:
+      - posix
+    replace: true
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: triage
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "all" }}universal
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    builds_info:
+      mtime: "{{ .CommitDate }}"
+    files:
+      - src: LICENSE
+        dst: LICENSE
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: README.md
+        dst: README.md
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: rapid-triage.example.yaml
+        dst: rapid-triage.example.yaml
+        info:
+          mtime: "{{ .CommitDate }}"
+
+nfpms:
+  - id: linux-packages
+    package_name: triage
+    homepage: https://github.com/polds/rapid-issue-triage
+    description: Local-only Linear issue triage
+    license: Apache-2.0
+    maintainer: Rapid Issue Triage <https://github.com/polds/rapid-issue-triage>
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+    ids:
+      - posix
+      - linux-extra
+    file_name_template: >-
+      {{ .PackageName }}_{{ .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    contents:
+      - src: rapid-triage.example.yaml
+        dst: /usr/share/doc/triage/rapid-triage.example.yaml
+        file_info:
+          mode: 0644
+      - src: README.md
+        dst: /usr/share/doc/triage/README.md
+        file_info:
+          mode: 0644
+
+source:
+  enabled: true
+  name_template: "{{ .ProjectName }}_{{ .Version }}_source"
+  format: tar.gz
+  prefix_template: "{{ .ProjectName }}-{{ .Version }}/"
+
+sboms:
+  - id: archives
+    artifacts: archive
+    documents:
+      - "{{ .ArtifactName }}.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--output", "spdx-json=$document"]
+  - id: source
+    artifacts: source
+    documents:
+      - "{{ .ArtifactName }}.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--output", "spdx-json=$document"]
+  - id: packages
+    artifacts: package
+    documents:
+      - "{{ .ArtifactName }}.spdx.json"
+    cmd: syft
+    args: ["$artifact", "--output", "spdx-json=$document"]
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+  extra_files:
+    - glob: dist/*.spdx.json
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+
+snapshot:
+  version_template: "{{ .ShortCommit }}-snapshot"
+
+release:
+  draft: false
+  prerelease: auto
+  name_template: "{{.Tag}}"
+  extra_files:
+    - glob: dist/*.spdx.json

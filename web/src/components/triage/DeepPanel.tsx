@@ -18,6 +18,7 @@ import {
   Wrench,
 } from "lucide-react";
 import type { DeepReport, EnrichEvent } from "@/lib/types";
+import { linearIssueHref } from "@/lib/linear";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { MarkdownInline } from "@/components/Markdown";
@@ -164,13 +165,7 @@ function summarizeInput(input: unknown): string {
   }
 }
 
-/** Build a Linear issue URL from an identifier, using the current issue's URL as a template. */
-export function linearIssueHref(identifier: string, fromIssueUrl?: string, explicit?: string): string | undefined {
-  if (explicit && /^https?:/.test(explicit)) return explicit;
-  if (!identifier || !fromIssueUrl) return undefined;
-  const m = fromIssueUrl.match(/^(https:\/\/linear\.app\/[^/]+\/issue\/)/);
-  return m ? m[1] + identifier : undefined;
-}
+export { linearIssueHref } from "@/lib/linear";
 
 // formatReportComment renders the deep report as Linear-flavored markdown
 // suitable for posting back as a comment. issueUrl (the current issue's

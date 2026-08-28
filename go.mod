@@ -1,6 +1,6 @@
 module github.com/polds/rapid-issue-triage
 
-go 1.25.0
+go 1.27.0
 
 require (
 	gopkg.in/yaml.v3 v3.0.1

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os/exec"
@@ -138,7 +139,7 @@ func (s *Server) handlePick(w http.ResponseWriter, r *http.Request) {
 
 	path, err := pickPath(req.Kind)
 	if err != nil {
-		if err == errPickCanceled {
+		if errors.Is(err, errPickCanceled) {
 			writeJSON(w, 200, map[string]any{"path": "", "canceled": true})
 			return
 		}

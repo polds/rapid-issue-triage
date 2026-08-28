@@ -69,13 +69,13 @@ type MacroStep struct {
 	StateType  string   `json:"stateType,omitempty"` // fallback: first state of this type for the team
 	// DuplicateOfID names the canonical issue when moving into a
 	// duplicate-type state (Linear requires the relation to exist first).
-	DuplicateOfID string `json:"duplicateOfId,omitempty"`
-	Estimate   *float64 `json:"estimate,omitempty"`
-	ProjectID  string   `json:"projectId,omitempty"`
-	CycleID    string   `json:"cycleId,omitempty"`   // or "active" for the team's current cycle
-	AssigneeID string   `json:"assigneeId,omitempty"` // or "me", or "" with Clear=true
-	Body       string   `json:"body,omitempty"`        // add_comment text
-	Clear      bool     `json:"clear,omitempty"`
+	DuplicateOfID string   `json:"duplicateOfId,omitempty"`
+	Estimate      *float64 `json:"estimate,omitempty"`
+	ProjectID     string   `json:"projectId,omitempty"`
+	CycleID       string   `json:"cycleId,omitempty"`    // or "active" for the team's current cycle
+	AssigneeID    string   `json:"assigneeId,omitempty"` // or "me", or "" with Clear=true
+	Body          string   `json:"body,omitempty"`       // add_comment text
+	Clear         bool     `json:"clear,omitempty"`
 }
 
 type Activity struct {

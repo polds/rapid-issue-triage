@@ -42,12 +42,12 @@ type Project struct {
 }
 
 type Cycle struct {
-	ID       string   `json:"id"`
-	Number   float64  `json:"number"`
-	Name     string   `json:"name"`
-	StartsAt string   `json:"startsAt"`
-	EndsAt   string   `json:"endsAt"`
-	Team     *Ref     `json:"team"`
+	ID       string  `json:"id"`
+	Number   float64 `json:"number"`
+	Name     string  `json:"name"`
+	StartsAt string  `json:"startsAt"`
+	EndsAt   string  `json:"endsAt"`
+	Team     *Ref    `json:"team"`
 }
 
 type Issue struct {

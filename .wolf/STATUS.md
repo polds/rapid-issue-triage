@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-27
+> Last updated: 2026-08-27 (CI green on disk)
 
 ---
 
@@ -11,21 +11,25 @@
 - Claude probe is live (`LookPath` on each settings/meta/enrich request). Missing CLI shows a warning on the issue card and Settings. Advanced → Claude binary path (text + native file picker) stored as `enrich_settings.claudePath`.
 - MCP API keys (Linear, GitHub token, Datadog API+app) can be set on Settings. Stored in sqlite `meta.secrets`. Never returned in full; UI shows last-4 hint. Settings override env/.env.
 - Repository "Browse" opens a native OS folder picker (`POST /api/pick`). Claude path Browse uses the file picker.
+- GitHub Actions CI (fmt, go fix, vet, golangci-lint v2.13, tests, 70% coverage on config/store, web build, binary compile, govulncheck, npm audit, gitleaks), Dependabot, and tagged GoReleaser releases (multi-OS, SPDX SBOM, SLSA provenance, reproducible builds).
+- Go 1.27 + `go fix` modernizers. golangci-lint is pedantic (`default: all`) with **gocyclo min-complexity 15**.
 
 ---
 
 ## 🚀 Next phase
 
-**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up this work; optional follow-ups below.
+**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work; first tagged `v*` release.
 
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
+3. CI is green on `main`; a `v*` tag publishes GitHub Release archives with SBOM + provenance.
 
 ### Closed decisions
 - Secrets live in sqlite, not rewritten `.env` files.
 - Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.
 - Native picker is a Go subprocess (osascript / zenity / PowerShell) because the browser cannot expose filesystem paths.
+- Coverage floor applies to `internal/config` + `internal/store` (70%), not the whole module.
 
 ### Open decisions
 - Whether first-run should boot without `LINEAR_API_KEY` and force a Settings setup screen (still required at process start today).
@@ -34,7 +38,7 @@
 
 ## 📁 Active architecture
 
-- **Stack:** Go HTTP API + sqlite (`~/.rapid-triage/triage.db`) + embedded Vite/React UI
+- **Stack:** Go 1.27 HTTP API + sqlite (`~/.rapid-triage/triage.db`) + embedded Vite/React UI
 - **Key tables / modules:** `meta` (enrich_settings, secrets), `internal/server/settings.go`, `internal/server/pickfolder.go`, `internal/store/secrets.go`
 - **Patterns:** Toolbox never holds raw keys in JSON responses; Probe/Call resolve Settings then env/.env
 
@@ -50,7 +54,8 @@
 
 ```bash
 make build
-go test ./...
+make ci                 # fmt, go fix, vet, lint, test, coverage
+make hooks              # install .githooks/pre-commit
 go run ./cmd/triage -no-open
 cd web && npm run dev   # UI :5173, proxies /api → :7333
 ```

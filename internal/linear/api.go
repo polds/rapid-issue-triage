@@ -2,6 +2,7 @@ package linear
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -210,7 +211,7 @@ func (c *Client) UpdateIssue(ctx context.Context, issueID string, input map[stri
 		return Issue{}, err
 	}
 	if !out.IssueUpdate.Success {
-		return Issue{}, fmt.Errorf("linear: issueUpdate reported failure")
+		return Issue{}, errors.New("linear: issueUpdate reported failure")
 	}
 	return out.IssueUpdate.Issue, nil
 }
@@ -233,7 +234,7 @@ func (c *Client) CreateComment(ctx context.Context, issueID, body string) (strin
 		return "", err
 	}
 	if !out.CommentCreate.Success {
-		return "", fmt.Errorf("linear: commentCreate reported failure")
+		return "", errors.New("linear: commentCreate reported failure")
 	}
 	return out.CommentCreate.Comment.ID, nil
 }
@@ -251,7 +252,7 @@ func (c *Client) DeleteComment(ctx context.Context, commentID string) error {
 		return err
 	}
 	if !out.CommentDelete.Success {
-		return fmt.Errorf("linear: commentDelete reported failure")
+		return errors.New("linear: commentDelete reported failure")
 	}
 	return nil
 }
@@ -277,7 +278,7 @@ func (c *Client) CreateDuplicateRelation(ctx context.Context, issueID, canonical
 		return "", err
 	}
 	if !out.IssueRelationCreate.Success {
-		return "", fmt.Errorf("linear: issueRelationCreate reported failure")
+		return "", errors.New("linear: issueRelationCreate reported failure")
 	}
 	return out.IssueRelationCreate.IssueRelation.ID, nil
 }
@@ -295,7 +296,7 @@ func (c *Client) DeleteIssueRelation(ctx context.Context, relationID string) err
 		return err
 	}
 	if !out.IssueRelationDelete.Success {
-		return fmt.Errorf("linear: issueRelationDelete reported failure")
+		return errors.New("linear: issueRelationDelete reported failure")
 	}
 	return nil
 }

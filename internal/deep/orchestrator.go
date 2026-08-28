@@ -32,13 +32,13 @@ type Orchestrator struct {
 }
 
 type run struct {
-	id      string
-	token   string
-	seq     int64
-	mu      sync.Mutex
-	subs    map[chan store.EnrichEvent]struct{}
-	cancel  context.CancelFunc
-	done    bool
+	id     string
+	token  string
+	seq    int64
+	mu     sync.Mutex
+	subs   map[chan store.EnrichEvent]struct{}
+	cancel context.CancelFunc
+	done   bool
 }
 
 func NewOrchestrator(st *store.Store, tb *Toolbox, command, model string, timeout time.Duration, addr string) (*Orchestrator, error) {
@@ -203,9 +203,7 @@ func (o *Orchestrator) execute(ctx context.Context, r *run, issue store.IssueRow
 	var wg sync.WaitGroup
 	results := make([]scoutResult, len(scouts))
 	for i, sc := range scouts {
-		wg.Add(1)
-		go func(i int, sc scoutDef) {
-			defer wg.Done()
+		wg.Go(func() {
 			start := time.Now()
 			o.emit(r, sc.Name, "status", map[string]any{"state": "running"})
 			prompt := sc.Prompt(issueCtx)
@@ -252,7 +250,7 @@ func (o *Orchestrator) execute(ctx context.Context, r *run, issue store.IssueRow
 				o.emit(r, sc.Name, "result", map[string]any{"output": res.Output, "elapsed": res.Elapsed})
 			}
 			results[i] = res
-		}(i, sc)
+		})
 	}
 	wg.Wait()
 

@@ -6,3 +6,6 @@ node_modules/
 .env
 .env.*
 .wolf/dashboard-token
+/dist/
+coverage.out
+

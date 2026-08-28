@@ -29,6 +29,13 @@ import (
 	"github.com/polds/rapid-issue-triage/internal/syncer"
 )
 
+// Filled by GoReleaser via -ldflags.
+var (
+	version = "dev"
+	commit  = ""
+	date    = ""
+)
+
 func main() {
 	// `triage tool <tool> <args...>`: the shim scouts call. Talks to the
 	// running server's toolbox endpoint; never touches anything directly.
@@ -36,11 +43,23 @@ func main() {
 		os.Exit(toolClient(os.Args[2:]))
 	}
 	var (
-		configPath = flag.String("config", "", "path to config file (default: ./rapid-triage.yaml, ~/.config/rapid-triage/config.yaml)")
-		addr       = flag.String("addr", "", "listen address override (default from config, 127.0.0.1:7333)")
-		noOpen     = flag.Bool("no-open", false, "do not open the browser on startup")
+		configPath  = flag.String("config", "", "path to config file (default: ./rapid-triage.yaml, ~/.config/rapid-triage/config.yaml)")
+		addr        = flag.String("addr", "", "listen address override (default from config, 127.0.0.1:7333)")
+		noOpen      = flag.Bool("no-open", false, "do not open the browser on startup")
+		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Parse()
+	if *showVersion {
+		switch {
+		case commit != "" && date != "":
+			fmt.Printf("triage %s (%s, %s)\n", version, commit, date)
+		case commit != "":
+			fmt.Printf("triage %s (%s)\n", version, commit)
+		default:
+			fmt.Printf("triage %s\n", version)
+		}
+		return
+	}
 
 	if err := run(*configPath, *addr, *noOpen); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
@@ -107,7 +126,11 @@ func run(configPath, addrOverride string, noOpen bool) error {
 	go sy.Run(ctx)
 	go srv.PrefetchEnrichments(ctx, cfg.AI.Prefetch)
 
-	httpSrv := &http.Server{Addr: cfg.Addr, Handler: srv.Handler(ui)}
+	httpSrv := &http.Server{
+		Addr:              cfg.Addr,
+		Handler:           srv.Handler(ui),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
 	errCh := make(chan error, 1)
 	go func() { errCh <- httpSrv.ListenAndServe() }()
 

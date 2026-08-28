@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/polds/rapid-issue-triage/internal/store"
@@ -70,89 +71,97 @@ func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	send := func(ev store.EnrichEvent) {
-		b, _ := json.Marshal(ev)
-		fmt.Fprintf(w, "data: %s\n\n", b)
-	}
-
 	live, unsub := s.orch.Subscribe(runID)
 	defer unsub()
 
 	var lastSeq int64
-	replay := func() bool {
-		events, err := s.store.EnrichEvents(runID, lastSeq)
-		if err != nil {
-			return false
-		}
-		done := false
-		for _, ev := range events {
-			send(ev)
-			lastSeq = ev.Seq
-			if ev.Kind == "status" || ev.Kind == "error" {
-				var p struct {
-					State string `json:"state"`
-					Error string `json:"error"`
-				}
-				_ = json.Unmarshal(ev.Payload, &p)
-				if (ev.Agent == "orchestrator" && p.State == "done") || (ev.Agent == "orchestrator" && ev.Kind == "error") {
-					done = true
-				}
-			}
-		}
-		fl.Flush()
-		return done
-	}
-	if replay() {
+	if s.replayRunEvents(w, fl, runID, &lastSeq) {
 		return
 	}
-
 	if live == nil {
-		// Run not in memory (finished or restarted): poll the store briefly.
-		t := time.NewTicker(1 * time.Second)
-		defer t.Stop()
-		for {
-			select {
-			case <-r.Context().Done():
+		s.pollRunEvents(w, fl, r, runID, &lastSeq)
+		return
+	}
+	s.forwardLiveRunEvents(w, fl, r, runID, live, &lastSeq)
+}
+
+func sendSSE(w http.ResponseWriter, ev store.EnrichEvent) {
+	b, _ := json.Marshal(ev)
+	fmt.Fprintf(w, "data: %s\n\n", b)
+}
+
+func orchestratorFinished(ev store.EnrichEvent) bool {
+	if ev.Agent != "orchestrator" {
+		return false
+	}
+	if ev.Kind == "error" {
+		return true
+	}
+	var p struct {
+		State string `json:"state"`
+		Error string `json:"error"`
+	}
+	_ = json.Unmarshal(ev.Payload, &p)
+	return p.State == "done"
+}
+
+func (s *Server) replayRunEvents(w http.ResponseWriter, fl http.Flusher, runID string, lastSeq *int64) bool {
+	events, err := s.store.EnrichEvents(runID, *lastSeq)
+	if err != nil {
+		return false
+	}
+	done := false
+	for _, ev := range events {
+		sendSSE(w, ev)
+		*lastSeq = ev.Seq
+		if ev.Kind == "status" || ev.Kind == "error" {
+			done = done || orchestratorFinished(ev)
+		}
+	}
+	fl.Flush()
+	return done
+}
+
+func (s *Server) pollRunEvents(w http.ResponseWriter, fl http.Flusher, r *http.Request, runID string, lastSeq *int64) {
+	t := time.NewTicker(1 * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case <-t.C:
+			if s.replayRunEvents(w, fl, runID, lastSeq) {
 				return
-			case <-t.C:
-				if replay() {
-					return
-				}
-				run, err := s.store.GetEnrichRun(runID)
-				if err == nil && run.Status != "running" {
-					replay()
-					return
-				}
+			}
+			run, err := s.store.GetEnrichRun(runID)
+			if err == nil && run.Status != "running" {
+				s.replayRunEvents(w, fl, runID, lastSeq)
+				return
 			}
 		}
 	}
+}
 
+func (s *Server) forwardLiveRunEvents(w http.ResponseWriter, fl http.Flusher, r *http.Request, runID string, live <-chan store.EnrichEvent, lastSeq *int64) {
 	for {
 		select {
 		case <-r.Context().Done():
 			return
 		case ev := <-live:
-			if ev.Seq <= lastSeq {
+			if ev.Seq <= *lastSeq {
 				continue
 			}
-			// A gap means a dropped broadcast; re-sync from the store.
-			if ev.Seq > lastSeq+1 {
-				if replay() {
+			if ev.Seq > *lastSeq+1 {
+				if s.replayRunEvents(w, fl, runID, lastSeq) {
 					return
 				}
 				continue
 			}
-			send(ev)
-			lastSeq = ev.Seq
+			sendSSE(w, ev)
+			*lastSeq = ev.Seq
 			fl.Flush()
-			if ev.Agent == "orchestrator" {
-				var p struct {
-					State string `json:"state"`
-				}
-				_ = json.Unmarshal(ev.Payload, &p)
-				if p.State == "done" || ev.Kind == "error" {
-					return
-				}
+			if orchestratorFinished(ev) {
+				return
 			}
 		}
 	}
@@ -197,7 +206,7 @@ func (s *Server) handleToolbox(w http.ResponseWriter, r *http.Request) {
 	settings := s.store.GetEnrichSettings()
 	src := req.Tool
 	if i := len(src); i > 0 {
-		if dot := indexByte(src, '.'); dot > 0 {
+		if dot := strings.IndexByte(src, '.'); dot > 0 {
 			src = src[:dot]
 		}
 	}
@@ -218,13 +227,4 @@ func (s *Server) handleToolbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 200, map[string]any{"result": result})
-}
-
-func indexByte(s string, b byte) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == b {
-			return i
-		}
-	}
-	return -1
 }

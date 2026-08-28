@@ -162,8 +162,8 @@ func (s *Server) handlePutFilter(w http.ResponseWriter, r *http.Request) {
 	err := s.linear.Issues(r.Context(), req.Filter, 1, func(page []linear.Issue) error {
 		return errStopProbe // one page is enough
 	})
-	if err != nil && err != errStopProbe {
-		writeErr(w, 422, fmt.Errorf("Linear rejected this filter: %w", err))
+	if err != nil && !errors.Is(err, errStopProbe) {
+		writeErr(w, http.StatusUnprocessableEntity, fmt.Errorf("linear rejected this filter: %w", err))
 		return
 	}
 	raw, _ := json.Marshal(req.Filter)
@@ -241,7 +241,7 @@ func (s *Server) handleIssueContext(w http.ResponseWriter, r *http.Request) {
 	if err == nil && cached != "" {
 		if ts, perr := time.Parse(time.RFC3339, fetchedAt); perr == nil && time.Since(ts) < 10*time.Minute {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(cached))
+			_, _ = w.Write([]byte(cached))
 			return
 		}
 	}
@@ -250,7 +250,7 @@ func (s *Server) handleIssueContext(w http.ResponseWriter, r *http.Request) {
 		// Serve stale cache over an error if we have one.
 		if cached != "" {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(cached))
+			_, _ = w.Write([]byte(cached))
 			return
 		}
 		writeErr(w, 502, err)
@@ -259,7 +259,7 @@ func (s *Server) handleIssueContext(w http.ResponseWriter, r *http.Request) {
 	payload, _ := json.Marshal(map[string]any{"comments": comments})
 	_ = s.store.SetIssueContext(id, string(payload))
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(payload)
+	_, _ = w.Write(payload)
 }
 
 type applyRequest struct {

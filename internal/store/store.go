@@ -5,6 +5,7 @@ package store
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ type Store struct {
 }
 
 func Open(path string) (*Store, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return nil, err
 	}
 	db, err := sql.Open("sqlite", path+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)")
@@ -164,7 +165,7 @@ func (s *Store) SetMeta(key, value string) error {
 func (s *Store) GetMeta(key string) (string, error) {
 	var v string
 	err := s.db.QueryRow(`SELECT value FROM meta WHERE key = ?`, key).Scan(&v)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", nil
 	}
 	return v, err
@@ -180,7 +181,7 @@ func mustJSON(v any) string {
 }
 
 func errRow(err error) error {
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("not found")
 	}
 	return err

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -100,7 +101,7 @@ func parseResult(text string) (result, error) {
 		return r, fmt.Errorf("claude reply JSON: %w: %s", err, truncate(m, 300))
 	}
 	if r.Summary == "" {
-		return r, fmt.Errorf("claude reply missing summary")
+		return r, errors.New("claude reply missing summary")
 	}
 	return r, nil
 }

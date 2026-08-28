@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 )
 
 // IssueContentHash fingerprints the content an enrichment was computed from.
@@ -46,7 +47,7 @@ func (s *Store) GetEnrichment(issueID string) (*Enrichment, error) {
 			e.Stale = hash.String != IssueContentHash(row.Title, row.Description)
 		}
 	}
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

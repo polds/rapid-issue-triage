@@ -3,7 +3,6 @@ package store
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -224,5 +223,3 @@ func (s *Store) TeamCounts() (map[string]int, error) {
 	}
 	return out, rows.Err()
 }
-
-var _ = fmt.Sprintf
