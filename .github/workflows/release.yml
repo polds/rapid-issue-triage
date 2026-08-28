@@ -5,6 +5,11 @@ on:
     tags:
       - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing v*.*.* tag to publish. Leave empty for a snapshot dry run (builds and packages, publishes nothing)."
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -15,9 +20,25 @@ jobs:
   release:
     name: GoReleaser
     runs-on: ubuntu-latest
+    env:
+      # Non-empty only when this run should publish a GitHub Release: a v* tag
+      # push, or a manual run that named an existing tag. A manual run with no
+      # tag leaves this empty and stays a snapshot dry run.
+      RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
     steps:
+      - name: Validate release tag
+        if: env.RELEASE_TAG != ''
+        run: |
+          case "$RELEASE_TAG" in
+            v*.*.*) ;;
+            *) echo "::error::RELEASE_TAG '$RELEASE_TAG' is not a v*.*.* tag"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
+          # Publishing runs check out the tag itself so GoReleaser sees it as
+          # the current version; dry runs stay on the dispatched ref.
+          ref: ${{ env.RELEASE_TAG || github.ref }}
           fetch-depth: 0
 
       - name: Reproducible timestamps
@@ -44,16 +65,33 @@ jobs:
         with:
           distribution: goreleaser
           version: "~> v2"
-          args: ${{ github.ref_type == 'tag' && 'release --clean' || 'release --snapshot --clean' }}
+          args: ${{ env.RELEASE_TAG != '' && 'release --clean' || 'release --snapshot --clean' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
+          GORELEASER_CURRENT_TAG: ${{ env.RELEASE_TAG }}
 
       - name: Attest build provenance
-        if: github.ref_type == 'tag'
+        if: env.RELEASE_TAG != ''
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: dist/checksums.txt
 
       # SBOMs are published as release assets; provenance covers every
       # checksums.txt subject (archives, packages, source, SBOMs).
+
+      - name: Upload snapshot artifacts
+        if: env.RELEASE_TAG == ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: snapshot-dist
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*.deb
+            dist/*.rpm
+            dist/*.apk
+            dist/*.spdx.json
+            dist/checksums.txt
+          if-no-files-found: error
+          retention-days: 7

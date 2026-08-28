@@ -103,5 +103,10 @@ git tag v0.1.0
 git push upstream v0.1.0
 ```
 
-`workflow_dispatch` on the Release workflow runs a snapshot build without
-publishing.
+`workflow_dispatch` on the Release workflow takes an optional `tag` input:
+
+- Leave it empty for a snapshot dry run. This builds and packages everything but
+  publishes nothing; the archives, packages, SBOMs, and checksums are uploaded as
+  a `snapshot-dist` workflow artifact so you can inspect them.
+- Set it to an existing `v*.*.*` tag to publish that tag's GitHub Release from a
+  manual run, exactly as a tag push would.
