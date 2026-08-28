@@ -18,6 +18,31 @@ updates:
       prefix: "build(frontend)"
       # npm distinguishes devDependencies; those are tooling, not shipped code.
       prefix-development: "chore(frontend)"
+    ignore:
+      # TypeScript 7 (the Go port, typescript-go) cannot be installed here yet:
+      # `typescript-eslint` — latest 8.68.0 *and* canary 8.68.1-alpha.6, there is
+      # no v9 line — declares `peerDependencies.typescript: ">=4.8.4 <6.1.0"`.
+      # CI runs a plain `npm ci`, so that conflict is a hard install failure, and
+      # the escape hatches (--legacy-peer-deps, --force, an `overrides` entry) are
+      # not acceptable: eslint.config.js is fully type-aware (`projectService`,
+      # recommendedTypeChecked, the no-unsafe-* family), so typescript-eslint
+      # running against a TypeScript it does not support degrades lint silently.
+      #
+      # TS 7 is a reimplementation, not an incremental release, and it is not a
+      # drop-in for this project independently of the peer range. Checked against
+      # 7.0.2, `tsc -b` reports:
+      #   - TS5102: option 'baseUrl' has been removed  (web/tsconfig.json uses it)
+      #   - TS2882: cannot find type declarations for the side-effect import of
+      #     './styles.css' (src/main.tsx; no `vite/client` reference exists)
+      # Both are real work, not flags to flip. TypeScript 5.9.3 reports neither.
+      #
+      # Unblocked by: a `typescript-eslint` release whose typescript peer range
+      # admits >=7. Tracking upstream at
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      # When that ships, drop this entry, bump typescript + typescript-eslint
+      # together, and fix the two tsconfig/ambient-declaration breaks above.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
