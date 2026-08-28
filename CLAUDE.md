@@ -109,7 +109,13 @@ never to *broken*.
   read-only.
 - **Loopback only.** `/api/toolbox` and `/api/pick` spawn subprocesses; that
   is acceptable solely because the listener is `127.0.0.1`. Do not bind
-  elsewhere without revisiting both.
+  elsewhere without revisiting both. The one exception is the released
+  container, which binds `0.0.0.0` *inside its own network namespace* (where
+  loopback reaches nothing) and is documented to be published to the host's
+  loopback only — see the root `Dockerfile` and `SECURITY.md`.
+- **The container ships the release's binary, not its own build.** The
+  `Dockerfile` only `COPY`s the binary GoReleaser already built and attested;
+  adding a builder stage would ship something the provenance does not cover.
 - **Untrusted text is Linear-authored.** Issue bodies and comments render
   through the hand-written `Markdown.tsx`; there is no
   `dangerouslySetInnerHTML` in the tree and ESLint bans the adjacent escape

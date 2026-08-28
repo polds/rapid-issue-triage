@@ -25,3 +25,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci(actions)"
+  # The Dockerfile's pinned base image. Held from auto-merge (see
+  # dependabot-auto-merge.yml): no pull request builds the container image, so
+  # a bump is unvalidated until a release runs.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(docker)"

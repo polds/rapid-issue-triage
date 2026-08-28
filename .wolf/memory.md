@@ -310,6 +310,13 @@
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
 | 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
 
+## Session: 2026-08-28 22:30
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:00 | Fanned out re-enablement of every deferred ESLint rule, one agent + one PR per rule | web/eslint.config.js and callers | PRs #23-#30, #32, #33 all merged; main cb8b536 | ~400k |
+| 22:10 | Verified the composed result, not just the individual PRs | web/ | `--print-config` shows all 12 rules at severity 2; lint 0 errors / 2 warnings; 33/33 tests; clean build | ~15k |
+| 22:50 | Consolidated .wolf notes after the fan-out | .wolf/anatomy.md, cerebrum.md, buglog.json, STATUS.md | 3 new modules indexed, moved symbols corrected, bug-013..015 logged, next phase set to web/dist drift | ~20k |
 ## Session: 2026-08-28 21:45
 
 | Time | Action | File(s) | Outcome | ~Tokens |
@@ -339,3 +346,11 @@
 | 23:12 | Added the SAST / License scan / Code quality jobs and a `deny-licenses` list on dependency-review | .github/workflows/ci.yml | zizmor + actionlint clean (with shellcheck on PATH); required-check count goes 11 -> 14 | ~5k |
 | 23:20 | Wired eslint-plugin-sonarjs v4.2.0 into eslint with a curated disable list; fixed every finding it left | web/eslint.config.js, Markdown.tsx, Macros.tsx, linearfilter.test.ts | Found and fixed real ReDoS in the markdown tokenizer: 2529ms -> 1ms at 160KB | ~10k |
 | 23:30 | Ran the full gate set: ci-go, web-ci, licenses, sast, quality, actions-lint | — | All green; web/dist rebuilt in the same commit per the embed rule | ~6k |
+## Session: 2026-08-28 22:38
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:55 | Added the release container: `Dockerfile` (distroless, prebuilt binary, OCI labels from build args) + `dockers_v2`/`docker_digest` in goreleaser | Dockerfile, .goreleaser.yaml, .github/workflows/release.yml | `goreleaser check` + actionlint/shellcheck/zizmor green; images publish to ghcr.io on a release tag only | ~35k |
+| 22:58 | Wired image provenance + base-image maintenance | .github/workflows/release.yml, .github/dependabot.yml, .github/workflows/dependabot-auto-merge.yml | second actions/attest over dist/digests.txt; docker ecosystem added to Dependabot and held from auto-merge | ~6k |
+| 23:02 | Documented the container everywhere it is load-bearing | README.md, SECURITY.md, CLAUDE.md, .github/CLAUDE.md, .wolf/anatomy.md | loopback-publishing rule stated in three places; anatomy regenerated at 123 files | ~8k |
+| 23:45 | Merged origin/main (container image #40 + web/dist freshness gate #39) into the branch - the PR was `mergeable_state: dirty`, which is why zero CI runs existed | Makefile, README.md, .wolf/{STATUS,anatomy*,buglog} | Resolved 7 conflicts; buglog merged by renumbering my 014-016 to 017-019; added semgrep p/dockerfile now that main ships a Dockerfile | ~9k |

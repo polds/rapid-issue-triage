@@ -259,6 +259,59 @@
     },
     {
       "id": "bug-014",
+      "timestamp": "2026-08-28T22:40:00-07:00",
+      "error_message": "Confetti particles jumped mid-burst: all 60 pieces re-randomized on every re-render",
+      "file": "web/src/components/triage/Confetti.tsx",
+      "root_cause": "The piece array was built inline in the render body with Math.random(), so every parent re-render produced a brand-new set of positions and tones while the burst animation was still running. react-hooks/purity flagged it once the rule was enabled.",
+      "fix": "Extracted rollPieces() and roll the array once per burst (keyed state), so a re-render reuses the same pieces.",
+      "tags": [
+        "react",
+        "eslint",
+        "react-compiler",
+        "purity",
+        "animation"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T22:40:00-07:00"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-08-28T22:45:00-07:00",
+      "error_message": "react-hooks/set-state-in-effect still reported after prefixing the call with `void`",
+      "file": "web/src/lib/store.tsx",
+      "root_cause": "`void f()` only discards the promise, which satisfies no-floating-promises. set-state-in-effect tracks the setter reached from the effect body, so the report is unchanged.",
+      "fix": "Wrapped the work in an effect-owned async IIFE: `void (async () => { ... })()`.",
+      "tags": [
+        "eslint",
+        "react-compiler",
+        "set-state-in-effect",
+        "no-floating-promises",
+        "async"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T22:45:00-07:00"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-08-28T23:10:00-07:00",
+      "error_message": "Reported '7 required checks failing' on PR #26 when nothing was failing",
+      "file": "(session tooling, not a tracked file)",
+      "root_cause": "The check-status script deduplicated check runs by name and kept whichever the API returned first. After a re-run several runs share a name; the stale cancelled ones won. The real state was 8 cancelled + 7 in progress.",
+      "fix": "Keep the latest run per name by started_at before evaluating conclusions.",
+      "tags": [
+        "github",
+        "ci",
+        "check-runs",
+        "tooling"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T23:10:00-07:00"
+    },
+    {
+      "id": "bug-017",
       "timestamp": "2026-08-28T23:20:00-07:00",
       "error_message": "sonarjs/super-linear-regex: Markdown.tsx inline tokenizer went quadratic - 160KB of `\"[a](\".repeat(n)` took ~2.5s to split (4x input -> 17x time)",
       "file": "web/src/components/Markdown.tsx",
@@ -277,7 +330,7 @@
       "last_seen": "2026-08-28T23:20:00-07:00"
     },
     {
-      "id": "bug-015",
+      "id": "bug-018",
       "timestamp": "2026-08-28T23:20:00-07:00",
       "error_message": "`make quality` printed 'no unreachable functions' and exited 0 while deadcode had actually failed with 'packages contain errors / exit status 1'",
       "file": "Makefile",
@@ -295,7 +348,7 @@
       "last_seen": "2026-08-28T23:20:00-07:00"
     },
     {
-      "id": "bug-016",
+      "id": "bug-019",
       "timestamp": "2026-08-28T23:20:00-07:00",
       "error_message": "deadcode reported store.MarkTriaged and QueueFilter.Empty as unreachable; deleting them broke `go fix -diff` and the store tests",
       "file": "Makefile",

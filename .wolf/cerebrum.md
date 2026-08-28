@@ -48,6 +48,10 @@
 - zizmor's cache-poisoning audit flags `actions/setup-node` in any tag-triggered workflow no matter what `cache:` says. It cannot be silenced inline; use `.github/zizmor.yml` `rules.<audit>.ignore`.
 - Frontend coverage floor is scoped in vitest.config.ts to the pure src/lib modules, matching how GO_COVER_PKGS scopes the Go floor. Whole-tree floors would just be diluted by React components.
 
+- `no-explicit-any` was blinding rules that were already enabled. `any` short-circuits type-aware analysis, so enforcing it surfaced 5 pre-existing `no-base-to-string` errors that had been silently unreachable. Expect a type-safety rule to uncover violations of its neighbours.
+- All 12 previously deferred ESLint rules are enforced as of main `cb8b536`. `npm run lint` is 0 errors / 2 warnings (both `exhaustive-deps` in store.tsx).
+- `web/dist` is tracked because `webui.go` embeds it - `go install .../cmd/triage@latest` does not compile without it - and nothing verified it still matched `web/src`. It had been stale since `d7f6ae7`. `make web-dist-check` rebuilds and diffs; two consecutive Vite builds are byte-identical, so the comparison is reproducible.
+
 ### OpenWolf tooling in Claude Code (2026-08-28)
 - **The committed hooks and the CLI are two separate things.** `.wolf/hooks/*.js`
   are tracked, dependency-free ESM run directly by node, so they fire on a fresh
@@ -106,6 +110,39 @@
   `cerebrum.md`. So expect one last manual conflict on any file the moment you
   union it - that is not the rule failing.
 
+### Container releases (2026-08-28)
+- GoReleaser's **`dockers_v2`** (v2.12+) replaces `dockers` + `docker_manifests`.
+  It builds with `docker buildx` in the **publish phase**, not the build phase,
+  because buildx cannot assemble a multi-platform manifest without pushing it.
+  So `--skip=publish` / `goreleaser build` silently produce no image at all, and
+  `release --snapshot` instead builds one `--load`ed image per platform with a
+  `-linux-amd64` tag suffix. That snapshot path is the dry run that proves the
+  Dockerfile before a real tag does.
+- The docker build context is a **temp dir holding only artifacts**, laid out as
+  `<goos>/<goarch>[/v<arm>]/<binary>` — the same string as `$TARGETPLATFORM`, so
+  `COPY $TARGETPLATFORM/triage /usr/bin/` is the whole Dockerfile. Repo files are
+  absent unless listed in `extra_files` (no wildcards).
+- The runner's **default buildx driver is `docker`, which cannot cross-build**;
+  `docker/setup-buildx-action` (docker-container driver) is required. QEMU is
+  not: a COPY-only Dockerfile never executes anything for the target platform.
+- **Labels and annotations are not interchangeable.** Labels live in the image
+  config and can come from Dockerfile `ARG`s (so a hand build gets them);
+  annotations live on the index and the per-platform manifests and can only come
+  from `dockers_v2.annotations`, scoped `index,manifest:`. `.BaseImage` /
+  `.BaseImageDigest` are parsed off the `FROM` line, so pinning the base by
+  digest also makes `org.opencontainers.image.base.*` exact and drift-free.
+- `docker_digest` writes `dist/digests.txt` in checksum-file shape purely so
+  `actions/attest` can take it as `subject-checksums`, giving images the same
+  provenance as the archives. It does not exist on a snapshot run.
+- Distroless `static:nonroot` sets `User=65532` but **no `HOME`**, and Go's
+  `os.UserHomeDir` reads the env, not `/etc/passwd`. Without `ENV HOME=...` the
+  sqlite index lands in a relative `.rapid-triage/`. BuildKit creates a `WORKDIR`
+  owned by the image's current user, which is what makes a named volume at
+  `/data` writable without a `RUN chown` (there is no shell to run one).
+- Docker Hub rate-limits anonymous pulls (429 seen from this container). Another
+  reason the base image comes from `gcr.io`: a rate-limited pull inside a release
+  is a failed release.
+
 ## Do-Not-Repeat
 
 - [2026-08-28] Do not trust `.wolf/anatomy.md` as a complete file list. The
@@ -127,7 +164,7 @@
 - [2026-08-28] Never create the GitHub Release by hand in the Releases UI while immutable releases are on. It publishes instantly, GoReleaser then cannot attach any archive/SBOM/checksum, the run fails on preflight, and the tag name is burnt permanently — the version must be bumped. Let the workflow create the release.
 - [2026-08-28] Do not treat a green Release run as a published release. Run 33144134442 succeeded, built every archive/SBOM, and created nothing, because a `workflow_dispatch` from `main` took the `--snapshot` branch. Check the run's resolved GoReleaser version (`8aa5c68-snapshot`, `tag: v0.0.0`) and whether the attestation step was skipped.
 
-- [2026-08-28] Do not add an ESLint gate that requires refactoring the whole app. The first type-checked run produced 127 errors; the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) are turned off with a written reason in eslint.config.js so the debt is visible in review, and everything else gates as an error. A lint job that cannot pass is not a CI improvement.
+- [2026-08-28] Do not land an ESLint gate whose rules cannot pass, and do not leave the deferral open-ended either. The first type-checked run produced 127 errors, so the noisy families (`no-unsafe-*` from `res.json()` being `any`, `no-floating-promises`, the React Compiler rules) were turned off with a written reason in eslint.config.js to keep the debt visible in review. **Resolved 2026-08-28**: all of them were re-enabled one rule per PR (#23-#30, #32, #33). eslint.config.js now has no deferred block; the only `off` left is the deliberate test-file override for `react-refresh/only-export-components`. Deferring is a staging tactic, not an end state.
 - [2026-08-28] Do not assume a tool failing locally means CI is broken. `make lint` and `make vuln` both failed here on the go1.26/go1.27 toolchain mismatch while every CI run on main was green - CI uses a prebuilt golangci-lint binary and a setup-go environment. Check the actual run conclusions before reporting a red pipeline.
 
 - [2026-08-28] Do not trust a green local `actionlint`. It shells out to shellcheck for `run:` blocks only when shellcheck is on PATH, and silently skips them otherwise while still exiting 0. GitHub runners have it; dev containers often do not. `make actions-lint` now warns locally and hard-fails in CI when it is missing.
@@ -148,6 +185,14 @@
 - [2026-08-28] Do not trust an empty grep without checking the shell's cwd first. A `grep -rn ... .` that "proved" two Go functions had no callers had actually run from `web/` after a previous `cd` moved the working directory. Two functions were deleted on the strength of it and `go fix -diff` caught the breakage.
 - [2026-08-28] Do not interpolate `${{ steps.x.outputs.y }}` into a `run:` block - zizmor flags it `template-injection` and the workflow lint job goes red. The repo's existing pattern is the fix: resolve the value inside the shell, `"semgrep==$(make -s print-SEMGREP_VERSION)"`.
 - [2026-08-28] `.PHONY: print-%` does nothing - make does not expand patterns in .PHONY. Verified by creating a file named `print-TESTVAR`, which shadowed the rule and printed nothing. Use a `FORCE` prerequisite if a pattern rule genuinely needs phony protection; do not list the pattern and assume it is covered.
+
+- [2026-08-28] `void somePromise` does not satisfy `react-hooks/set-state-in-effect`. The rule tracks the setter call, not the floating promise, so `void load()` inside an effect still reports. The shape that passes is an IIFE the effect owns: `void (async () => { ... })()`. Reaching for `void` because `no-floating-promises` is also on will silence one rule and leave the other red.
+
+- [2026-08-28] Do not close and reopen a PR to kick CI, ever. On a *conflicted* PR it does nothing anyway - no merge ref means the `pull_request` workflows never fire and the PR shows **zero** check runs, not failures. The fix is to merge the base branch in and resolve. Reopening #26 only cancelled 8 in-flight runs and dropped the event subscription.
+
+- [2026-08-28] Do not deduplicate check runs by name and keep an arbitrary one. A re-run leaves several runs sharing a name (cancelled, queued, in progress); keeping whichever the API returned first reported "7 required checks failing" on #26 when nothing was failing. Sort by `started_at` and keep the latest run per name.
+
+- [2026-08-28] A worktree-isolated agent must verify its cwd before its first edit. One fan-out agent edited the shared checkout's `web/eslint.config.js` instead of its own worktree, putting an unrelated rule into the main tree. The scratchpad directory is shared across agents too, not per-agent; two agents writing `commit-msg.txt` overwrote each other.
 
 ## Decision Log
 
@@ -179,4 +224,11 @@
 - [2026-08-28] Frontend code quality is `eslint-plugin-sonarjs` at its recommended set with a curated disable list - deliberately the same shape `.golangci.yml` gives the backend. Before it, Go had gocyclo/dupl/unused/revive and the frontend had nothing equivalent. Needs v4+ for ESLint 10 peer support (v3 pins eslint 9 and installs a second copy). `sonarjs/cognitive-complexity` is capped at 25, not 15: cognitive complexity counts nesting harder than cyclomatic does, so the same number is a much tighter cap - 25 is where the largest existing reducer sits, and the rule is still "split the function", never raise it.
 - [2026-08-28] sonarjs earned its place on the first run: `super-linear-regex` found real ReDoS in `Markdown.tsx`, the one file that parses untrusted Linear-authored text. Empirically 4x input -> 17x time. The rules turned off are the ones that fight decisions already made (`void-use` vs. the documented fire-and-forget convention, `pseudo-random` for confetti, `prefer-read-only-props`); the bug-finding rules all stayed on and their findings were fixed.
 - [2026-08-28] `make ci` now includes `quality` and `ci-security` (`vuln` + `sast` + `licenses`), closing a pre-existing gap where `make vuln` was gated by CI but not by `make ci` despite the doc calling it "everything CI gates on". The developer loop stays fast because the pre-commit hook is path-scoped, not because `make ci` is incomplete. `sast` is deliberately absent from the hook: it needs network and ~40s, and a per-commit cost like that is how you teach people to reach for `--no-verify`.
+
+- [2026-08-28] Re-enabled the deferred lint rules as one PR per rule, fanned out to an agent each, rather than one sweeping PR. Every PR touched the same deferred block in eslint.config.js, so conflicts were constant - the cost of the approach. It bought reviewable, revertable diffs and let each agent root-cause its own rule; two real bugs (Confetti re-randomizing mid-burst, 5 hidden `no-base-to-string` errors) were found that a bulk suppression pass would have buried.
+- [2026-08-28] The `web/dist` freshness gate verifies rather than regenerates: it fails a PR whose committed bundle does not match a fresh build, instead of a bot rebuilding and committing. A workflow that pushes generated output needs write access on every PR and turns an unreviewed build into a commit. It rides in the existing `Web lint, test, build` job rather than a new one, so the `Main` ruleset's required contexts do not change. It reads only the worktree column of `git status`, so an already-staged rebuild passes - otherwise the pre-commit hook could never be satisfied.
+- [2026-08-28] The release publishes a container to `ghcr.io/polds/rapid-issue-triage` built from the **binaries GoReleaser already produced**, not from source in a builder stage: a rebuild inside the image would ship bytes that the archives' checksums and the SLSA provenance do not cover. Tags are `{{.Version}}`, `{{.Major}}.{{.Minor}}`, and `latest`, the last two suppressed on a prerelease. No bare `{{.Major}}` tag while the project is 0.x — a moving `0` would promise a compatibility semver does not give before 1.0. Image tags are also *not* immutable the way the GitHub Release is: a re-run overwrites them, which is fine because the attestations pin digests.
+- [2026-08-28] The container binds `0.0.0.0:7333`, which is not a retreat from the loopback-only rule: inside a network namespace, loopback is reachable from nothing, so the bind address stops being the control. The control moves to the port publish — `-p 127.0.0.1:7333:7333` — and is stated in the Dockerfile, README, SECURITY.md, and the root CLAUDE.md non-negotiables, because `/api/pick` and `/api/toolbox` spawn subprocesses.
+- [2026-08-28] The Dockerfile base image joins the Dependabot hold list (`docker` ecosystem, `build(docker)` scope). No pull request builds the image, so a base bump is exactly as unvalidated as a bump to an action that only release.yml runs — same reason, same list.
+- [2026-08-28] A PR whose `mergeable_state` is `dirty` shows **zero** CI runs, not failing ones: a conflicted PR has no merge ref, so `pull_request`-triggered workflows never fire and every required context reads as absent. STATUS.md already recorded this; PR #41 hit it within a minute of being opened. Check `mergeable_state` before concluding CI is slow or a workflow trigger is wrong.
 

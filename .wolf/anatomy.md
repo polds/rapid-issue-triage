@@ -1,25 +1,26 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:09:54.202Z
-> Files: 125 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-28T23:13:50.843Z
+> Files: 126 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitattributes` — Git attributes (~375 tok)
-- `.gitignore` — Git ignore rules (~159 tok)
+- `.gitignore` — Git ignore rules (~158 tok)
 - `.golangci.yml` — Declares is (~1950 tok)
-- `.goreleaser.yaml` (~1431 tok)
+- `.goreleaser.yaml` (~2477 tok)
 - `.tool-versions` (~4 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
-- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2856 tok)
+- `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~2975 tok)
 - `coverage.out` (~6822 tok)
+- `Dockerfile` — Release runtime image: COPYs GoReleaser's prebuilt `$TARGETPLATFORM/triage` onto pinned distroless, OCI labels from build args, binds 0.0.0.0:7333 as uid 65532 with /data as $HOME (~1170 tok)
 - `go.mod` — Go module definition (~151 tok)
 - `go.sum` — Go dependency checksums (~1199 tok)
 - `LICENSE` — Project license (~3029 tok)
-- `Makefile` — Make build targets (~2808 tok)
+- `Makefile` — Make build targets (~3115 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~352 tok)
-- `README.md` — Project documentation (~2244 tok)
-- `SECURITY.md` — Disclosure policy, threat-model scope, release attestation verification (~373 tok)
+- `README.md` — Project documentation (~3005 tok)
+- `SECURITY.md` — Security Policy (~519 tok)
 - `semgrep.sarif` (~85559 tok)
 - `webui.go` — embeds the built frontend (web/dist) into the binary. (~84 tok)
 
@@ -29,16 +30,16 @@
 
 ## .github/
 
-- `CLAUDE.md` — .github/ — CI, security scanning, releases (~2893 tok)
-- `dependabot.yml` — Weekly gomod / npm / actions update PRs, Conventional Commit prefixes scoped by area (~234 tok)
-- `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~441 tok)
+- `CLAUDE.md` — .github/ — CI, security scanning, releases (~3546 tok)
+- `dependabot.yml` — Declares for (~337 tok)
+- `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~453 tok)
 
 ## .github/workflows/
 
-- `ci.yml` — CI: CI (~3360 tok)
+- `ci.yml` — CI: CI (~3645 tok)
 - `codeql.yml` — CodeQL security-extended over Go + TypeScript, PR and weekly (~555 tok)
-- `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~1338 tok)
-- `release.yml` — GoReleaser publish, SBOM, provenance, tag minting (~1676 tok)
+- `dependabot-auto-merge.yml` — Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions (~1439 tok)
+- `release.yml` — CI: Release (~2188 tok)
 - `scorecard.yml` — OpenSSF Scorecard, SARIF to the Security tab (~359 tok)
 
 ## cmd/triage/
@@ -114,7 +115,7 @@
 ## web/
 
 - `CLAUDE.md` — web/ — the embedded frontend (~1411 tok)
-- `eslint.config.js` — ESLint flat configuration (~1874 tok)
+- `eslint.config.js` — ESLint flat configuration (~1902 tok)
 - `index.html` — Rapid Triage (~80 tok)
 - `package.json` — Node.js package manifest (~349 tok)
 - `tsconfig.json` — TypeScript configuration (~130 tok)
