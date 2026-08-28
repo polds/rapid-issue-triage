@@ -92,9 +92,10 @@
   mode here - a duplicated section when a rewrite collides with an append - is
   visible in markdown and repairable. The rationale lives in `.gitattributes`.
 - Still never union: the `.wolf` JSON state files (two appends interleave into
-  invalid JSON that git reports as a *successful* merge) and `STATUS.md`, which
-  is genuinely edited in place rather than appended to. `.gitattributes` names
-  exactly two files; keep it that way.
+  invalid JSON that git reports as a *successful* merge), `STATUS.md`, and the
+  generated `anatomy.md` - all rewritten in place rather than appended to, so
+  union duplicates sections. `.gitattributes` names exactly two files; keep it
+  that way.
 - **A newly added `merge=union` line does not apply to the merge that
   introduces it.** Git reads merge attributes from the `.gitattributes` already
   on the branch you are merging *into*, so the rule only takes effect from the
