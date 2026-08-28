@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateEnrichInfo } from "@/lib/enrichmode";
-import { useTriage } from "@/lib/store";
-import { useToast } from "@/components/ui/toast";
+import { useTriage } from "@/lib/triage-context";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -282,7 +282,7 @@ export function SettingsPage() {
                           className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && newPath.trim()) {
-                              setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
+                              void setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
                               setNewPath("");
                             }
                           }}
@@ -302,7 +302,7 @@ export function SettingsPage() {
                           size="sm"
                           disabled={!newPath.trim()}
                           onClick={() => {
-                            setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
+                            void setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
                             setNewPath("");
                           }}
                         >
@@ -361,7 +361,7 @@ export function SettingsPage() {
               placeholder="/usr/local/bin/claude"
               className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
               onKeyDown={(e) => {
-                if (e.key === "Enter") save({ ...s, claudePath: claudePathDraft.trim() });
+                if (e.key === "Enter") void save({ ...s, claudePath: claudePathDraft.trim() });
               }}
             />
             <Button variant="quiet" size="sm" disabled={picking} onClick={pickClaude}>

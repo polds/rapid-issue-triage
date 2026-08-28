@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Inbox, Loader2, Undo2 } from "lucide-react";
-import { useTriage } from "@/lib/store";
+import { useTriage } from "@/lib/triage-context";
 import { IssueCard } from "@/components/triage/IssueCard";
 import { ActionBar } from "@/components/triage/ActionBar";
 import { QuickEditRow, type PickerKey } from "@/components/triage/QuickEditRow";

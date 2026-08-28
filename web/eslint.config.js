@@ -26,7 +26,7 @@ export default tseslint.config(
     },
     plugins: { "react-refresh": reactRefresh },
     rules: {
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
 
       // Unused code is an error, but a `_` prefix is the explicit
       // "intentionally ignored" marker (rest destructuring, unused args).
@@ -60,6 +60,11 @@ export default tseslint.config(
       // DOM and local state). No call sites do this today; keep it that way.
       "react-hooks/static-components": "error",
 
+      // Fire-and-forget is allowed, but it has to be spelled out: `void` for
+      // calls whose failure is already handled inside the callee, or a real
+      // `.catch()` where the user needs to see it.
+      "@typescript-eslint/no-floating-promises": "error",
+
       // Reassigning a captured binding after render is a React Compiler
       // correctness bug, not a style preference. Kept on.
       "react-hooks/immutability": "error",
@@ -81,14 +86,9 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-explicit-any": "off",
 
-      // ~17 fire-and-forget calls (background refresh, telemetry) that are
-      // deliberate. Each needs a `void` marker or a rejection handler.
-      "@typescript-eslint/no-floating-promises": "off",
-
       // The remaining React Compiler rules new in eslint-plugin-react-hooks
-      // v7. They flag real memoization and purity issues, but adopting them
-      // is a rendering change, not a lint fix.
-      "react-hooks/preserve-manual-memoization": "off",
+      // v7. They flag real purity and effect-ordering issues, but adopting
+      // them is a rendering change, not a lint fix.
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
     },

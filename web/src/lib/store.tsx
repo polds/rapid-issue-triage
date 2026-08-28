@@ -2,9 +2,7 @@
 // action. Actions are optimistic — the card animates away immediately while
 // the Linear call runs; failures roll the card back with an error toast.
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -13,86 +11,20 @@ import {
 } from "react";
 import { api } from "./api";
 import { getEnrichInfo } from "./enrichmode";
-import { useToast } from "@/components/ui/toast";
-import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Issue, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import { useToast } from "@/components/ui/use-toast";
+import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
+import {
+  TriageContext,
+  type Card,
+  type CardStatus,
+  type EnrichNotice,
+  type Swipe,
+  type TriageCtx,
+} from "./triage-context";
 
-export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
-export type Swipe = "left" | "right" | "down" | null;
-
-export interface Card {
-  issue: Issue;
-  status: CardStatus;
-  outcome?: string;
-  activityId?: number;
-}
-
-interface TriageCtx {
-  meta: Meta | null;
-  metaError: string | null;
-  sync: SyncStatus | null;
-  refreshSync: () => void;
-  macros: Macro[];
-  reloadMacros: () => Promise<void>;
-
-  viewFilter: ViewFilter;
-  setViewFilter: (f: ViewFilter) => void;
-
-  cards: Card[];
-  index: number;
-  current: Card | null;
-  remaining: number;
-  loading: boolean;
-  swipe: Swipe;
-  busy: boolean;
-
-  sessionTriaged: number;
-  milestone: number;
-
-  next: () => void;
-  prev: () => void;
-  skip: () => void;
-  snooze: () => void;
-  applyMacro: (m: Macro, duplicateOfId?: string) => void;
-  // Set when a macro needs the canonical issue before entering a
-  // duplicate-type state; TriagePage renders the picker.
-  duplicatePrompt: Macro | null;
-  cancelDuplicatePrompt: () => void;
-  applyOps: (ops: Op[], description: string) => Promise<void>;
-  undo: () => void;
-  canUndo: boolean;
-  enrich: () => Promise<void>;
-  enriching: boolean;
-  reloadMeta: () => Promise<void>;
-  setIssueEnrichment: (issueId: string, e: Enrichment) => void;
-  // Background deep-run tracking: notices feed the bell dropdown and toasts;
-  // event buffers feed the live panel; focusIssue jumps back to a card.
-  notices: EnrichNotice[];
-  markNoticesRead: () => void;
-  clearDoneNotices: () => void;
-  activeRunFor: (issueId: string) => string | null;
-  getRunEvents: (runId: string) => EnrichEvent[];
-  eventsTick: number;
-  focusIssue: (issueId: string) => Promise<boolean>;
-}
-
-export interface EnrichNotice {
-  runId: string;
-  issueId: string;
-  identifier: string;
-  status: "running" | "done" | "error";
-  verdict?: string;
-  error?: string;
-  at: string;
-  read: boolean;
-}
-
-const Ctx = createContext<TriageCtx | null>(null);
-
-export function useTriage(): TriageCtx {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useTriage outside provider");
-  return v;
-}
+// The context object, its hook and the shared deck types live in
+// ./triage-context so this module exports only components (react-refresh).
+export type { Card, CardStatus, EnrichNotice, Swipe };
 
 const BATCH = 25;
 const SWIPE_MS = 300;
@@ -198,14 +130,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
 
   // Initial loads.
   useEffect(() => {
-    loadMeta();
-    reloadMacros();
+    void loadMeta();
+    void reloadMacros();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    fetchMore(true);
+    void fetchMore(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewFilter]);
 
@@ -217,8 +149,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         const st = await api.syncStatus();
         setSync(st);
         if (prevSyncState.current === "syncing" && st.state === "idle") {
-          loadMeta();
-          if (cardsRef.current.length === 0) fetchMore(true);
+          void loadMeta();
+          if (cardsRef.current.length === 0) void fetchMore(true);
         }
         prevSyncState.current = st.state;
       } catch {
@@ -231,7 +163,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   // Buffer refill: keep at least 8 pending cards ahead of the cursor.
   useEffect(() => {
     const ahead = cards.slice(index).filter((c) => c.status === "pending").length;
-    if (!loading && ahead < 8 && cards.length < remaining) fetchMore(false);
+    if (!loading && ahead < 8 && cards.length < remaining) void fetchMore(false);
   }, [cards, index, remaining, loading, fetchMore]);
 
   // Reset the per-card timer whenever the visible card changes.
@@ -261,6 +193,17 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const updateCard = useCallback((issueId: string, patch: Partial<Card>) => {
     setCards((prev) => prev.map((c) => (c.issue.id === issueId ? { ...c, ...patch } : c)));
   }, []);
+
+  // Declared here, above startWatcher, because startWatcher closes over it:
+  // a forward reference stops React Compiler from preserving this memo.
+  const setIssueEnrichment = useCallback(
+    (issueId: string, e: Enrichment) => {
+      setCards((prev) =>
+        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
+      );
+    },
+    [],
+  );
 
   const duration = useCallback(() => Date.now() - viewStart.current, []);
 
@@ -419,15 +362,6 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     undoRef.current = undo;
   }, [undo]);
 
-  const setIssueEnrichment = useCallback(
-    (issueId: string, e: Enrichment) => {
-      setCards((prev) =>
-        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
-      );
-    },
-    [],
-  );
-
   // startWatcher owns the run's SSE for its whole life, independent of which
   // card is on screen — enrichments continue and notify in the background.
   const startWatcher = useCallback(
@@ -466,7 +400,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           finish("error", { error: msg });
           toast(`Enrichment failed: ${identifier} — ${msg}`, { tone: "error" });
         } else if (ev.kind === "status" && ev.payload?.state === "done") {
-          api.latestRun(issueId).then((r) => {
+          void api.latestRun(issueId).then((r) => {
             let verdict: string | undefined;
             if (r.run?.report) {
               try {
@@ -571,7 +505,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshSync = useCallback(() => {
-    api.syncRefresh().then(() => {
+    void api.syncRefresh().then(() => {
       setSync((s) => (s ? { ...s, state: "syncing" } : s));
       prevSyncState.current = "syncing";
     });
@@ -599,5 +533,5 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <TriageContext.Provider value={value}>{children}</TriageContext.Provider>;
 }
