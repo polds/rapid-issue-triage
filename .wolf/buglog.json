@@ -77,6 +77,28 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-28T11:10:00-07:00"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-08-28T11:16:00-07:00",
+      "error_message": "Re-running the Release workflow for existing tag v0.1.0 would have reproduced the identical '422 already_exists' SBOM failure even though the fix was already merged to main (caught from the run's head_sha and cancelled before it built)",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "Publishing an already-existing tag checks out THAT TAG (ref: env.RELEASE_TAG), and GoReleaser reads .goreleaser.yaml from the checked-out tree. Tag v0.1.0 pointed at ff9f062, which predates the PR #13 fix, so the tag's tree still carried the broken release.extra_files glob. A fix merged to main is invisible to a release cut from an older tag. Only the workflow YAML itself comes from the dispatched ref; all repository content comes from the checkout.",
+      "fix": "Cut v0.1.1 from main with create_tag=true instead. That path checks out main (which has the fix) and creates the tag there, so GoReleaser reads the corrected config. A tag whose tree contains a broken release config cannot be repaired by fixing main - only by deleting and re-creating the tag, or by moving to a new version number.",
+      "tags": [
+        "release",
+        "goreleaser",
+        "github-actions",
+        "tags",
+        "checkout",
+        "frozen-config",
+        "immutable-releases"
+      ],
+      "related_bugs": [
+        "bug-004"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T11:16:00-07:00"
     }
   ]
 }
