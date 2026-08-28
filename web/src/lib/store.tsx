@@ -257,6 +257,17 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     setCards((prev) => prev.map((c) => (c.issue.id === issueId ? { ...c, ...patch } : c)));
   }, []);
 
+  // Declared here, above startWatcher, because startWatcher closes over it:
+  // a forward reference stops React Compiler from preserving this memo.
+  const setIssueEnrichment = useCallback(
+    (issueId: string, e: Enrichment) => {
+      setCards((prev) =>
+        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
+      );
+    },
+    [],
+  );
+
   const duration = useCallback(() => Date.now() - viewStart.current, []);
 
   // Animate the card away, then advance. The API call runs concurrently.
@@ -557,15 +568,6 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       for (const es of w.values()) es.close();
     };
   }, []);
-
-  const setIssueEnrichment = useCallback(
-    (issueId: string, e: Enrichment) => {
-      setCards((prev) =>
-        prev.map((c) => (c.issue.id === issueId ? { ...c, issue: { ...c.issue, enrichment: e } } : c)),
-      );
-    },
-    [],
-  );
 
   const refreshSync = useCallback(() => {
     api.syncRefresh().then(() => {
