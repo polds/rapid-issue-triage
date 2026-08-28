@@ -49,6 +49,8 @@
 - [2026-08-28] Do not run zizmor without `--no-online-audits` unless a GitHub token is present. Unauthenticated it does not degrade, it panics with a 401 and performs no audit at all.
 - [2026-08-28] A pre-commit hook must not just call `make ci`. Scope each gate to the staged paths (Go / web / workflows), or a one-line web tweak pays for the Go race suite and people start using --no-verify.
 
+- [2026-08-28] Do not rename a CI job without checking the `Main` ruleset's required status checks. Renaming `web.name` from "Web typecheck and build" to "Web lint, test, build" left the required check waiting for a name nothing reports any more, so PR #16 sat `blocked` with all 14 checks green. Required checks match by exact string, and adding a matrix renames a job too (`Job name (leg)`). Read the ruleset with `curl /repos/OWNER/REPO/rulesets/<id>` before touching a job name.
+
 ## Decision Log
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.

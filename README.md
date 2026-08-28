@@ -84,6 +84,14 @@ Every push and pull request to `main` runs `.github/workflows/ci.yml`:
 - `govulncheck`, `npm audit --audit-level=high`, gitleaks, and a
   dependency review that blocks PRs adding a high-severity advisory
 
+> **Job names are load-bearing.** The `Main` ruleset lists CI job names as
+> required status checks, and GitHub matches them by exact string. Renaming a
+> job whose name is required makes that check sit at "Expected — waiting for
+> status to be reported" forever, silently blocking every PR even when all of
+> CI is green. Adding a matrix to a job renames it too: it then reports once
+> per matrix leg, as `Job name (leg)`. Change a job name and the ruleset in the
+> same PR, or not at all.
+
 `.github/workflows/codeql.yml` runs CodeQL (`security-extended`) over both Go
 and the TypeScript UI on every PR and weekly.
 `.github/workflows/scorecard.yml` reports the repository's OpenSSF Scorecard.

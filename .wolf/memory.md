@@ -289,3 +289,5 @@
 | 19:00 | CI 'Workflow lint' failed: actionlint+shellcheck found SC2129 in release.yml | `.github/workflows/release.yml` | bug-009; local actionlint was blind without shellcheck installed | ~7k |
 | 19:02 | zizmor panicked (401) without --no-online-audits | `Makefile`, `.github/workflows/ci.yml` | bug-010; CI now calls `make actions-lint` so both share one definition | ~6k |
 | 19:06 | Re-verified: make ci green, both optional-tool guards tested in all branches | — | All green | ~4k |
+| 19:22 | Diagnosed PR #16 "stuck" check: ruleset requires renamed job name | `.github/workflows/ci.yml`, ruleset 21707865 | bug-011; not a hung runner - required check can never report | ~6k |
+| 19:25 | Documented the job-name/ruleset coupling in README + cerebrum | `README.md`, `.wolf/cerebrum.md` | Owner updating ruleset to the 11 current names | ~3k |

@@ -197,6 +197,25 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-28T19:05:00-07:00"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-08-28T19:25:00-07:00",
+      "error_message": "PR #16 stuck: required check 'Web typecheck and build' never reported ('Expected - waiting for status to be reported'), mergeable_state=blocked, while all 14 check runs on the head were green",
+      "file": ".github/workflows/ci.yml",
+      "root_cause": "The Main ruleset (id 21707865, active, strict) requires three status checks by exact name: golangci-lint, 'Web typecheck and build', 'Go fmt, vet, test'. This PR renamed the web job to 'Web lint, test, build' because it now lints and tests too. GitHub matches required checks by name, so the old context can never be satisfied and the PR blocks forever. Not a hung runner - the check was never going to run.",
+      "fix": "Owner updates the ruleset to the current job names (and to require the new gates, which were not required at all: Workflow lint, Security, Dependency review, Analyze go, Analyze javascript-typescript, and the three 'Embed UI and compile binary (leg)' matrix names). Documented the trap in README's CI section so a future rename changes the ruleset in the same PR.",
+      "tags": [
+        "github-actions",
+        "rulesets",
+        "required-status-checks",
+        "ci",
+        "job-rename",
+        "matrix"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T19:25:00-07:00"
     }
   ]
 }
