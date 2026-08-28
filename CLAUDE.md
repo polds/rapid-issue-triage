@@ -116,6 +116,14 @@ never to *broken*.
   hatches. Keep it that way.
 - **`gocyclo` caps Go functions at complexity 15.** Split the function; do not
   raise the cap. golangci-lint runs `default: all` with a curated disable list.
+  The frontend has the same shape: eslint takes `eslint-plugin-sonarjs`'s
+  recommended set with a curated disable list, and `sonarjs/cognitive-complexity`
+  caps at 25. Same rule — split the function.
+- **Every dependency license is on an allow-list.** Go modules and the npm
+  packages bundled into `web/dist` all end up redistributed inside one binary.
+  `make licenses` is the gate; widening the policy means editing the
+  `*_LICENSE_ALLOW` / `WEB_LICENSE_DENY` vars in the `Makefile` *and* the
+  `deny-licenses` list in `ci.yml`, with a reason.
 - **`web/dist/` is committed and embedded.** A UI change isn't shipped until
   it's rebuilt in the same commit.
 - **Go JSON tags are the frontend's contract** with `web/src/lib/types.ts`, and
@@ -130,10 +138,14 @@ Use the Makefile; CI calls the same targets, so the two cannot drift.
 | Target | What it does |
 |---|---|
 | `make build` | `npm run build` → `web/dist/`, then compile `./triage` with it embedded. |
-| `make ci` | Everything CI gates on: `ci-go` + `web-ci` + `actions-lint`. |
+| `make ci` | Everything CI gates on: `ci-go` + `web-ci` + `actions-lint` + `quality` + `ci-security`. |
 | `make ci-go` | fmt, `go fix`, vet, golangci-lint, `test -race`, coverage floor. |
-| `make web-ci` | eslint, vitest + coverage floor, vite build. |
+| `make web-ci` | eslint (incl. sonarjs), vitest + coverage floor, vite build. |
 | `make actions-lint` | actionlint + zizmor over the workflows. |
+| `make quality` | `go mod tidy -diff` + whole-program `deadcode`. |
+| `make ci-security` | `vuln` + `sast` + `licenses` — the scanners that need network. |
+| `make sast` | pinned semgrep over Go and TS/React; writes `semgrep.sarif`. |
+| `make licenses` | go-licenses + the npm license policy. `licenses-report` lists them all. |
 | `make vuln` | pinned govulncheck. |
 | `make hooks` | install the path-scoped pre-commit hook. |
 
@@ -179,6 +191,8 @@ file **in the same PR**.
 | a keyboard shortcut | `pages/Triage.tsx`, `HelpOverlay.tsx`, `README.md` |
 | the report/verdict schema | `internal/deep`, `internal/ai`, `reportcomment.go`, `report-format.ts` |
 | a CI job name | the `Main` ruleset's required checks (same PR, or not at all) |
+| add a dependency | nothing — but `make licenses` must still pass, and it will not for a copyleft one |
+| a pinned scanner version | the `Makefile` only; CI reads it back with `make -s print-<VAR>` |
 
 Keep entries terse and edge-focused: purpose, key files, the invariant that
 breaks if you get it wrong. Never restate the README — link to it. Don't

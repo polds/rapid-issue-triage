@@ -201,6 +201,87 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  sast:
+    name: SAST
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # upload-sarif writes the findings into the repository's Security tab.
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      # Same reason as golangci-lint and zizmor: the pin lives in the Makefile
+      # so `make sast` and this job cannot run different scanners. Resolved
+      # inside the shell rather than through a step output -- an expression
+      # interpolated into a run block is a template-injection sink.
+      - name: Install semgrep
+        run: |
+          python -m pip install --disable-pip-version-check \
+            "semgrep==$(make -s print-SEMGREP_VERSION)"
+      # One engine over Go and TSX both, so the backend and the frontend
+      # cannot end up held to different rules. This does not replace CodeQL --
+      # different rule authors find different things, and unlike CodeQL this
+      # one is a make target a contributor can run before pushing.
+      - name: semgrep
+        run: make sast
+      # Runs even when the step above failed: a red job with the findings
+      # hidden from the Security tab is the worst of both.
+      - name: Upload SARIF
+        if: ${{ !cancelled() }}
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  licenses:
+    name: License scan
+    # Both dependency trees end up inside one redistributed binary: Go modules
+    # are compiled in, and npm's production tree is bundled into web/dist,
+    # which go:embed then compiles in too. Dependency review (below) only sees
+    # what a PR changes; this sees the whole graph on every push.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: go-licenses + npm license policy
+        run: make licenses
+
+  quality:
+    name: Code quality
+    # The per-language quality gates live in the jobs that own the language:
+    # golangci-lint (gocyclo, dupl, unused, revive) and Web (eslint + sonarjs).
+    # This job is the two that belong to neither -- whole-program reachability
+    # and module hygiene, both of which need the full build graph.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: go mod tidy + deadcode
+        run: make quality
+
   dependency-review:
     name: Dependency review
     # Blocks a PR that introduces a dependency with a known vulnerability or a
@@ -219,3 +300,13 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
+          # Licenses a PR must not introduce. This is the incremental half of
+          # the policy; the License scan job above holds the whole graph to an
+          # allow-list. A deny-list is the right shape here because dependency
+          # review reports "unknown" for anything it cannot classify, and an
+          # allow-list would fail those instead of the licenses we care about.
+          deny-licenses: >-
+            GPL-1.0-only, GPL-2.0-only, GPL-3.0-only,
+            AGPL-1.0-only, AGPL-3.0-only,
+            LGPL-2.0-only, LGPL-2.1-only, LGPL-3.0-only,
+            SSPL-1.0, BUSL-1.1, CDDL-1.0, EPL-1.0, EPL-2.0

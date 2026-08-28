@@ -2,11 +2,35 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-28 (CI scanning tier: SAST, license scan, code quality; ReDoS fix in Markdown.tsx)
 
 ---
 
 ## ✅ Done
+
+- **CI scanning tier (SAST, licenses, code quality).** Three new `ci.yml` jobs,
+  each calling a `make` target so local and CI cannot drift.
+  - **SAST** — pinned semgrep (`p/golang`, `p/gosec`, `p/typescript`, `p/react`,
+    `p/secrets`) over Go *and* TSX with one engine, SARIF uploaded to the
+    Security tab beside CodeQL's. Installed from PyPI, not the semgrep action,
+    which wants a SaaS token. `make sast`.
+  - **License scan** — `go-licenses` (allow-list, `--confidence_threshold=0.8`)
+    plus a `npm query`-driven policy script: allow-list for the `.prod` tree
+    that `web/dist` bundles and `go:embed` ships, copyleft deny-list for
+    dev-only packages. `dependency-review` carries the same deny-list for what
+    a PR adds. `make licenses`, `make licenses-report`.
+  - **Code quality** — `go mod tidy -diff` + whole-program `deadcode`, the two
+    gates neither golangci-lint nor eslint owns. `make quality`.
+  - Frontend quality parity: `eslint-plugin-sonarjs` v4.2.0 at recommended with
+    a curated disable list, mirroring `.golangci.yml`'s `default: all` shape.
+  - Dependency vulnerability scanning (govulncheck, `npm audit`, dependency
+    review) and secret scanning (gitleaks) were **already present** and were
+    left alone; semgrep's `p/secrets` is a second pass over the latter.
+- **ReDoS fixed in `web/src/components/Markdown.tsx`** — found by the new
+  `sonarjs/super-linear-regex` rule on its first run. The link alternative's
+  `[^)]+` target was unbounded, so `"[a](".repeat(n)` — ordinary issue-body
+  text — rescanned to end-of-string from every `[`. 2529ms → 1ms at 160KB.
+  Cost: a link target with a space or paren renders as text.
 
 - **OpenWolf CLI bootstrap.** `.claude/hooks/session-start.sh` (adopted from a sibling repo) reinstalls the `openwolf` CLI on every remote session start, registered first in `.claude/settings.json` SessionStart. The committed `.wolf/hooks/*.js` always worked; the CLI did not survive the ephemeral container, so `openwolf scan`/`find`/`designqc` were unavailable and anatomy.md drifted. `.claude/rules/openwolf.md` gained the designqc rule.
 - **Agent docs tree.** Root `CLAUDE.md` is now an index (architecture map, non-negotiables, domain vocabulary, maintenance triggers) linking 16 directory-level `CLAUDE.md` files: `cmd/triage`, `internal/` + all 7 packages, `web/` + `src/lib` + `src/pages` + `src/components{,/triage,/ui}`, and `.github/`. Each carries a layout table, invariants, path-scoped lint exclusions, and a "change X -> update Y" block. The OpenWolf block in the root is fenced with `<!-- openwolf:begin/end -->` so `openwolf init` can't clobber the index. `anatomy.md` is now generated, not hand-edited: `.claude/hooks/session-start.sh` reinstalls the `openwolf` CLI each remote session, and `openwolf scan` reindexed the tree at 121 files.
@@ -52,6 +76,12 @@
 ---
 
 ## ⚠️ External blockers (don't block coding)
+
+- **The `Main` ruleset still requires 11 contexts, not 14.** `SAST`,
+  `License scan` and `Code quality` run and report but cannot block a merge
+  until they are added to the ruleset's required checks
+  (`GET/PUT /repos/polds/rapid-issue-triage/rulesets/<id>`). Needs admin;
+  the session that added the jobs had no ruleset API access.
 
 - The existing `triage` process on `127.0.0.1:7333` is still the pre-change binary. Restart it (or `make build && ./triage`) to use these features. A verify instance was run on `:7334`.
 

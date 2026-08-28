@@ -256,6 +256,61 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T22:07:00Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-08-28T23:20:00-07:00",
+      "error_message": "sonarjs/super-linear-regex: Markdown.tsx inline tokenizer went quadratic - 160KB of `\"[a](\".repeat(n)` took ~2.5s to split (4x input -> 17x time)",
+      "file": "web/src/components/Markdown.tsx",
+      "root_cause": "The link alternative `\\[[^\\]]+\\]\\([^)]+\\)` bounded the target with `[^)]+`, which does not exclude the `(` that opens it. With no `)` ahead, every `[` position rescanned to end-of-string. Issue bodies are untrusted Linear-authored text, so this was reachable ReDoS.",
+      "fix": "Bounded both negated classes by their own opening delimiter: `\\[[^\\][\\n]+\\]\\([^()\\s]+\\)`, and matched the same shape in the re-parse regex below it. 2529ms -> 1ms at 160KB. Cost: a link target containing a space or a paren now renders as text.",
+      "tags": [
+        "redos",
+        "regex",
+        "markdown",
+        "untrusted-input",
+        "sonarjs",
+        "frontend"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T23:20:00-07:00"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-08-28T23:20:00-07:00",
+      "error_message": "`make quality` printed 'no unreachable functions' and exited 0 while deadcode had actually failed with 'packages contain errors / exit status 1'",
+      "file": "Makefile",
+      "root_cause": "The target captured the tool's stdout into `$out` and only tested whether it was non-empty. deadcode writes its errors to stderr and exits non-zero, so a build failure produced an empty $out and read as a clean run - exactly the silent no-op the repo's CI conventions forbid.",
+      "fix": "Trap the assignment's exit status: `out=\"$(...)\" || { echo ...; exit 1; }` before the emptiness test. Verified with `sh -c 'out=\"$(false)\" || ...'`.",
+      "tags": [
+        "makefile",
+        "ci",
+        "silent-failure",
+        "deadcode",
+        "shell"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T23:20:00-07:00"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-08-28T23:20:00-07:00",
+      "error_message": "deadcode reported store.MarkTriaged and QueueFilter.Empty as unreachable; deleting them broke `go fix -diff` and the store tests",
+      "file": "Makefile",
+      "root_cause": "`deadcode -test ./cmd/triage` only treats the *listed* packages' tests as entry points. Both functions are exercised by internal/store's own tests, which were therefore invisible. A grep that should have caught it was run from web/ after the shell cwd had changed, and returned nothing.",
+      "fix": "Run `deadcode -test $(GO_PKGS)` over every package so each one's tests count as entry points; both functions were restored. Check the shell's cwd before trusting an empty grep.",
+      "tags": [
+        "deadcode",
+        "makefile",
+        "false-positive",
+        "go",
+        "tooling"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T23:20:00-07:00"
     }
   ]
 }

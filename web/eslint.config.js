@@ -3,6 +3,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import sonarjs from "eslint-plugin-sonarjs";
 
 export default tseslint.config(
   // Build output and generated files are never linted.
@@ -15,6 +16,11 @@ export default tseslint.config(
       js.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
       reactHooks.configs.flat.recommended,
+      // Code quality, in the shape .golangci.yml gives the backend: take the
+      // whole rule set, then opt out of the ones that fight a convention this
+      // project already decided. Without it the frontend has no counterpart
+      // to gocyclo, dupl or the bug-pattern half of golangci-lint.
+      sonarjs.configs.recommended,
     ],
     languageOptions: {
       ecmaVersion: 2022,
@@ -89,6 +95,35 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-unsafe-return": "error",
       "@typescript-eslint/no-explicit-any": "error",
+
+      // --- sonarjs opt-outs. Each one is a decision, not noise triage. ---
+
+      // The `void` prefix is this project's spelling of fire-and-forget (see
+      // no-floating-promises above). sonarjs wants it gone; we require it.
+      "sonarjs/void-use": "off",
+
+      // Props are already `readonly` by contract -- React never writes to
+      // them and nothing here mutates one. Annotating 30-odd interfaces buys
+      // no enforcement the type checker isn't giving.
+      "sonarjs/prefer-read-only-props": "off",
+
+      // Math.random() here drives confetti and card jitter. No secret, token
+      // or id is generated in the browser; every one comes from the server.
+      "sonarjs/pseudo-random": "off",
+
+      // Style calls that go the other way from the existing tree: nested
+      // ternaries for variant lookup, helper closures inside components, and
+      // `.match()` where the result is destructured.
+      "sonarjs/no-nested-conditional": "off",
+      "sonarjs/no-nested-functions": "off",
+      "sonarjs/prefer-regexp-exec": "off",
+      "sonarjs/function-return-type": "off",
+
+      // The frontend counterpart to gocyclo's 15. Cognitive complexity counts
+      // nesting harder than cyclomatic does, so the same number would be a
+      // much tighter cap; 25 is where today's largest reducer sits. Split the
+      // function rather than raising this, exactly as on the Go side.
+      "sonarjs/cognitive-complexity": ["error", 25],
     },
   },
 
@@ -100,12 +135,18 @@ export default tseslint.config(
       // `javascript:alert(1)` is the input under test, not a call site.
       "no-script-url": "off",
       "react-refresh/only-export-components": "off",
+
+      // Test bodies repeat by design: the same string in three cases is three
+      // independent assertions, and two cases that read alike are the point.
+      "sonarjs/no-duplicate-string": "off",
+      "sonarjs/no-identical-functions": "off",
     },
   },
 
-  // Node-side config files run outside the browser and outside tsconfig.
+  // Node-side scripts and config files run outside the browser and outside
+  // tsconfig. `scripts/` is tooling the Makefile calls, not shipped code.
   {
-    files: ["*.config.{js,ts}"],
+    files: ["*.config.{js,ts}", "scripts/**/*.mjs"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: { globals: globals.node },
   },

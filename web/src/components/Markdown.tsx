@@ -5,7 +5,18 @@ import type { ReactNode } from "react";
 
 function inline(text: string): ReactNode[] {
   const parts = text
-    .split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|https?:\/\/\S+|(?<![\w*])\*[^*\n]+\*(?![\w*])|(?<![\w_])_[^_\n]+_(?![\w_]))/g)
+    // Every alternative is bounded by a negated class that excludes its own
+    // opening delimiter, so no start position can scan past the next one.
+    // `[^)]+` for the link target was not: on `"[a](".repeat(n)` -- valid
+    // input a Linear description can carry -- it rescanned to end-of-string
+    // from every `[`, quadratic, ~2.5s at 160KB. Targets with a space or a
+    // paren now render as text instead of a link; that is the documented
+    // "not a full spec implementation" trade, and it is the whole fix.
+    // One deliberate six-way tokenizer: splitting it into separate passes
+    // would mean re-scanning once per inline form and reconciling offsets,
+    // which is more surface than the complexity it removes.
+    // eslint-disable-next-line sonarjs/regex-complexity -- see above
+    .split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\][\n]+\]\([^()\s]+\)|https?:\/\/\S+|(?<![\w*])\*[^*\n]+\*(?![\w*])|(?<!\w)_[^_\n]+_(?!\w))/g)
     .filter(Boolean);
   return parts.map((p, i) => {
     if (p.startsWith("**") && p.endsWith("**"))
@@ -26,7 +37,7 @@ function inline(text: string): ReactNode[] {
           {p.slice(1, -1)}
         </em>
       );
-    const link = p.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    const link = p.match(/^\[([^\][\n]+)\]\(([^()\s]+)\)$/);
     if (link)
       return (
         <a
@@ -154,7 +165,8 @@ export function Markdown({ source }: { source: string }) {
     if (/^\s*\|.*\|\s*$/.test(line)) {
       flushList();
       const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|");
-      (table ??= []).push(cells);
+      table ??= [];
+      table.push(cells);
       return;
     }
     flushTable();
@@ -168,7 +180,7 @@ export function Markdown({ source }: { source: string }) {
       }
       let text = (ol ?? ul)![1];
       let task: "" | "todo" | "done" = "";
-      const t = text.match(/^\[( |x|X)\]\s*(.*)/);
+      const t = text.match(/^\[([ xX])\]\s*(.*)/);
       if (t) {
         task = t[1] === " " ? "todo" : "done";
         text = t[2];

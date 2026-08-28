@@ -23,3 +23,6 @@ web/tsconfig.tsbuildinfo
 
 # Isolated git worktrees created for parallel agent runs; transient.
 .claude/worktrees/
+
+# semgrep SARIF, written by `make sast` and uploaded by CI.
+semgrep.sarif

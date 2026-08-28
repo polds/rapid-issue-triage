@@ -327,3 +327,15 @@
 | 22:07 | ran the real `openwolf scan` for the first time this session | .wolf/anatomy.md, .wolf/anatomy-index.json | 121 files indexed, replaces my hand-edit; symbols now via `openwolf find` | ~2k |
 | 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
 | 22:13 | merged main (#37 STATUS.md) - only the "Last updated" line conflicted; cerebrum auto-merged this time, confirming the union-timing finding | .wolf/STATUS.md, .wolf/cerebrum.md | both sides' Done entries kept; cerebrum bullet aligned with #37's wording (anatomy.md named too) | ~3k |
+
+## Session: 2026-08-28 22:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:50 | Surveyed existing CI coverage against the ask: dep-vuln (govulncheck/npm audit/dep-review) and secret scanning (gitleaks) already present; SAST only via CodeQL; no license scan; no cross-cutting quality gate | .github/workflows/ci.yml, Makefile | Scoped the work to SAST + licenses + code quality, left the two covered ones alone | ~8k |
+| 23:00 | Trialled the candidate scanners before committing to any: semgrep (0 findings, 162 rules, 151 files), go-licenses, npm query, deadcode, knip, jscpd, sonarjs | scratchpad | knip and jscpd dropped as too noisy without a tuning pass; the rest adopted | ~12k |
+| 23:05 | Added `sast`, `licenses{,-go,-web,-report}`, `quality`, `tidy-check`, `deadcode`, `ci-security` targets + pins (SEMGREP 1.175.0, GO_LICENSES v1.6.0, DEADCODE v0.47.0) and the license policy vars | Makefile | `make ci` now genuinely covers what CI gates on, incl. the vuln gap it always had | ~6k |
+| 23:08 | Wrote the npm license policy script on `npm query` rather than adding license-checker | web/scripts/check-licenses.mjs | 9 bundled + 220 dev-only packages, all clear, zero new dependencies | ~4k |
+| 23:12 | Added the SAST / License scan / Code quality jobs and a `deny-licenses` list on dependency-review | .github/workflows/ci.yml | zizmor + actionlint clean (with shellcheck on PATH); required-check count goes 11 -> 14 | ~5k |
+| 23:20 | Wired eslint-plugin-sonarjs v4.2.0 into eslint with a curated disable list; fixed every finding it left | web/eslint.config.js, Markdown.tsx, Macros.tsx, linearfilter.test.ts | Found and fixed real ReDoS in the markdown tokenizer: 2529ms -> 1ms at 160KB | ~10k |
+| 23:30 | Ran the full gate set: ci-go, web-ci, licenses, sast, quality, actions-lint | — | All green; web/dist rebuilt in the same commit per the embed rule | ~6k |
