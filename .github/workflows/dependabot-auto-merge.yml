@@ -1,0 +1,104 @@
+name: Dependabot auto-merge
+
+# `pull_request_target`, not `pull_request`: a workflow triggered by
+# `pull_request` from Dependabot receives a read-only GITHUB_TOKEN, which
+# cannot enable auto-merge. The usual `pull_request_target` hazard is running
+# untrusted PR code with a write token -- this job never checks the PR out. It
+# reads Dependabot's own metadata and calls the merge API, nothing else.
+on: pull_request_target
+
+# Least privilege by default; the one job opts into what it needs.
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    name: Dependabot auto-merge
+    # Not `github.actor`: that is whoever triggered the event, which a human
+    # reopening the PR would satisfy. The PR's author is the real test.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # queue the merge
+      pull-requests: write # enable auto-merge on the PR
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      # Auto-merge is only safe where CI actually exercises the thing being
+      # bumped. Two carve-outs:
+      #
+      #   1. Major bumps always wait for a human. CI does catch the breaking
+      #      ones -- PRs #7/#8/#9 (vite 6->8, typescript 5->7,
+      #      plugin-react 4->6) are all red on "Web lint, test, build" -- but a
+      #      major that happens to compile can still change behaviour, and
+      #      that is a judgement call, not a check.
+      #
+      #   2. Actions that only appear in release.yml or scorecard.yml are
+      #      never executed by a pull request. CI lints those workflow files
+      #      (actionlint + zizmor) but nothing runs the action, so even a
+      #      patch bump is unvalidated until a release fires -- and a broken
+      #      release burns a tag name permanently under immutable releases.
+      #      Every other action here is also used by ci.yml or codeql.yml, so
+      #      the PR's own run is the proof.
+      - name: Decide whether this bump can merge itself
+        id: decide
+        env:
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+          DEPENDENCY_NAMES: ${{ steps.meta.outputs.dependency-names }}
+        run: |
+          set -euo pipefail
+
+          # Actions exercised only by release.yml / scorecard.yml.
+          held_actions="actions/attest anchore/sbom-action goreleaser/goreleaser-action ossf/scorecard-action"
+
+          reason=""
+          # Fail closed: if the metadata action told us nothing, we cannot
+          # reason about the bump, so it is not eligible.
+          if [ -z "$UPDATE_TYPE" ] || [ -z "$DEPENDENCY_NAMES" ]; then
+            reason="Dependabot metadata was empty"
+          fi
+
+          case "$UPDATE_TYPE" in
+            version-update:semver-patch | version-update:semver-minor) ;;
+            *) [ -n "$reason" ] || reason="update type '$UPDATE_TYPE' is not a patch or minor bump" ;;
+          esac
+
+          # Dependabot emits dependency-names comma-separated. Translate to
+          # whitespace and let the default IFS split both lists -- setting
+          # IFS=',' here would also stop $held_actions splitting on spaces,
+          # silently matching nothing.
+          if [ -z "$reason" ]; then
+            for dep in $(printf '%s' "$DEPENDENCY_NAMES" | tr ',' ' '); do
+              for held in $held_actions; do
+                if [ "$dep" = "$held" ]; then
+                  reason="$dep runs only in release.yml/scorecard.yml, which no pull request executes"
+                fi
+              done
+            done
+          fi
+
+          if [ -n "$reason" ]; then
+            echo "merge=false" >> "$GITHUB_OUTPUT"
+            echo "Holding for review: $reason" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "merge=true" >> "$GITHUB_OUTPUT"
+            echo "Auto-merge enabled: $UPDATE_TYPE for $DEPENDENCY_NAMES" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # --auto queues the merge behind the branch ruleset: all 11 required
+      # checks must report success first. This never bypasses a gate, it only
+      # removes the human click at the end. Squash, so the Conventional Commit
+      # subject Dependabot writes becomes the commit on main.
+      - name: Enable auto-merge
+        if: steps.decide.outputs.merge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"

@@ -10,3 +10,18 @@ rules:
       # poison. Node cannot be dropped: .goreleaser.yaml's before-hooks run
       # `npm ci` and `npm run build` to produce the embedded UI.
       - release.yml
+  dangerous-triggers:
+    ignore:
+      # dependabot-auto-merge.yml must use `pull_request_target`: a workflow
+      # triggered by `pull_request` from Dependabot gets a read-only
+      # GITHUB_TOKEN and cannot enable auto-merge. `pull_request_target` is
+      # GitHub's own documented recipe for this, and its token stays writable
+      # because the PR's *base* ref (main) is not Dependabot-created.
+      #
+      # The audit is right in general and wrong here: what makes the trigger
+      # dangerous is running untrusted PR code with a write token. That
+      # workflow has no `actions/checkout` at all -- it never materialises the
+      # PR's tree. It reads Dependabot's metadata action and calls the merge
+      # API, and every value reaching a `run:` block goes through `env:`
+      # rather than `${{ }}` interpolation, so there is no injection sink.
+      - dependabot-auto-merge.yml
