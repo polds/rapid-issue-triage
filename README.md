@@ -26,6 +26,8 @@ export LINEAR_API_KEY=lin_api_...   # Linear → Settings → Security & access 
 ./triage            # opens http://127.0.0.1:7333
 ```
 
+Datadog, GitHub, and Linear keys can also be pasted in **Settings** (stored locally, never sent anywhere except the matching API). If `claude` isn't on your PATH, Settings → Advanced lets you point at the binary.
+
 First run kicks off a full sync of metadata plus every issue matching the
 configured filter (default: workflow state type `triage`). The queue fills as
 the sync streams in.

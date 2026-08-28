@@ -100,17 +100,38 @@ func Load(path string) (Config, error) {
 }
 
 func (c Config) APIKey() (string, error) {
-	if k := os.Getenv("LINEAR_API_KEY"); k != "" {
+	if k := Lookup("LINEAR_API_KEY"); k != "" {
 		return k, nil
 	}
-	// Fall back to .env files: ./.env, then ~/.rapid-triage/.env.
+	return "", fmt.Errorf("LINEAR_API_KEY is not set (env, .env, or Settings); create a personal API key at linear.app → Settings → Security & access → API keys")
+}
+
+// Lookup returns KEY from the process environment, then ./.env, then
+// ~/.rapid-triage/.env. Empty string if unset everywhere.
+func Lookup(key string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
 	home, _ := os.UserHomeDir()
 	for _, p := range []string{".env", filepath.Join(home, ".rapid-triage", ".env")} {
-		if k := envFileValue(p, "LINEAR_API_KEY"); k != "" {
-			return k, nil
+		if v := envFileValue(p, key); v != "" {
+			return v
 		}
 	}
-	return "", fmt.Errorf("LINEAR_API_KEY is not set (env or .env); create a personal API key at linear.app → Settings → Security & access → API keys")
+	return ""
+}
+
+// ExpandHome resolves a leading ~/ to the current user's home directory.
+func ExpandHome(p string) string {
+	if p == "~" {
+		home, _ := os.UserHomeDir()
+		return home
+	}
+	if strings.HasPrefix(p, "~/") {
+		home, _ := os.UserHomeDir()
+		return home + p[1:]
+	}
+	return p
 }
 
 // envFileValue reads KEY=value lines from a dotenv-style file. Comments and

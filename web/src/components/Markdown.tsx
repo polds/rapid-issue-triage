@@ -49,6 +49,11 @@ function inline(text: string): ReactNode[] {
   });
 }
 
+/** Inline markdown (bold, code, links) without wrapping block elements. */
+export function MarkdownInline({ source }: { source: string }) {
+  return <>{inline(source ?? "")}</>;
+}
+
 export function Markdown({ source }: { source: string }) {
   const lines = (source ?? "").split("\n");
   const blocks: ReactNode[] = [];

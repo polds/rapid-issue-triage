@@ -129,7 +129,7 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (*resolved, error) {
 			if gerr != nil {
 				return nil, gerr
 			}
-			body, ferr := formatEnrichmentComment(e)
+			body, ferr := formatEnrichmentComment(e, issue.URL)
 			if ferr != nil {
 				return nil, ferr
 			}

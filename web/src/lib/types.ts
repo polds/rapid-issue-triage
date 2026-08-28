@@ -26,7 +26,7 @@ export interface DeepReport {
   reasoning: string;
   recommendation: string;
   evidence: { source: string; finding: string; link?: string }[];
-  relatedIssues: { identifier: string; title: string; state: string; relation?: string }[];
+  relatedIssues: { identifier: string; title: string; state: string; relation?: string; url?: string }[];
   relatedPRs: { repo: string; number: number; title: string; state: string; url?: string }[];
   sources?: Record<string, { status: string; elapsed: string; error?: string }>;
 }
@@ -35,6 +35,7 @@ export type SourceKey = "repo" | "github" | "linear" | "datadog" | "gcloud";
 
 export interface EnrichSettings {
   mode: "fast" | "deep";
+  claudePath?: string;
   sources: {
     repo: { enabled: boolean; paths: string[] };
     github: { enabled: boolean };
@@ -49,10 +50,27 @@ export interface SourceAvail {
   detail: string;
 }
 
+export interface ClaudeAvail {
+  available: boolean;
+  command: string;
+  path?: string;
+  detail: string;
+}
+
+export interface SecretField {
+  id: string;
+  label: string;
+  set: boolean;
+  source?: "settings" | "env" | string;
+  hint?: string;
+}
+
 export interface EnrichSettingsInfo {
   settings: EnrichSettings;
   availability: Record<SourceKey, SourceAvail>;
   deepReady?: boolean;
+  claude?: ClaudeAvail;
+  secrets?: Partial<Record<SourceKey, SecretField[]>>;
 }
 
 export interface EnrichRun {
@@ -152,6 +170,7 @@ export interface Meta {
   sync: SyncStatus;
   teamCounts: Record<string, number>;
   aiEnabled: boolean;
+  claude?: ClaudeAvail;
 }
 
 export type OpType =

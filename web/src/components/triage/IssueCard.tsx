@@ -15,10 +15,10 @@ import {
 import type { Card } from "@/lib/store";
 import { useTriage } from "@/lib/store";
 import { api } from "@/lib/api";
-import type { Comment, DeepReport, Enrichment } from "@/lib/types";
+import type { Comment, Enrichment } from "@/lib/types";
 import { formatReportComment, LiveRun, ReportView } from "./DeepPanel";
 
-import { Markdown } from "@/components/Markdown";
+import { Markdown, MarkdownInline } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
 import { Button } from "@/components/ui/button";
 import { teamColor, labelColor } from "@/lib/colors";
@@ -41,6 +41,25 @@ const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string 
   },
 };
 
+function ClaudeMissingBanner({ detail }: { detail?: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+      <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning-foreground dark:text-warning" />
+      <div className="min-w-0 text-xs leading-relaxed">
+        <p className="font-semibold text-warning-foreground dark:text-warning">Claude Code CLI not found</p>
+        <p className="mt-1 text-muted-foreground">
+          {detail || "The claude binary is not on PATH."} Enrichment needs Claude Code.
+          Set the path in{" "}
+          <a href="#/settings" className="font-semibold text-foreground underline-offset-2 hover:underline">
+            Settings
+          </a>
+          .
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function AIPanel({ card }: { card: Card }) {
   const { enrich, enriching, meta, activeRunFor, getRunEvents, eventsTick, applyOps } = useTriage();
   const [open, setOpen] = useState(true);
@@ -62,29 +81,38 @@ function AIPanel({ card }: { card: Card }) {
   }, [e?.report, card.issue.id]);
 
   const startEnrich = enrich;
-
-  if (!meta?.aiEnabled && !e) return null;
+  const claudeMissing = Boolean(meta?.claude && !meta.claude.available);
 
   if (runId) {
     return <LiveRun events={events} running />;
   }
 
+  const missingBanner = claudeMissing ? <ClaudeMissingBanner detail={meta?.claude?.detail} /> : null;
+
   if (e?.report) {
     return (
-      <ReportView
-        report={e.report}
-        runId={logRunId}
-        stale={e.stale}
-        onReenrich={startEnrich}
-        onPost={() =>
-          applyOps([{ type: "add_comment", body: formatReportComment(e.report!) }], "AI report posted")
-        }
-        onRegenerate={startEnrich}
-      />
+      <div className="grid gap-3">
+        {missingBanner}
+        <ReportView
+          report={e.report}
+          runId={logRunId}
+          issueUrl={card.issue.url}
+          stale={e.stale}
+          onReenrich={startEnrich}
+          onPost={() =>
+            applyOps(
+              [{ type: "add_comment", body: formatReportComment(e.report!, card.issue.url) }],
+              "AI report posted",
+            )
+          }
+          onRegenerate={startEnrich}
+        />
+      </div>
     );
   }
 
   if (!e) {
+    if (claudeMissing) return missingBanner;
     return (
       <div className="rounded-xl border border-dashed border-border bg-surface-2/60 p-4 text-center">
         <p className="text-xs text-muted-foreground">No AI context yet for this issue.</p>
@@ -98,6 +126,8 @@ function AIPanel({ card }: { card: Card }) {
 
   const v = VERDICT_META[e.verdict] ?? VERDICT_META.actionable;
   return (
+    <div className="grid gap-3">
+      {missingBanner}
     <div className="overflow-hidden rounded-xl border border-primary/25 bg-primary/[0.045]">
       <button
         onClick={() => setOpen((o) => !o)}
@@ -128,10 +158,12 @@ function AIPanel({ card }: { card: Card }) {
               </button>
             </div>
           )}
-          <p className="text-sm leading-relaxed text-muted-foreground">{e.summary}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            <MarkdownInline source={e.summary} />
+          </p>
           {e.reasoning && (
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
-              {e.reasoning}
+              <MarkdownInline source={e.reasoning} />
               {e.confidence > 0 && (
                 <span className="ml-1 font-mono">({Math.round(e.confidence * 100)}%)</span>
               )}
@@ -140,7 +172,7 @@ function AIPanel({ card }: { card: Card }) {
           <div className="mt-2 flex justify-end border-t border-primary/10 pt-2">
             <button
               onClick={startEnrich}
-              disabled={enriching}
+              disabled={enriching || claudeMissing}
               className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-primary hover:underline disabled:opacity-50"
               title="Re-run enrichment with the mode configured in Settings"
             >
@@ -150,6 +182,7 @@ function AIPanel({ card }: { card: Card }) {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

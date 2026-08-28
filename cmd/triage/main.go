@@ -56,16 +56,22 @@ func run(configPath, addrOverride string, noOpen bool) error {
 	if addrOverride != "" {
 		cfg.Addr = addrOverride
 	}
-	apiKey, err := cfg.APIKey()
-	if err != nil {
-		return err
-	}
-
 	st, err := store.Open(cfg.DBPath)
 	if err != nil {
 		return fmt.Errorf("open db %s: %w", cfg.DBPath, err)
 	}
 	defer st.Close()
+
+	apiKey, err := cfg.APIKey()
+	if err != nil {
+		if k := st.GetSecrets().LinearAPIKey; k != "" {
+			apiKey = k
+			err = nil
+		}
+	}
+	if err != nil {
+		return err
+	}
 
 	lc := linear.New(apiKey)
 	sy := syncer.New(lc, st, cfg.Filter, cfg.Sync.Interval, cfg.Sync.PageSize)
@@ -73,19 +79,23 @@ func run(configPath, addrOverride string, noOpen bool) error {
 	var enricher *ai.Enricher
 	var orch *deep.Orchestrator
 	if cfg.AI.Enabled {
-		if _, err := exec.LookPath(cfg.AI.Command); err != nil {
-			log.Printf("ai: %q not found in PATH; AI enrichment disabled", cfg.AI.Command)
-		} else {
-			enricher = &ai.Enricher{Command: cfg.AI.Command, Model: cfg.AI.Model, Timeout: cfg.AI.Timeout}
-			toolbox := &deep.Toolbox{Linear: lc, Store: st}
-			orch, err = deep.NewOrchestrator(st, toolbox, cfg.AI.Command, cfg.AI.Model, cfg.AI.Timeout, cfg.Addr)
-			if err != nil {
-				log.Printf("deep enrichment disabled: %v", err)
-			}
+		cmd := cfg.AI.Command
+		if p := st.GetEnrichSettings().ClaudePath; p != "" {
+			cmd = p
+		}
+		enricher = &ai.Enricher{Command: cmd, Model: cfg.AI.Model, Timeout: cfg.AI.Timeout}
+		toolbox := &deep.Toolbox{Linear: lc, Store: st}
+		orch, err = deep.NewOrchestrator(st, toolbox, cmd, cfg.AI.Model, cfg.AI.Timeout, cfg.Addr)
+		if err != nil {
+			log.Printf("deep enrichment disabled: %v", err)
+			orch = nil
+		}
+		if _, err := exec.LookPath(cmd); err != nil {
+			log.Printf("ai: %q not found; set the Claude path in Settings", cmd)
 		}
 	}
 
-	srv := server.New(st, lc, sy, enricher, orch)
+	srv := server.New(st, lc, sy, enricher, orch, cfg.AI.Command)
 	ui, err := webui.Dist()
 	if err != nil {
 		return fmt.Errorf("embedded ui: %w", err)

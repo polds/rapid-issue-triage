@@ -62,6 +62,7 @@ interface TriageCtx {
   canUndo: boolean;
   enrich: () => Promise<void>;
   enriching: boolean;
+  reloadMeta: () => Promise<void>;
   setIssueEnrichment: (issueId: string, e: Enrichment) => void;
   // Background deep-run tracking: notices feed the bell dropdown and toasts;
   // event buffers feed the live panel; focusIssue jumps back to a card.
@@ -580,6 +581,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
+      reloadMeta: loadMeta,
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
@@ -588,7 +590,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
+      loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
     ],

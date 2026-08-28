@@ -83,6 +83,10 @@ export const api = {
   enrichSettings: () => req<EnrichSettingsInfo>("/api/enrich/settings"),
   putEnrichSettings: (s: EnrichSettings) =>
     req<EnrichSettingsInfo>("/api/enrich/settings", { method: "PUT", body: JSON.stringify(s) }),
+  putSecret: (key: string, value: string) =>
+    req<EnrichSettingsInfo>("/api/secrets", { method: "PUT", body: JSON.stringify({ key, value }) }),
+  pick: (kind: "folder" | "file") =>
+    req<{ path: string; canceled?: boolean }>("/api/pick", { method: "POST", body: JSON.stringify({ kind }) }),
   undo: (activityId: number) =>
     req<{ ok: boolean; issue?: Issue }>(`/api/activity/${activityId}/undo`, { method: "POST" }),
   macros: () => req<{ macros: Macro[] }>("/api/macros"),

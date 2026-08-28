@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/polds/rapid-issue-triage/internal/config"
 	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/store"
 )
@@ -61,19 +62,27 @@ func (t *Toolbox) Probe(settings store.EnrichSettings) Availability {
 			a.Repo = SourceAvail{true, fmt.Sprintf("%d directories", len(settings.Sources.Repo.Paths))}
 		}
 	}
-	// github: gh present + authed
+	// github: gh present + (token or gh auth)
 	if _, err := exec.LookPath("gh"); err != nil {
 		a.GitHub = SourceAvail{false, "gh not in PATH"}
+	} else if tok, src := t.resolve("github_token", "GH_TOKEN", "GITHUB_TOKEN"); tok != "" {
+		a.GitHub = SourceAvail{true, "token set (" + src + ")"}
 	} else if err := exec.Command("gh", "auth", "status").Run(); err != nil {
-		a.GitHub = SourceAvail{false, "gh not authenticated"}
+		a.GitHub = SourceAvail{false, "gh not authenticated — set a token in Settings"}
 	} else {
 		a.GitHub = SourceAvail{true, "gh authenticated"}
 	}
-	a.Linear = SourceAvail{true, "uses this app's API key"}
-	if os.Getenv("DD_API_KEY") != "" && os.Getenv("DD_APP_KEY") != "" {
+	if _, src := t.resolve("linear_api_key", "LINEAR_API_KEY"); src != "" {
+		a.Linear = SourceAvail{true, "API key (" + src + ")"}
+	} else {
+		a.Linear = SourceAvail{false, "set LINEAR_API_KEY in Settings"}
+	}
+	_, ddAPISrc := t.resolve("dd_api_key", "DD_API_KEY")
+	_, ddAppSrc := t.resolve("dd_app_key", "DD_APP_KEY")
+	if ddAPISrc != "" && ddAppSrc != "" {
 		a.Datadog = SourceAvail{true, "DD_API_KEY/DD_APP_KEY set"}
 	} else {
-		a.Datadog = SourceAvail{false, "set DD_API_KEY and DD_APP_KEY in the environment"}
+		a.Datadog = SourceAvail{false, "set Datadog keys in Settings"}
 	}
 	if _, err := exec.LookPath("gcloud"); err != nil {
 		a.Gcloud = SourceAvail{false, "gcloud not in PATH"}
@@ -83,12 +92,21 @@ func (t *Toolbox) Probe(settings store.EnrichSettings) Availability {
 	return a
 }
 
-func expand(p string) string {
-	if strings.HasPrefix(p, "~/") {
-		home, _ := os.UserHomeDir()
-		return home + p[1:]
+func expand(p string) string { return config.ExpandHome(p) }
+
+// resolve prefers a Settings-stored secret over environment variables.
+func (t *Toolbox) resolve(id string, envKeys ...string) (value, source string) {
+	if t.Store != nil {
+		if v := t.Store.Resolve(id); v != "" {
+			return v, "settings"
+		}
 	}
-	return p
+	for _, k := range envKeys {
+		if v := config.Lookup(k); v != "" {
+			return v, "env"
+		}
+	}
+	return "", ""
 }
 
 // Call executes one read-only tool invocation. tool is "<source>.<verb>".
@@ -201,6 +219,9 @@ func (t *Toolbox) linearIssue(ctx context.Context, identifier string) (any, erro
 // gh runs a fixed read-only gh subcommand.
 func (t *Toolbox) gh(ctx context.Context, args ...string) (any, error) {
 	cmd := exec.CommandContext(ctx, "gh", args...)
+	if tok, _ := t.resolve("github_token", "GH_TOKEN", "GITHUB_TOKEN"); tok != "" {
+		cmd.Env = append(os.Environ(), "GH_TOKEN="+tok)
+	}
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	if err := cmd.Run(); err != nil {
@@ -237,8 +258,8 @@ func (t *Toolbox) datadogLogs(ctx context.Context, query string, hours int) (any
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("DD-API-KEY", os.Getenv("DD_API_KEY"))
-	req.Header.Set("DD-APPLICATION-KEY", os.Getenv("DD_APP_KEY"))
+	req.Header.Set("DD-API-KEY", t.ddKey("dd_api_key", "DD_API_KEY"))
+	req.Header.Set("DD-APPLICATION-KEY", t.ddKey("dd_app_key", "DD_APP_KEY"))
 	req.Header.Set("Content-Type", "application/json")
 	return doJSON(req)
 }
@@ -249,9 +270,14 @@ func (t *Toolbox) datadogMonitors(ctx context.Context, query string) (any, error
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("DD-API-KEY", os.Getenv("DD_API_KEY"))
-	req.Header.Set("DD-APPLICATION-KEY", os.Getenv("DD_APP_KEY"))
+	req.Header.Set("DD-API-KEY", t.ddKey("dd_api_key", "DD_API_KEY"))
+	req.Header.Set("DD-APPLICATION-KEY", t.ddKey("dd_app_key", "DD_APP_KEY"))
 	return doJSON(req)
+}
+
+func (t *Toolbox) ddKey(id, env string) string {
+	v, _ := t.resolve(id, env)
+	return v
 }
 
 var gcloudDenied = regexp.MustCompile(`^(create|delete|update|set|add|remove|apply|deploy|patch|import|export|start|stop|restart|resume|suspend|move|copy|attach|detach|enable|disable|reset|rollback|promote|scale|ssh|login)`)

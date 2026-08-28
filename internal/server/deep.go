@@ -6,45 +6,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/polds/rapid-issue-triage/internal/deep"
 	"github.com/polds/rapid-issue-triage/internal/store"
 )
-
-// --- enrichment settings ---
-
-func (s *Server) handleGetEnrichSettings(w http.ResponseWriter, r *http.Request) {
-	settings := s.store.GetEnrichSettings()
-	writeJSON(w, 200, map[string]any{
-		"settings":     settings,
-		"availability": s.orch.Toolbox.Probe(settings),
-		"deepReady":    s.orch != nil,
-	})
-}
-
-func (s *Server) handlePutEnrichSettings(w http.ResponseWriter, r *http.Request) {
-	var settings store.EnrichSettings
-	if err := decodeBody(r, &settings); err != nil {
-		writeErr(w, 400, err)
-		return
-	}
-	if settings.Mode != "deep" {
-		settings.Mode = "fast"
-	}
-	if err := s.store.SetEnrichSettings(settings); err != nil {
-		writeErr(w, 500, err)
-		return
-	}
-	writeJSON(w, 200, map[string]any{
-		"settings":     settings,
-		"availability": s.orch.Toolbox.Probe(settings),
-	})
-}
 
 // --- deep runs ---
 
 func (s *Server) handleDeepEnrich(w http.ResponseWriter, r *http.Request) {
+	s.applyClaudeCommand()
 	if s.orch == nil {
-		writeErr(w, 400, fmt.Errorf("deep enrichment unavailable (claude not found)"))
+		writeErr(w, 400, fmt.Errorf("deep enrichment unavailable (AI disabled)"))
+		return
+	}
+	if st := s.claudeStatus(); !st.Available {
+		writeErr(w, 400, fmt.Errorf("claude not found: %s — set the path in Settings", st.Detail))
 		return
 	}
 	issue, err := s.store.GetIssue(r.PathValue("id"))
@@ -254,5 +228,3 @@ func indexByte(s string, b byte) int {
 	}
 	return -1
 }
-
-var _ = deep.Availability{}

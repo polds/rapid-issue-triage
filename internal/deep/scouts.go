@@ -150,7 +150,7 @@ Reply with ONLY a JSON object of exactly this shape (no fences, no prose):
  "reasoning": "<2-4 sentences: how the evidence supports the verdict; name which sources agree or conflict>",
  "recommendation": "<one concrete next action for the triager, e.g. 'close as done, shipped in atum-core#1456' or 'keep; still reproducing in production logs'>",
  "evidence": [{"source": "<repo|github|linear|datadog|gcloud>", "finding": "<one concrete fact>", "link": "<url or file:line, optional>"}],
- "relatedIssues": [{"identifier": "ABC-123", "title": "...", "state": "...", "relation": "<duplicate|referenced|supersedes>"}],
+ "relatedIssues": [{"identifier": "ABC-123", "title": "...", "state": "...", "relation": "<duplicate|referenced|supersedes>", "url": "<linear issue url if known>"}],
  "relatedPRs": [{"repo": "owner/name", "number": 123, "title": "...", "state": "<merged|open|closed>", "url": "..."}]}
 
 Rules: weigh scout confidence and errors (an errored scout contributes nothing); conflicting evidence lowers confidence and belongs in reasoning; keep evidence to the strongest 3-8 items across all sources; empty arrays are fine.

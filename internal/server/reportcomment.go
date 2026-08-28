@@ -18,11 +18,26 @@ var verdictLabels = map[string]string{
 }
 
 var urlRe = regexp.MustCompile(`^https?://`)
+var linearIssuePrefix = regexp.MustCompile(`^(https://linear\.app/[^/]+/issue/)`)
+
+func linearIssueURL(identifier, fromIssueURL, explicit string) string {
+	if urlRe.MatchString(explicit) {
+		return explicit
+	}
+	if identifier == "" || fromIssueURL == "" {
+		return ""
+	}
+	m := linearIssuePrefix.FindStringSubmatch(fromIssueURL)
+	if len(m) != 2 {
+		return ""
+	}
+	return m[1] + identifier
+}
 
 // formatEnrichmentComment renders an issue's stored enrichment as Linear
 // markdown: the full structured report when a deep run exists, otherwise the
 // fast summary. Mirrors the frontend's formatReportComment.
-func formatEnrichmentComment(e *store.Enrichment) (string, error) {
+func formatEnrichmentComment(e *store.Enrichment, issueURL string) (string, error) {
 	if e == nil || (e.Summary == "" && len(e.Report) == 0) {
 		return "", fmt.Errorf("no AI enrichment on this issue yet — enrich it first")
 	}
@@ -47,6 +62,7 @@ func formatEnrichmentComment(e *store.Enrichment) (string, error) {
 			RelatedIssues []struct {
 				Identifier string `json:"identifier"`
 				State      string `json:"state"`
+				URL        string `json:"url"`
 			} `json:"relatedIssues"`
 			RelatedPRs []struct {
 				Repo   string `json:"repo"`
@@ -96,7 +112,11 @@ func formatEnrichmentComment(e *store.Enrichment) (string, error) {
 			if len(r.RelatedIssues) > 0 {
 				var ris []string
 				for _, ri := range r.RelatedIssues {
-					ris = append(ris, fmt.Sprintf("%s (%s)", ri.Identifier, ri.State))
+					if href := linearIssueURL(ri.Identifier, issueURL, ri.URL); href != "" {
+						ris = append(ris, fmt.Sprintf("[%s](%s) (%s)", ri.Identifier, href, ri.State))
+					} else {
+						ris = append(ris, fmt.Sprintf("%s (%s)", ri.Identifier, ri.State))
+					}
 				}
 				lines = append(lines, "", "**Related issues:** "+strings.Join(ris, " · "))
 			}

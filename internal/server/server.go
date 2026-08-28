@@ -19,22 +19,29 @@ import (
 )
 
 type Server struct {
-	store    *store.Store
-	linear   *linear.Client
-	syncer   *syncer.Syncer
-	enricher *ai.Enricher       // nil when AI is disabled
-	orch     *deep.Orchestrator // nil when deep enrichment is unavailable
+	store         *store.Store
+	linear        *linear.Client
+	syncer        *syncer.Syncer
+	enricher      *ai.Enricher       // nil when AI is disabled in config
+	orch          *deep.Orchestrator // nil when AI is disabled in config
+	defaultClaude string
 
 	// enriching guards against duplicate concurrent enrichments per issue.
 	mu        sync.Mutex
 	enriching map[string]bool
+	pickMu    sync.Mutex
 
 	viewsCache   []linear.CustomView
 	viewsCacheAt time.Time
 }
 
-func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator) *Server {
-	return &Server{store: st, linear: lc, syncer: sy, enricher: en, orch: orch, enriching: map[string]bool{}}
+func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator, defaultClaude string) *Server {
+	s := &Server{
+		store: st, linear: lc, syncer: sy, enricher: en, orch: orch,
+		defaultClaude: defaultClaude, enriching: map[string]bool{},
+	}
+	s.applyClaudeCommand()
+	return s
 }
 
 func (s *Server) Handler(ui fs.FS) http.Handler {
@@ -53,6 +60,8 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/issues/{id}/runs/latest", s.handleIssueLatestRun)
 	mux.HandleFunc("GET /api/enrich/settings", s.handleGetEnrichSettings)
 	mux.HandleFunc("PUT /api/enrich/settings", s.handlePutEnrichSettings)
+	mux.HandleFunc("PUT /api/secrets", s.handlePutSecret)
+	mux.HandleFunc("POST /api/pick", s.handlePick)
 	mux.HandleFunc("GET /api/enrich/runs/{id}", s.handleRunGet)
 	mux.HandleFunc("GET /api/enrich/runs/{id}/events", s.handleRunEvents)
 	mux.HandleFunc("GET /api/enrich/runs/{id}/log", s.handleRunLog)

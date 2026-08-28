@@ -5,8 +5,11 @@ import "encoding/json"
 // EnrichSettings gates deep enrichment. Every source is read-only by
 // construction: agents reach them only through the server's toolbox proxy.
 type EnrichSettings struct {
-	Mode    string `json:"mode"` // fast | deep
-	Sources struct {
+	Mode string `json:"mode"` // fast | deep
+	// ClaudePath overrides the configured `ai.command` (default "claude")
+	// when the binary isn't on PATH. Empty means use the config default.
+	ClaudePath string `json:"claudePath,omitempty"`
+	Sources    struct {
 		Repo struct {
 			Enabled bool     `json:"enabled"`
 			Paths   []string `json:"paths"`

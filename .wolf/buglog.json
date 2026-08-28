@@ -1,4 +1,17 @@
 {
   "version": 1,
-  "bugs": []
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-08-27T19:20:00-07:00",
+      "error_message": "Datadog showed 'set Datadog keys in Settings' but the key inputs were hidden until the source toggle was on",
+      "file": "web/src/pages/Settings.tsx",
+      "root_cause": "Secret rows were gated on src.enabled, so unavailable sources had no way to set keys before enabling",
+      "fix": "Always render secret fields for sources that declare them, independent of the enabled toggle",
+      "tags": ["settings", "ux", "secrets"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-27T19:20:00-07:00"
+    }
+  ]
 }

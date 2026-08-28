@@ -30,7 +30,13 @@ func (s *Server) handleMeta(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		meta["teamCounts"] = counts
 	}
-	meta["aiEnabled"] = s.enricher != nil
+	claude := s.claudeStatus()
+	if s.enricher != nil {
+		meta["aiEnabled"] = claude.Available
+		meta["claude"] = claude
+	} else {
+		meta["aiEnabled"] = false
+	}
 	writeJSON(w, 200, meta)
 }
 
@@ -132,11 +138,11 @@ func (s *Server) handleGetFilter(w http.ResponseWriter, r *http.Request) {
 	}
 	stored, _ := s.store.GetMeta("active_sync_filter")
 	writeJSON(w, 200, map[string]any{
-		"filter":        s.syncer.ActiveFilter(),
-		"default":       s.syncer.DefaultFilter(),
-		"overridden":    stored != "",
-		"recent":        recent,
-		"syncStatus":    s.syncer.Status(),
+		"filter":     s.syncer.ActiveFilter(),
+		"default":    s.syncer.DefaultFilter(),
+		"overridden": stored != "",
+		"recent":     recent,
+		"syncStatus": s.syncer.Status(),
 	})
 }
 
@@ -379,8 +385,13 @@ func (s *Server) handleSnooze(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleEnrich(w http.ResponseWriter, r *http.Request) {
+	s.applyClaudeCommand()
 	if s.enricher == nil {
 		writeErr(w, 400, fmt.Errorf("AI enrichment is disabled"))
+		return
+	}
+	if st := s.claudeStatus(); !st.Available {
+		writeErr(w, 400, fmt.Errorf("claude not found: %s — set the path in Settings", st.Detail))
 		return
 	}
 	id := r.PathValue("id")

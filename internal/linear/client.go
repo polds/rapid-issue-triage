@@ -9,18 +9,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 )
 
 const endpoint = "https://api.linear.app/graphql"
 
 type Client struct {
+	mu     sync.RWMutex
 	apiKey string
 	http   *http.Client
 }
 
 func New(apiKey string) *Client {
 	return &Client{apiKey: apiKey, http: &http.Client{Timeout: 30 * time.Second}}
+}
+
+// SetAPIKey replaces the key used for subsequent requests (Settings save).
+func (c *Client) SetAPIKey(key string) {
+	c.mu.Lock()
+	c.apiKey = key
+	c.mu.Unlock()
 }
 
 type gqlError struct {
@@ -46,8 +55,11 @@ func (c *Client) Do(ctx context.Context, query string, vars map[string]any, out 
 		if err != nil {
 			return err
 		}
+		c.mu.RLock()
+		key := c.apiKey
+		c.mu.RUnlock()
 		// Personal API keys are passed directly, without a Bearer prefix.
-		req.Header.Set("Authorization", c.apiKey)
+		req.Header.Set("Authorization", key)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := c.http.Do(req)
 		if err != nil {

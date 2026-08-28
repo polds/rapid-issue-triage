@@ -1,13 +1,27 @@
 // Enrichment settings: fast vs deep mode, per-source toggles with live
 // availability probes, time-impact estimates, and the read-only guarantee
-// spelled out.
+// spelled out. Claude path, MCP API keys, and a native folder picker live here.
 import { useEffect, useState } from "react";
-import { Check, FolderOpen, Loader2, Lock, Plus, ShieldCheck, Trash2, TriangleAlert, Zap } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen,
+  KeyRound,
+  Loader2,
+  Lock,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  TriangleAlert,
+  Zap,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateEnrichInfo } from "@/lib/enrichmode";
+import { useTriage } from "@/lib/store";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import type { EnrichSettings, EnrichSettingsInfo, SourceKey } from "@/lib/types";
+import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SOURCE_META: {
@@ -17,20 +31,31 @@ const SOURCE_META: {
   estimate: string;
 }[] = [
   { key: "repo", name: "Repository access", what: "Reads (Read/Grep/Glob only) the directories you list to check whether referenced code still exists or already changed.", estimate: "+30–90s" },
-  { key: "github", name: "GitHub", what: "Searches PRs and code via your gh login to find work that already landed. Read-only subcommands only.", estimate: "+30–90s" },
-  { key: "linear", name: "Linear", what: "Searches Linear for duplicates and checks the state of referenced issues, via this app's API key. Queries only.", estimate: "+20–60s" },
-  { key: "datadog", name: "Datadog", what: "Searches logs and monitors to see whether the described problem still occurs. Uses DD_API_KEY/DD_APP_KEY, read APIs only.", estimate: "+30–90s" },
-  { key: "gcloud", name: "Google Cloud", what: "Runs gcloud restricted to list/describe/get-iam-policy read verbs to inspect referenced infrastructure.", estimate: "+30–90s" },
+  { key: "github", name: "GitHub", what: "Searches PRs and code via gh. Uses your gh login, or a personal access token set below. Read-only subcommands only.", estimate: "+30–90s" },
+  { key: "linear", name: "Linear", what: "Searches Linear for duplicates and checks the state of referenced issues. Queries only.", estimate: "+20–60s" },
+  { key: "datadog", name: "Datadog", what: "Searches logs and monitors to see whether the described problem still occurs. Read APIs only.", estimate: "+30–90s" },
+  { key: "gcloud", name: "Google Cloud", what: "Runs gcloud restricted to list/describe/get-iam-policy read verbs to inspect referenced infrastructure. Uses your local gcloud login.", estimate: "+30–90s" },
 ];
 
 export function SettingsPage() {
   const { toast } = useToast();
+  const { reloadMeta } = useTriage();
   const [info, setInfo] = useState<EnrichSettingsInfo | null>(null);
   const [saving, setSaving] = useState(false);
   const [newPath, setNewPath] = useState("");
+  const [picking, setPicking] = useState(false);
+  const [claudePathDraft, setClaudePathDraft] = useState("");
+  const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
-    api.enrichSettings().then(setInfo).catch((e) => toast((e as Error).message, { tone: "error" }));
+    api
+      .enrichSettings()
+      .then((i) => {
+        setInfo(i);
+        setClaudePathDraft(i.settings.claudePath ?? "");
+        if (i.claude && !i.claude.available) setAdvanced(true);
+      })
+      .catch((e) => toast((e as Error).message, { tone: "error" }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -42,12 +67,17 @@ export function SettingsPage() {
     );
 
   const s = info.settings;
+  const apply = (updated: EnrichSettingsInfo) => {
+    setInfo(updated);
+    invalidateEnrichInfo(updated);
+    setClaudePathDraft(updated.settings.claudePath ?? "");
+    void reloadMeta();
+  };
+
   const save = async (next: EnrichSettings) => {
     setSaving(true);
     try {
-      const updated = await api.putEnrichSettings(next);
-      setInfo(updated);
-      invalidateEnrichInfo(updated);
+      apply(await api.putEnrichSettings(next));
     } catch (e) {
       toast(`Save failed: ${(e as Error).message}`, { tone: "error" });
     } finally {
@@ -58,9 +88,51 @@ export function SettingsPage() {
   const setSource = (key: SourceKey, patch: object) =>
     save({ ...s, sources: { ...s.sources, [key]: { ...s.sources[key], ...patch } } });
 
+  const pickFolder = async () => {
+    setPicking(true);
+    try {
+      const r = await api.pick("folder");
+      if (r.canceled || !r.path) return;
+      await setSource("repo", { paths: [...(s.sources.repo.paths ?? []), r.path] });
+    } catch (e) {
+      toast(`Folder picker: ${(e as Error).message}`, { tone: "error" });
+    } finally {
+      setPicking(false);
+    }
+  };
+
+  const pickClaude = async () => {
+    setPicking(true);
+    try {
+      const r = await api.pick("file");
+      if (r.canceled || !r.path) return;
+      setClaudePathDraft(r.path);
+      await save({ ...s, claudePath: r.path });
+    } catch (e) {
+      toast(`File picker: ${(e as Error).message}`, { tone: "error" });
+    } finally {
+      setPicking(false);
+    }
+  };
+
+  const saveSecret = async (key: string, value: string) => {
+    setSaving(true);
+    try {
+      apply(await api.putSecret(key, value));
+      toast(value.trim() ? "Key saved" : "Key cleared");
+    } catch (e) {
+      toast(`Save failed: ${(e as Error).message}`, { tone: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const enabledCount = SOURCE_META.filter(
-    (m) => s.sources[m.key].enabled && info.availability[m.key]?.available,
+    (m) => s.sources[m.key].enabled && info.availability?.[m.key]?.available,
   ).length;
+
+  const claude = info.claude;
+  const claudeMissing = claude && !claude.available;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
@@ -68,6 +140,19 @@ export function SettingsPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         How “Enrich with AI” investigates an issue before rendering its verdict.
       </p>
+
+      {claudeMissing && (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+          <TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning-foreground dark:text-warning" />
+          <div className="min-w-0 text-sm">
+            <p className="font-semibold text-warning-foreground dark:text-warning">Claude Code CLI not found</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {claude.detail}. Enrichment needs the <code className="font-mono">claude</code> binary.
+              Install Claude Code, or set the path under Advanced below.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 flex items-center gap-3 rounded-xl border border-success/30 bg-success/5 p-4">
         <ShieldCheck className="size-5 shrink-0 text-success" />
@@ -122,7 +207,8 @@ export function SettingsPage() {
       <div className="mt-4 grid gap-3">
         {SOURCE_META.map((m) => {
           const src = s.sources[m.key];
-          const avail = info.availability[m.key];
+          const avail = info.availability?.[m.key];
+          const secrets = info.secrets?.[m.key] ?? [];
           return (
             <div
               key={m.key}
@@ -188,12 +274,12 @@ export function SettingsPage() {
                           </Button>
                         </div>
                       ))}
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <input
                           value={newPath}
                           onChange={(e) => setNewPath(e.target.value)}
                           placeholder="~/Workplace/github.com/org/repo"
-                          className="h-8 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && newPath.trim()) {
                               setSource("repo", { paths: [...(s.sources.repo.paths ?? []), newPath.trim()] });
@@ -201,6 +287,16 @@ export function SettingsPage() {
                             }
                           }}
                         />
+                        <Button
+                          variant="quiet"
+                          size="sm"
+                          disabled={picking}
+                          onClick={pickFolder}
+                          title="Open the system folder picker"
+                        >
+                          {picking ? <Loader2 className="animate-spin" /> : <FolderOpen />}
+                          Browse
+                        </Button>
                         <Button
                           variant="quiet"
                           size="sm"
@@ -227,12 +323,119 @@ export function SettingsPage() {
                       />
                     </div>
                   )}
+
+                  {secrets.length > 0 && (
+                    <div className="mt-3 grid gap-2">
+                      {secrets.map((f) => (
+                        <SecretRow key={f.id} field={f} disabled={saving} onSave={saveSecret} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      <button
+        onClick={() => setAdvanced((v) => !v)}
+        className="mt-8 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+      >
+        {advanced ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        Advanced
+      </button>
+      {advanced && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4">
+          <div className="text-sm font-semibold">Claude Code binary</div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Default is <code className="font-mono">claude</code> on your PATH.
+            {claude?.available && claude.path && (
+              <> Currently resolved to <code className="font-mono">{claude.path}</code>.</>
+            )}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input
+              value={claudePathDraft}
+              onChange={(e) => setClaudePathDraft(e.target.value)}
+              placeholder="/usr/local/bin/claude"
+              className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") save({ ...s, claudePath: claudePathDraft.trim() });
+              }}
+            />
+            <Button variant="quiet" size="sm" disabled={picking} onClick={pickClaude}>
+              {picking ? <Loader2 className="animate-spin" /> : <FolderOpen />}
+              Browse
+            </Button>
+            <Button
+              variant="quiet"
+              size="sm"
+              disabled={saving}
+              onClick={() => save({ ...s, claudePath: claudePathDraft.trim() })}
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
     </main>
+  );
+}
+
+function SecretRow({
+  field,
+  disabled,
+  onSave,
+}: {
+  field: SecretField;
+  disabled: boolean;
+  onSave: (key: string, value: string) => void;
+}) {
+  const [value, setValue] = useState("");
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+        <KeyRound className="size-3 text-muted-foreground" />
+        <span className="font-medium text-muted-foreground">{field.label}</span>
+        {field.set && (
+          <span className="font-mono text-muted-foreground">
+            {field.hint} · via {field.source === "settings" ? "Settings" : "environment"}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <input
+          type="password"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={field.set ? "paste to replace" : "paste key"}
+          className="h-8 min-w-0 flex-1 rounded-md border border-input bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && value.trim()) {
+              onSave(field.id, value);
+              setValue("");
+            }
+          }}
+        />
+        <Button
+          variant="quiet"
+          size="sm"
+          disabled={disabled || !value.trim()}
+          onClick={() => {
+            onSave(field.id, value);
+            setValue("");
+          }}
+        >
+          Save
+        </Button>
+        {field.set && field.source === "settings" && (
+          <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onSave(field.id, "")}>
+            Clear
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

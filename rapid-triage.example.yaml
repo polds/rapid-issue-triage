@@ -1,5 +1,7 @@
 # Rapid Triage configuration. Copy to ./rapid-triage.yaml or
 # ~/.config/rapid-triage/config.yaml. Every field is optional.
+# API keys (Linear, GitHub, Datadog) and the Claude binary path can also be
+# set in the Settings page; those persist in the local sqlite db.
 
 # Listen address for the local web UI.
 addr: 127.0.0.1:7333
