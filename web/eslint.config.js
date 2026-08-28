@@ -60,6 +60,11 @@ export default tseslint.config(
       // DOM and local state). No call sites do this today; keep it that way.
       "react-hooks/static-components": "error",
 
+      // React Compiler purity: render must be deterministic. `Math.random()`,
+      // `Date.now()` and friends belong in an effect, a lazy `useState`
+      // initialiser, or an event handler — not in a render body.
+      "react-hooks/purity": "error",
+
       // Fire-and-forget is allowed, but it has to be spelled out: `void` for
       // calls whose failure is already handled inside the callee, or a real
       // `.catch()` where the user needs to see it.
@@ -83,10 +88,9 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
 
       // The remaining React Compiler rules new in eslint-plugin-react-hooks
-      // v7. They flag real immutability and purity issues, but adopting them
-      // is a rendering change, not a lint fix.
+      // v7. They flag real immutability and effect-ordering issues, but
+      // adopting them is a rendering change, not a lint fix.
       "react-hooks/immutability": "off",
-      "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
     },
   },
