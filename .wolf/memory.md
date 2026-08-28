@@ -310,3 +310,4 @@
 | 21:13 | PR #22 merged: Dependabot area-scoped Conventional Commit prefixes on main | .github/dependabot.yml | CI + CodeQL green; check-in trigger deleted | ~2k |
 | 21:40 | Confirmed GitHub ignores the union driver: PR #31 showed conflicted while local merge was clean | `.wolf/cerebrum.md` | Merged main locally (union auto-resolved); GitHub needs the merge commit pushed | ~8k |
 | 21:45 | Churn audit of last 500 commits; ignored the tsc build cache, union-merged cerebrum.md | `.gitignore`, `.gitattributes` | buglog.json ruled out - union corrupts JSON silently; web/dist left tracked for go:embed | ~9k |
+| 21:58 | Updated STATUS.md: repo-hygiene work (PRs #31, #35) into ✅ Done, timestamp bumped | `.wolf/STATUS.md` | Next phase (:7333 restart) left intact; stale "PR #16, draft" corrected to merged | ~4k |
