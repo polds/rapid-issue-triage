@@ -9,6 +9,10 @@ part of that rule: they live in the `Makefile` and CI resolves them with
 | File | What it does | Local equivalent |
 |---|---|---|
 | `workflows/ci.yml` | 10 jobs: Go, golangci-lint, workflow lint, web, 3-OS binary compile, security, SAST, license scan, code quality, dependency review. | `make ci` |
+
+The `Security` job carries five scanners, not one — govulncheck, OSV-Scanner,
+Trivy, `npm audit`, gitleaks — because they answer five different questions
+about the same supply chain. See the risk table below for which owns which.
 | `workflows/codeql.yml` | CodeQL `security-extended` over Go + TypeScript; PR and weekly. | — |
 | `workflows/release.yml` | GoReleaser: multi-OS archives, SPDX SBOM, SLSA provenance, the GHCR container image, optional tag minting. | `goreleaser check` |
 | `workflows/scorecard.yml` | OpenSSF Scorecard → SARIF in the Security tab. | — |
@@ -26,9 +30,11 @@ class of problem is what keeps a finding from being triaged twice.
 |---|---|---|
 | Code-level vulnerabilities, Go | CodeQL (`security-extended`) + semgrep `p/golang`,`p/gosec` + golangci-lint's `gosec` | `codeql.yml`, `SAST`, `golangci-lint` |
 | Code-level vulnerabilities, TS/React | CodeQL + semgrep `p/typescript`,`p/react` + the eslint security rules | `codeql.yml`, `SAST`, `Web` |
-| Released image | semgrep `p/dockerfile` over the root `Dockerfile` | `SAST` |
+| Released image, Dockerfile as text | semgrep `p/dockerfile` over the root `Dockerfile` | `SAST` |
+| Released image, base layer CVEs | `trivy image` over the digest on the `FROM` line | `Security` |
 | Vulnerable dependency, Go | `govulncheck` (reachability-aware) | `Security` |
 | Vulnerable dependency, npm | `npm audit --audit-level=high` | `Security` |
+| Vulnerable dependency, either, unfiltered | `osv-scanner` over `go.mod` + `web/package-lock.json` | `Security` |
 | Vulnerable dependency, newly added | `dependency-review-action` | `Dependency review` |
 | Committed secret | gitleaks over full history + semgrep `p/secrets` | `Security`, `SAST` |
 | Dependency license, redistributed | `go-licenses` + the npm policy script, allow-list over the whole graph | `License scan` |
@@ -48,6 +54,56 @@ for the same reason it binds to `127.0.0.1`.
 GitHub's own **secret scanning with push protection** is a repository setting,
 not a workflow, and is the layer that stops a secret *before* it is committed.
 gitleaks is the in-CI backstop; neither replaces the other.
+
+**OSV-Scanner is not redundant with govulncheck.** govulncheck filters by
+reachability: it stays quiet about a vulnerable module no code path in *this*
+build reaches. That is the right gate for "fix it now" and the wrong one for an
+inventory — users compile this binary themselves, from a tree they can
+configure differently, so "unreachable here" is a weaker claim than it looks.
+OSV is also the only scanner that reads `go.mod` and `web/package-lock.json`
+against one database, which is how an npm finding reaches the Security tab at
+all: `npm audit` only prints to a console. A finding that is genuinely not
+applicable belongs in an `osv-scanner.toml`, with a reason, not in a narrower
+`--lockfile` list.
+
+**Trivy scans the base image, not the released one.** The published container
+is this binary on top of distroless and nothing else, and the binary's own
+dependencies are already covered above — so the base *is* the uncovered half.
+`make trivy` reads the target off the `Dockerfile`'s `FROM` line rather than
+repeating the digest, the same discipline GoReleaser follows for `base.name` /
+`base.digest`, so a Dependabot bump cannot leave a stale copy behind. Scanning
+the base rather than a pulled `ghcr.io` tag is deliberate: it needs no
+registry auth, works on a PR that has published nothing, and is deterministic.
+Dependabot bumps the pin but cannot tell you whether the digest pinned *today*
+has a CVE, and it can only bump to a fix that exists; this is the check that
+answers both.
+
+It reports twice on one warm database: everything into SARIF, so the Security
+tab shows unfixed findings too, then a gate pass that ignores what has no fix
+available. A Debian CVE with no patched version is not something a PR can act
+on, and blocking every merge on it only teaches people to use `--no-verify`.
+
+## The starter-workflow catalogue: what was declined, and why
+
+GitHub's *Actions → New workflow → Security* catalogue is ~76 entries. Most are
+irrelevant here on language grounds (Python, Ruby, Clojure, Elixir, .NET, PHP,
+mobile) or target infrastructure this project does not have (Terraform,
+Kubernetes, a hosted API to DAST). Of the rest:
+
+| Declined | Why |
+|---|---|
+| **Snyk** (`snyk-security`, `snyk-container`, `snyk-infrastructure`) | Needs `SNYK_TOKEN` and uploads the dependency graph to a SaaS backend. Same objection that already rules out `semgrep/semgrep-action` here, and `govulncheck` + OSV + `npm audit` + dependency review cover the ground it would. |
+| **SonarQube / SonarCloud** | Needs `SONAR_TOKEN` plus either SonarCloud or a self-hosted server; its quality gate would duplicate golangci-lint (`default: all`) and eslint + sonarjs, which already run locally with no account. |
+| **Codacy, Checkmarx, Veracode, Fortify, Contrast, Black Duck / Synopsys, JFrog / Frogbot, Endor Labs, Prisma, Sysdig, Zscaler, Mayhem, NowSecure, Appknox, StackHawk, SOOS, Debricked, APIsec, DevSkim-adjacent commercial scanners** | All token-gated SaaS. A workflow whose scanner silently no-ops without a secret is worse than no check — and a fork PR never has the secret. |
+| **Microsoft Defender for DevOps, OSSAR** | Azure DevOps / Windows-runner bound. |
+| **ESLint (`eslint.yml`)** | The SARIF variant adds `@microsoft/eslint-formatter-sarif` — a new redistributable dependency for the license gate to judge — to surface findings from a linter that is *already a hard blocking gate* in the `Web` job. Security-tab alerts are valuable for scanners that only warn; they add nothing to a check that already fails the build. |
+| **hadolint** | On a `COPY`-only distroless Dockerfile with no `RUN` layer, its `DL3xxx` rules have nothing to say, and semgrep's `p/dockerfile` already reads the file. |
+| **Anchore / Syft** | The release already produces an SPDX SBOM via `anchore/sbom-action`. Grype would be a third opinion on the same package set Trivy and OSV cover. |
+| **Trivy in filesystem/misconfig mode** | Overlaps OSV on dependencies and zizmor on workflow misconfiguration. Only the image mode was adopted. |
+
+The two that survived — **OSV-Scanner** and **Trivy** — share the properties
+every gate here needs: no account, no token, a pinned version, a SARIF report,
+and a `make` target a contributor can run before pushing.
 
 ## ⚠️ Job names are load-bearing
 
@@ -70,6 +126,12 @@ it runs and reports but cannot block a merge.
 ruleset in the same PR, or not at all:
 `GET /repos/OWNER/REPO/rulesets/<id>`.
 
+This is also why OSV-Scanner and Trivy were added as *steps of the existing
+`Security` job* rather than as two new jobs. They belong to the risk that job
+already owns, and a step needs no ruleset edit to be enforced — it is inside a
+check that is already required. Reach for a new job only when a gate genuinely
+does not fit an existing one, and expect to update the ruleset in the same PR.
+
 ## Hardening conventions (don't regress these)
 
 - **Every action is pinned to a commit SHA.** A tag is not a pin.
@@ -83,7 +145,10 @@ ruleset in the same PR, or not at all:
 - **Optional tools gate on the `CI` env var**: warn on a developer machine,
   hard-fail on a runner. A check that silently no-ops when its binary is
   missing is worse than no check. This is why `make actions-lint` fails in CI
-  without `shellcheck` or `zizmor`, and `make sast` without `semgrep`.
+  without `shellcheck` or `zizmor`, `make sast` without `semgrep`, and `make
+  trivy` without `trivy`. The Go-toolchain scanners (`vuln`, `osv`,
+  `licenses`, `quality`) need no such guard — `go run pkg@version` fetches
+  them.
 - Rejected on purpose: StepSecurity `harden-runner` — a broad third-party
   action proxying all runner egress is itself supply-chain surface, and every
   action here is already SHA-pinned.
@@ -215,9 +280,12 @@ make actions-lint   # actionlint + zizmor over these workflows
 make hooks          # install the path-scoped pre-commit hook
 ```
 
-The hook runs only the gates a commit touches (Go / web / workflows), so a
-one-line web tweak doesn't pay for the Go race suite — that is what keeps
-people off `--no-verify`. `PRE_COMMIT_ALL=1` forces the full run.
+The hook runs only the gates a commit touches (Go / web / workflows /
+lockfiles / `Dockerfile`), so a one-line web tweak doesn't pay for the Go race
+suite — that is what keeps people off `--no-verify`. `PRE_COMMIT_ALL=1` forces
+the full run. Trivy is the one gate that skips rather than fails when its
+binary is missing locally; install it from <https://trivy.dev> if you touch the
+`Dockerfile` often.
 
 - **A green local `actionlint` proves less than it looks.** It shells out to
   `shellcheck` for `run:` blocks only when `shellcheck` is on PATH, and
@@ -254,7 +322,8 @@ sides still line up.
 
 Bumping a pinned tool (`GOLANGCI_LINT_VERSION`, `GOVULNCHECK_VERSION`,
 `ACTIONLINT_VERSION`, `ZIZMOR_VERSION`, `SEMGREP_VERSION`,
-`GO_LICENSES_VERSION`, `DEADCODE_VERSION`) → edit the `Makefile` only; CI reads it
+`GO_LICENSES_VERSION`, `DEADCODE_VERSION`, `OSV_SCANNER_VERSION`,
+`TRIVY_VERSION`) → edit the `Makefile` only; CI reads it
 back through `make -s print-<VAR>`. Dependabot does **not** track these — it
 bumps `uses:` refs, not a version a make target hands to `go run` or `pip`, so
 they are watched by hand. Do not try to fix that with one shared `tools/go.mod`:

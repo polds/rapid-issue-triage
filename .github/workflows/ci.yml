@@ -190,7 +190,17 @@ jobs:
   security:
     name: Security
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Higher than the other jobs: five scanners, and two of them fetch data
+    # before they can start -- `go run` builds osv-scanner from source on a
+    # cold module cache (its deps are not in this repo's go.sum, so setup-go's
+    # go.sum-keyed cache misses whenever it is evicted), and trivy pulls its
+    # vulnerability database and the base image.
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      # osv-scanner and trivy both report through the Security tab, the same
+      # way the SAST job's semgrep findings do.
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -219,6 +229,53 @@ jobs:
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # govulncheck filters by reachability and npm audit only reads the npm
+      # tree. OSV is the unfiltered inventory across both, against one
+      # database, and unlike `npm audit` its findings reach the Security tab.
+      #
+      # From here down the steps carry `!cancelled()` so that one red scanner
+      # does not hide the next one's findings: a run that reports every
+      # problem at once costs one round trip instead of three.
+      - name: osv-scanner
+        if: ${{ !cancelled() }}
+        run: make osv
+      # Same pin-lives-in-the-Makefile rule as golangci-lint and zizmor.
+      # Trivy is installed by its own action rather than built from source:
+      # `go run` on that module graph is minutes of cold build per run.
+      - name: Resolve pinned Trivy version
+        id: trivy-pin
+        if: ${{ !cancelled() }}
+        run: echo "version=$(make -s print-TRIVY_VERSION)" >> "$GITHUB_OUTPUT"
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        if: ${{ !cancelled() }}
+        with:
+          # An expression, but not unpinned: it resolves to TRIVY_VERSION in
+          # the Makefile, which *is* the pin. Hardcoding a literal here to
+          # satisfy the audit would create the second, driftable copy that
+          # `make trivy` and this job are arranged not to have.
+          version: ${{ steps.trivy-pin.outputs.version }} # zizmor: ignore[unpinned-tools]
+      # The released container is this binary on top of a distroless base, and
+      # nothing else in CI looks at the base. `make trivy` reads the image off
+      # the Dockerfile's FROM line, so it always scans exactly the digest a
+      # release would build against.
+      - name: trivy (released image base)
+        if: ${{ !cancelled() }}
+        run: make trivy
+      # Uploaded even when the scan above went red -- a failing gate whose
+      # findings are invisible in the Security tab is the worst of both. The
+      # hashFiles guard covers a scanner that died before writing anything.
+      - name: Upload OSV SARIF
+        if: ${{ !cancelled() && hashFiles('osv.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: osv.sarif
+          category: osv-scanner
+      - name: Upload Trivy SARIF
+        if: ${{ !cancelled() && hashFiles('trivy.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
 
   sast:
     name: SAST

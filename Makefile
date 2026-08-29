@@ -9,6 +9,11 @@ ZIZMOR_VERSION := 1.29.0
 SEMGREP_VERSION := 1.175.0
 GO_LICENSES_VERSION := v1.6.0
 DEADCODE_VERSION := v0.47.0
+OSV_SCANNER_VERSION := v2.5.1
+# Trivy is fetched as a release binary, not built from source: its module graph
+# is enormous and `go run` would rebuild it on every cold cache. CI installs it
+# with aquasecurity/setup-trivy, reading this pin back through print-.
+TRIVY_VERSION := v0.74.0
 GO_COVER_PKGS := ./internal/config ./internal/store
 GO_COVER_FLOOR := 70
 
@@ -20,6 +25,21 @@ SEMGREP_CONFIGS := --config=p/golang --config=p/gosec --config=p/typescript \
 	--config=p/react --config=p/dockerfile --config=p/secrets
 SEMGREP_EXCLUDES := --exclude=web/dist --exclude=node_modules
 SEMGREP_SARIF := semgrep.sarif
+
+# OSV-Scanner. The lockfiles are named rather than letting it walk the tree:
+# web/node_modules and web/dist would otherwise be picked up as projects of
+# their own and rescanned. Deliberate exceptions belong in an osv-scanner.toml,
+# not in a narrower scan.
+OSV_SCANNER_PKG := github.com/google/osv-scanner/v2/cmd/osv-scanner
+OSV_LOCKFILES := --lockfile=go.mod --lockfile=web/package-lock.json
+OSV_SARIF := osv.sarif
+
+# The image scan reads its target off the Dockerfile's FROM line instead of
+# repeating the digest, for the same reason GoReleaser reads base.name and
+# base.digest from there: a Dependabot bump of the pin must not be able to
+# leave a second, stale copy behind somewhere else in the tree.
+DOCKER_BASE_IMAGE = $(shell sed -n 's/^FROM \([^ ]*\).*/\1/p' Dockerfile | head -1)
+TRIVY_SARIF := trivy.sarif
 
 # License policy, in two tiers, because the two sets are used differently.
 #
@@ -62,6 +82,7 @@ GO_FILES = $(shell git ls-files '*.go')
 
 .PHONY: all build ui go dev clean test test-race vet fmt-check fix-check lint vuln cover-go \
 	web-deps web-lint web-test web-build web-dist-check web-ci actions-lint sast \
+	osv trivy \
 	licenses licenses-go licenses-web licenses-report quality tidy-check deadcode \
 	ci ci-go ci-security pre-commit hooks
 
@@ -104,6 +125,57 @@ lint:
 ## vuln: report known vulnerabilities reachable from this module's code
 vuln:
 	GOTOOLCHAIN=$(GO_TOOLCHAIN) go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) $(GO_PKGS)
+
+## osv: known vulnerabilities in every pinned dependency, Go and npm alike
+# govulncheck (above) is reachability-aware: it stays quiet about a vulnerable
+# module no code path in this build reaches. That is the right gate for "fix
+# this now" and the wrong one for an inventory -- users compile this binary
+# themselves, from a tree they can configure differently, so "unreachable here"
+# is a weaker claim than it looks. OSV is the unfiltered second opinion.
+#
+# It is also the only scanner here that reads go.mod and package-lock.json
+# against one database, so an npm finding reaches the Security tab beside a Go
+# one instead of living only in `npm audit`'s console output.
+#
+# SARIF is the primary output because that is what CI uploads; the human table
+# is a second pass, run only when the first found something, so a clean run
+# still costs exactly one scan.
+osv:
+	@GOTOOLCHAIN=$(GO_TOOLCHAIN) go run $(OSV_SCANNER_PKG)@$(OSV_SCANNER_VERSION) \
+		scan source $(OSV_LOCKFILES) --format sarif --output-file $(OSV_SARIF); \
+	status=$$?; \
+	if [ $$status -ne 0 ]; then \
+		GOTOOLCHAIN=$(GO_TOOLCHAIN) go run $(OSV_SCANNER_PKG)@$(OSV_SCANNER_VERSION) \
+			scan source $(OSV_LOCKFILES) || true; \
+		exit $$status; \
+	fi; \
+	echo "osv-scanner: no known vulnerabilities in go.mod or web/package-lock.json"
+
+## trivy: known vulnerabilities in the base image the released container ships
+# The released image is the binary plus whatever the base contributes, and
+# nothing else here looks at the base. semgrep's p/dockerfile reads the
+# Dockerfile as text; Dependabot bumps the pinned digest but cannot say whether
+# the digest currently pinned has a CVE, and it can only bump to a fix that
+# exists. This is the gate that answers that, on every PR, from the same FROM
+# line the release builds against.
+#
+# Two passes on one warm database: the first reports everything into SARIF so
+# the Security tab shows unfixed findings too, the second is the gate and
+# ignores what has no fix available -- a Debian CVE with no patched version is
+# not something a PR can act on, and blocking every merge on it only teaches
+# people to bypass the check.
+trivy:
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy image --scanners vuln --quiet \
+			--format sarif --output $(TRIVY_SARIF) $(DOCKER_BASE_IMAGE); \
+		trivy image --scanners vuln --quiet \
+			--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 $(DOCKER_BASE_IMAGE); \
+	elif [ -n "$$CI" ]; then \
+		echo "trivy is required in CI but is not installed"; \
+		exit 1; \
+	else \
+		echo "trivy not installed - skipping. Install $(TRIVY_VERSION): https://trivy.dev/latest/getting-started/installation/"; \
+	fi
 
 ## web-deps: install web/node_modules when the lockfile is newer than the tree
 web-deps:
@@ -254,7 +326,7 @@ cover-go:
 ci-go: fmt-check fix-check vet lint test-race cover-go
 
 ## ci-security: the scanners CI gates on that are not tied to one language
-ci-security: vuln sast licenses
+ci-security: vuln osv sast trivy licenses
 
 ## ci: everything CI gates on. The hook runs only the parts a commit touches.
 ci: ci-go web-ci actions-lint quality ci-security
@@ -268,7 +340,7 @@ hooks:
 	@echo "installed .git/hooks/pre-commit (runs the CI gates for the paths a commit touches)"
 
 clean:
-	rm -f $(BINARY) coverage.out $(SEMGREP_SARIF)
+	rm -f $(BINARY) coverage.out $(SEMGREP_SARIF) $(OSV_SARIF) $(TRIVY_SARIF)
 	rm -rf web/dist web/node_modules dist
 
 ## print-<VAR>: echo one variable's value. CI resolves the pinned tool versions

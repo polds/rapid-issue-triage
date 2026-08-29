@@ -60,6 +60,24 @@ if touched '^go\.(mod|sum)$|^web/package(-lock)?\.json$|^Makefile$|^web/scripts/
   ran=1
 fi
 
+# Dependency vulnerability scan. Same trigger as the license gate above: only
+# a lockfile can introduce one. Needs network, but it is a couple of seconds.
+if touched '^go\.(mod|sum)$|^web/package(-lock)?\.json$'; then
+  echo "pre-commit: dependency vulnerability scan (osv-scanner)"
+  make osv
+  ran=1
+fi
+
+# Container base image scan. Gated on the Dockerfile alone because the FROM
+# line is the only thing that moves the target -- a digest bump is exactly when
+# you want to know whether the new base has a CVE. Skips with a note when trivy
+# is not installed; CI is where it is mandatory.
+if touched '^Dockerfile$'; then
+  echo "pre-commit: base image scan (trivy)"
+  make trivy
+  ran=1
+fi
+
 # Deliberately not here: the SAST job. semgrep fetches its rulesets from the
 # registry, so it needs network and ~40s on a warm cache -- per-commit is how
 # you teach people to reach for --no-verify. It runs in `make ci`, under

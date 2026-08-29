@@ -25,5 +25,8 @@ web/tsconfig.tsbuildinfo
 .claude/worktrees/
 .run-sandbox/
 
-# semgrep SARIF, written by `make sast` and uploaded by CI.
+# Scanner SARIF reports, written by `make sast` / `make osv` / `make trivy`
+# and uploaded to the Security tab by CI.
 semgrep.sarif
+osv.sarif
+trivy.sarif
