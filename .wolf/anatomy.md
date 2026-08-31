@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:31:26.600Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:37:33.039Z
 > Files: 137 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -8,7 +8,7 @@
 - `.gitattributes` — Git attributes (~375 tok)
 - `.gitignore` — Git ignore rules (~183 tok)
 - `.golangci.yml` — Declares is (~1950 tok)
-- `.goreleaser.yaml` (~2477 tok)
+- `.goreleaser.yaml` (~2481 tok)
 - `.tool-versions` (~4 tok)
 - `AGENTS.md` — OpenWolf (~68 tok)
 - `CLAUDE.md` — CLAUDE.md — working in `rapid-issue-triage` (~3258 tok)
@@ -28,7 +28,7 @@
 
 ## .github/
 
-- `CLAUDE.md` — .github/ — CI, security scanning, releases (~5181 tok)
+- `CLAUDE.md` — .github/ — CI, security scanning, releases (~5323 tok)
 - `dependabot.yml` — Declares for (~804 tok)
 - `zizmor.yml` — zizmor audit configuration. Every entry here is a deliberate, reviewed (~453 tok)
 
@@ -154,7 +154,7 @@
 ## web/src/components/triage/
 
 - `ActionBar.tsx` — OUTCOME_VARIANT (~621 tok)
-- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1100 tok)
+- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1257 tok)
 - `Confetti.tsx` — TONES — renders chart — uses useState, useCallback, useEffect (~726 tok)
 - `DeepPanel.tsx` — Deep enrichment UI: live per-scout progress + Claude-Code-style thinking (~5250 tok)
 - `DuplicateOfPicker.tsx` — "Duplicate of…" picker: Linear requires a duplicate relation before an (~1688 tok)
@@ -163,7 +163,7 @@
 - `IssueCard.tsx` — VERDICT_META — uses useState, useMemo, useEffect (~4631 tok)
 - `LabelGroupPrompt.tsx` — Linear label groups hold one label per issue. When a macro or a quick edit (~1181 tok)
 - `NotificationBell.tsx` — Bell dropdown tracking background enrichments. Clicking an entry jumps (~1445 tok)
-- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2074 tok)
+- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2269 tok)
 - `report-format.ts` — VERDICT_META + deep report -> Linear markdown (not a component) (~776 tok)
 - `ShortcutBar.tsx` — ITEMS (~335 tok)
 - `TopBar.tsx` — SyncPill — renders chart — uses useState (~1853 tok)
@@ -211,4 +211,4 @@
 - `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5158 tok)
 - `Reports.tsx` — Gamified report page: stat tiles, per-day bar chart, outcome donut, (~2998 tok)
 - `Settings.tsx` — Enrichment settings: fast vs deep mode, per-source toggles with live (~6130 tok)
-- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2271 tok)
+- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2327 tok)

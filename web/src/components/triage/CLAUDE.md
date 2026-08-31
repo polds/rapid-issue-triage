@@ -11,7 +11,7 @@ and their own local UI state only. The keyboard map itself lives in
 |---|---|
 | `IssueCard.tsx` | The card: title, description, comments, labels, and the AI panel. Hosts `ClaudeMissingBanner` (shown when the server reports the `claude` binary absent). |
 | `ActionBar.tsx` | Macro buttons + outcome variants. Digit keys map to macro **position**. |
-| `QuickEditRow.tsx` | The `L E C P A X` pickers, applying single-field ops without a macro. |
+| `QuickEditRow.tsx` | The `L E C P A X` quick edits. Exports two components: `QuickEditRow` (the buttons, rendered once per breakpoint) and `QuickEditPickers` (the modals, rendered **once** for the page). |
 | `DeepPanel.tsx` | Deep enrichment UI: live per-scout progress, a Claude-Code-style thinking feed, the rendered report, and the raw action log dialog. |
 | `report-format.ts` | `VERDICT_META` (label + tone per verdict) and the deep report → Linear markdown renderer. **Not a component** — split so `DeepPanel.tsx` stays fast-refresh clean. |
 | `DuplicateOfPicker.tsx` | Prompts for the canonical issue. Linear requires the duplicate relation *before* the state change, so this blocks the apply. |
@@ -54,6 +54,13 @@ the presentation half; changing the set means touching `internal/ai`,
 - **The Claude-missing banner is driven by the server's live probe**, not by
   local config. It must offer the Settings path, not just report failure.
 - **Issue text is rendered through `Markdown.tsx`**, never as HTML.
+- **A portalled overlay is rendered once per page, never inside a component
+  the layout duplicates.** `TriagePage` mounts the action row twice — below the
+  card and in the `xl` rail — and hides one with responsive classes. Those
+  classes cannot reach a `createPortal(…, document.body)` child, so a modal
+  rendered from inside the row appears **twice**, stacked, each with its own
+  state. That is why `QuickEditPickers` is separate from `QuickEditRow`; keep
+  any new overlay out of the duplicated subtree too.
 - **Pickers must not leak keystrokes.** `Triage.tsx` suppresses shortcuts
   while an `INPUT`/`TEXTAREA`/`SELECT`/`contentEditable` element has focus —
   a new overlay that captures typing needs to satisfy that check or `S` will

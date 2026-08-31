@@ -1,5 +1,12 @@
 // Quick edit: fast keyboard pickers that apply single-field ops to the
 // current issue immediately (no card advance).
+//
+// Split in two on purpose. TriagePage renders the *buttons* twice — once below
+// the card, once in the wide-screen rail — and hides one with `xl:` classes.
+// The pickers must NOT be duplicated with them: they portal to document.body,
+// which escapes the wrapper doing the hiding, so a second copy would render on
+// top of the first with its own independent query state. `QuickEditPickers`
+// therefore renders once, from the page, off the same shared `open` state.
 import { Hash, Layers, Repeat, Tag, User, Workflow } from "lucide-react";
 import { useTriage } from "@/lib/triage-context";
 import { Button } from "@/components/ui/button";
@@ -23,13 +30,41 @@ const META: Record<PickerKey, { label: string; hint: string; icon: React.ReactNo
 const ESTIMATES = [0, 1, 2, 3, 5, 8];
 
 export function QuickEditRow({
-  open,
   setOpen,
   vertical = false,
 }: {
-  open: PickerKey | null;
   setOpen: (k: PickerKey | null) => void;
   vertical?: boolean;
+}) {
+  return (
+    <div className={vertical ? "flex flex-col gap-1.5" : "flex flex-wrap items-center justify-center gap-2"}>
+      {(Object.keys(META) as PickerKey[]).map((key) => (
+        <Button
+          key={key}
+          variant="quiet"
+          size="sm"
+          className={vertical ? "w-full justify-between gap-1.5" : "gap-1.5"}
+          onClick={() => setOpen(key)}
+        >
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            {META[key].icon}
+            <span className="truncate">{META[key].label}</span>
+          </span>
+          <kbd className="kbd ml-0.5 h-4 min-w-4 shrink-0 text-[10px]">{META[key].hint}</kbd>
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+// QuickEditPickers holds every modal the quick-edit row can open. Render it
+// exactly once per page — see the note at the top of this file.
+export function QuickEditPickers({
+  open,
+  setOpen,
+}: {
+  open: PickerKey | null;
+  setOpen: (k: PickerKey | null) => void;
 }) {
   const { current, meta, applyOps } = useTriage();
   const [duplicateState, setDuplicateState] = useState<string | null>(null);
@@ -153,25 +188,6 @@ export function QuickEditRow({
 
   return (
     <>
-      <div
-        className={vertical ? "flex flex-col gap-1.5" : "flex flex-wrap items-center justify-center gap-2"}
-      >
-        {(Object.keys(META) as PickerKey[]).map((key) => (
-          <Button
-            key={key}
-            variant="quiet"
-            size="sm"
-            className={vertical ? "w-full justify-between gap-1.5" : "gap-1.5"}
-            onClick={() => setOpen(key)}
-          >
-            <span className="inline-flex min-w-0 items-center gap-1.5">
-              {META[key].icon}
-              <span className="truncate">{META[key].label}</span>
-            </span>
-            <kbd className="kbd ml-0.5 h-4 min-w-4 shrink-0 text-[10px]">{META[key].hint}</kbd>
-          </Button>
-        ))}
-      </div>
       {open && (
         <Picker
           title={META[open].label}
