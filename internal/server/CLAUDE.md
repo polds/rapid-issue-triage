@@ -6,7 +6,7 @@ listener is loopback-only by design, and that assumption is load-bearing for
 `POST /api/toolbox` and `POST /api/pick`, which run subprocesses.
 
 This is the only package that talks to *all* of `store`, `linear`, `syncer`,
-`ai`, and `deep`. Business rules that outlive a request belong in those
+`ai`, `deep`, and `update`. Business rules that outlive a request belong in those
 packages, not here.
 
 ## Layout
@@ -19,6 +19,7 @@ packages, not here.
 | `labelgroups.go` | Linear label-group exclusivity: conflict detection, the replace resolution, and the messages both feed. |
 | `deep.go` | Deep-run lifecycle: start, poll, SSE event stream, plain-text log, and the toolbox endpoint the scout shim calls. |
 | `settings.go` | Enrichment settings, secret writes, the live `claude` probe (`ClaudeAvail`), native picker endpoint. |
+| `version.go` | `GET /api/version` + `POST /api/version/check`: the build stamp plus the update checker's snapshot. Reads state, never blocks on the network. |
 | `pickfolder.go` | Native OS folder/file dialog as a subprocess. |
 | `reportcomment.go` | Deep report → Linear-flavored markdown (`post_ai_report`). |
 | `*_test.go` | Unit tests for the pure helpers (`canceled`, `linearIssueURL`). |
@@ -84,6 +85,11 @@ boundary, and it must stay read-only and token-checked.
   no handler ever returns one. Responses carry `{set, source, hint}`.
 - **`enriching` map guards duplicate concurrent enrichment per issue.** Hold
   `s.mu` only around the map, never across a Linear or Claude call.
+- **`s.updates` is never nil**, disabled or not: a disabled checker still
+  answers with the running version, so the UI can show it and simply offer no
+  update state. `POST /api/version/check` collapses into an in-flight check
+  rather than starting a second one — the button cannot fan out into repeated
+  GitHub requests.
 - **The SPA fallback serves `index.html` for unknown paths** so `#/reports`
   and `#/macros` deep-link. Do not add a catch-all API route.
 - `spaHandler` copies the request before rewriting `URL.Path` — mutating the

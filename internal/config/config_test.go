@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestExpandHome(t *testing.T) {
@@ -151,5 +152,44 @@ func TestAPIKey(t *testing.T) {
 	}
 	if got != "lin_api_test" {
 		t.Fatalf("key: %q", got)
+	}
+}
+
+// The update check defaults on, and `enabled: false` must actually turn it
+// off — that switch is the only thing standing between an offline user and an
+// outbound request.
+func TestLoadUpdateCheck(t *testing.T) {
+	def := Default()
+	if !def.Update.Enabled || def.Update.Interval != 24*time.Hour || def.Update.Repo == "" {
+		t.Fatalf("default update config: %+v", def.Update)
+	}
+
+	dir := t.TempDir()
+	off := filepath.Join(dir, "off.yaml")
+	if err := os.WriteFile(off, []byte("update_check:\n  enabled: false\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(off)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Update.Enabled {
+		t.Fatal("update_check.enabled: false did not disable the check")
+	}
+	if cfg.Update.Repo != def.Update.Repo {
+		t.Fatalf("repo should keep its default: %q", cfg.Update.Repo)
+	}
+
+	custom := filepath.Join(dir, "custom.yaml")
+	body := "update_check:\n  enabled: true\n  interval: 6h\n  repo: octocat/Hello-World\n"
+	if err := os.WriteFile(custom, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err = Load(custom)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Update.Enabled || cfg.Update.Interval != 6*time.Hour || cfg.Update.Repo != "octocat/Hello-World" {
+		t.Fatalf("update config: %+v", cfg.Update)
 	}
 }

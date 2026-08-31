@@ -2,12 +2,13 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-28 (directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
+> Last updated: 2026-08-31 (version display + background update check; previously 2026-08-28: directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
 
 ## User Preferences
 
 - Wants Claude-missing warnings on both the issue card and Settings, plus an Advanced override for the `claude` binary path.
 - Wants MCP API keys (Linear, GitHub, Datadog) settable in the Settings UI rather than env-only.
+- Wants the running version visible in the app and a periodic background check for a newer one — placement left to judgement (top bar, footer, or Settings were all offered).
 - Wants golangci-lint near-pedantic, with **gocyclo min-complexity 15** as a hard cap so agents cannot dump kitchen-sink functions. Style-war rules (lll, noctx, fieldalignment, forbidigo, revive exported comments) stay disabled so CI remains green.
 
 ## Key Learnings
@@ -217,6 +218,26 @@
   Worth doing before pushing anything that builds SQL or shells out — `make ci`
   silently skips the gate otherwise and CI catches it instead.
 
+- **`debug.ReadBuildInfo()` is the free half of a version stamp, but
+  `Main.Version` lies on a local build.** GoReleaser stamps `main.version` via
+  `-ldflags`; a plain `go build` stamps nothing and the toolchain synthesizes a
+  pseudo-version (`v0.0.0-<14-digit timestamp>-<12 hex>`, sometimes
+  `vX.Y.Z-0.<timestamp>-<hash>`) that parses as a valid semver prerelease.
+  `vcs.revision` and `vcs.time` from the same call are trustworthy; the version
+  is not. `internal/version.Resolve` rejects the pseudo-version and keeps
+  "dev", which is also what stops a dev build from being nagged to "upgrade".
+- **The app now has exactly three outbound destinations**: Linear, the local
+  `claude` binary, and (switchable) one GET a day to GitHub's public releases
+  endpoint. That list is a stated non-negotiable in the root CLAUDE.md — a
+  fourth needs a reason in the PR and a line in SECURITY.md.
+- **`go fix -diff` is a CI gate (`make ci-go` → `fix-check`), and `usetesting`
+  is on.** New Go tests must use `t.Context()`, not
+  `context.Background()`/`context.WithCancel(context.Background())` — the
+  latter fails the build before golangci-lint even runs.
+- **`make web-dist-check` reads only the worktree column of `git status`.**
+  After a UI change, `git add web/dist` and it passes; running it on an
+  unstaged rebuild always fails, which looks like a real drift and is not.
+
 ## Do-Not-Repeat
 
 - [2026-08-31] Do not let a Linear constraint surface as Linear's own error
@@ -352,3 +373,5 @@
   ones give no basis for picking a winner, so the prompt explains the clash and
   offers only Cancel. Guessing there would silently drop a label the user asked
   for — the one outcome worse than the original error.
+- [2026-08-31] The update check is server-side, in memory, and unauthenticated. Alternatives considered: persisting the last result in sqlite (rejected — it would mean new DDL in `internal/store` for a value whose staleness costs one HTTP GET per restart), and comparing versions in the frontend (rejected — `update.available` is one verdict from one implementation, `internal/version.IsNewer`, and the UI only decides how to phrase it). The checker is a leaf package holding no credentials and reading no local state, so the one request it makes stays trivially auditable; `update_check.enabled: false` is the kill switch and has a test asserting no request is made.
+- [2026-08-31] `GET /repos/{owner}/{repo}/releases/latest` rather than `/tags` or the GraphQL API: it excludes drafts and prereleases server-side, needs no auth, and returns the `html_url` to link to. 404 (a fork with no releases) is treated as an empty result, not a failure; 403/429 gets its own "rate limit, will retry" message. The configured repo is regexp-validated as `owner/name` so a config value can never steer the request at another host or path.

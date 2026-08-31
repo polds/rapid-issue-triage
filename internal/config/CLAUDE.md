@@ -10,8 +10,8 @@ Carries the **70% coverage floor** together with `internal/store`
 
 ## Layout
 
-Single file, `config.go`: `Config`/`SyncConfig`/`AIConfig`, `Default`, `Load`,
-`APIKey`, `Lookup`, `ExpandHome`, `envFileValue`.
+Single file, `config.go`: `Config`/`SyncConfig`/`AIConfig`/`UpdateConfig`,
+`Default`, `Load`, `APIKey`, `Lookup`, `ExpandHome`, `envFileValue`.
 
 ## Behaviour worth knowing
 
@@ -35,6 +35,10 @@ Single file, `config.go`: `Config`/`SyncConfig`/`AIConfig`, `Default`, `Load`,
   user-supplied path (db, repo paths, claude binary) goes through it.
 - `APIKey()` returning an error is not fatal at startup: `cmd/triage` falls
   back to the key stored in Settings.
+- **`update_check` is the only kill switch for an outbound request.**
+  `enabled: false` must actually stop `internal/update` from making one — that
+  is the whole contract for an offline or air-gapped user, and it has a test.
+  `interval` is floored at an hour by `update.New`, not here.
 
 ## Gotchas
 

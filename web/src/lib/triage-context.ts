@@ -11,6 +11,7 @@ import type {
   Meta,
   Op,
   SyncStatus,
+  VersionInfo,
   ViewFilter,
 } from "./types";
 
@@ -31,6 +32,11 @@ export interface TriageCtx {
   refreshSync: () => void;
   macros: Macro[];
   reloadMacros: () => Promise<void>;
+
+  // The running build plus the background update check's last verdict. Null
+  // until the first /api/version lands.
+  version: VersionInfo | null;
+  checkForUpdate: () => Promise<void>;
 
   viewFilter: ViewFilter;
   setViewFilter: (f: ViewFilter) => void;

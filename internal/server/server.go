@@ -17,6 +17,7 @@ import (
 	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/store"
 	"github.com/polds/rapid-issue-triage/internal/syncer"
+	"github.com/polds/rapid-issue-triage/internal/update"
 )
 
 type Server struct {
@@ -26,6 +27,7 @@ type Server struct {
 	enricher      *ai.Enricher       // nil when AI is disabled in config
 	orch          *deep.Orchestrator // nil when AI is disabled in config
 	defaultClaude string
+	updates       *update.Checker // never nil; disabled checkers just report status
 
 	// enriching guards against duplicate concurrent enrichments per issue.
 	mu        sync.Mutex
@@ -36,10 +38,10 @@ type Server struct {
 	viewsCacheAt time.Time
 }
 
-func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator, defaultClaude string) *Server {
+func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator, defaultClaude string, upd *update.Checker) *Server {
 	s := &Server{
 		store: st, linear: lc, syncer: sy, enricher: en, orch: orch,
-		defaultClaude: defaultClaude, enriching: map[string]bool{},
+		defaultClaude: defaultClaude, updates: upd, enriching: map[string]bool{},
 	}
 	s.applyClaudeCommand()
 	return s
@@ -79,6 +81,8 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/report", s.handleReport)
 	mux.HandleFunc("GET /api/sync/status", s.handleSyncStatus)
 	mux.HandleFunc("POST /api/sync/refresh", s.handleSyncRefresh)
+	mux.HandleFunc("GET /api/version", s.handleVersion)
+	mux.HandleFunc("POST /api/version/check", s.handleVersionCheck)
 	mux.Handle("/", spaHandler(ui))
 	return mux
 }

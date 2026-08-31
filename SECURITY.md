@@ -35,6 +35,15 @@ Out of scope: an attacker who already has code execution as the user running
 `triage`, and the deliberate `-no-open` / local-file behaviours documented in
 the README.
 
+### Outbound requests
+
+`triage` talks to the Linear API, to your local `claude` binary, and — unless
+`update_check.enabled: false` — once a day to
+`https://api.github.com/repos/<repo>/releases/latest` to see whether a newer
+release exists. That check is unauthenticated, sends no request body and no
+workspace data, and carries only the running version in its `User-Agent`. A
+failure is reported in the UI and never blocks anything.
+
 ## Verifying a release
 
 Release archives ship with SPDX SBOMs, a `checksums.txt`, and GitHub build

@@ -1,13 +1,13 @@
 {
   "version": 1,
   "meta": {
-    "lastScanned": "2026-08-31T16:49:48.652Z",
-    "fileCount": 129,
+    "lastScanned": "2026-08-31T17:31:26.600Z",
+    "fileCount": 137,
     "hits": 0,
     "misses": 0,
-    "renderedHash": "3b4473571c8a94b4d8786830d0c05d5e7e34b3e1ae787734adae1b10835be4e2",
-    "storeUpdatedAt": "2026-08-31T16:49:48.654Z",
-    "rootHash": "f98b4d0f882f1ff3"
+    "renderedHash": "d524e1d702a81fab548cdb12385abee10ab125908c41f8e79385df9f5916819f",
+    "storeUpdatedAt": "2026-08-31T17:31:26.601Z",
+    "rootHash": "0a28832d8a20d6ea"
   },
   "files": {
     ".gitattributes": {
@@ -15,50 +15,50 @@
       "tokens": 375,
       "hash": "fc8a2a06489eac3f",
       "size": 1403,
-      "mtimeMs": 1788193766545.252,
-      "updatedAt": "2026-08-31T16:49:45.114Z",
+      "mtimeMs": 1788196252189.1226,
+      "updatedAt": "2026-08-31T17:31:24.927Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".githooks/pre-commit": {
       "description": "Mirror the CI quality gates, scoped to what this commit actually touches.",
       "tokens": 867,
       "hash": "46abe88a9f24852c",
       "size": 3250,
-      "mtimeMs": 1788193766545.9558,
-      "updatedAt": "2026-08-31T16:49:45.115Z",
+      "mtimeMs": 1788196252189.1226,
+      "updatedAt": "2026-08-31T17:31:24.928Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/CLAUDE.md": {
       "description": ".github/ — CI, security scanning, releases",
       "tokens": 5181,
       "hash": "c0264c90801ef424",
       "size": 20837,
-      "mtimeMs": 1788193766545.9558,
-      "updatedAt": "2026-08-31T16:49:45.116Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.928Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/dependabot.yml": {
       "description": "Declares for",
       "tokens": 804,
       "hash": "7108ef64a925dfcf",
       "size": 2815,
-      "mtimeMs": 1788193766545.9558,
-      "updatedAt": "2026-08-31T16:49:45.117Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.929Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/workflows/ci.yml": {
       "description": "CI: CI",
       "tokens": 4659,
       "hash": "3d72c4a0e4dca4c9",
       "size": 16305,
-      "mtimeMs": 1788193766545.9558,
-      "updatedAt": "2026-08-31T16:49:45.117Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.930Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/workflows/codeql.yml": {
       "description": "CodeQL security-extended over Go + TypeScript, PR and weekly",
@@ -66,29 +66,29 @@
       "hash": "067d9d28ff0a048f",
       "size": 1940,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T16:49:45.117Z",
+      "updatedAt": "2026-08-31T17:31:24.930Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/workflows/dependabot-auto-merge.yml": {
       "description": "Auto-merges patch/minor Dependabot PRs behind all required checks; holds majors and release-only actions",
       "tokens": 1439,
       "hash": "84590ff3ce124589",
       "size": 5035,
-      "mtimeMs": 1788193766545.9558,
-      "updatedAt": "2026-08-31T16:49:45.117Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.931Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/workflows/release.yml": {
       "description": "CI: Release",
       "tokens": 2188,
       "hash": "9825f028c4a1cea8",
       "size": 7657,
-      "mtimeMs": 1788193766549.9558,
-      "updatedAt": "2026-08-31T16:49:45.118Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.931Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/workflows/scorecard.yml": {
       "description": "OpenSSF Scorecard, SARIF to the Security tab",
@@ -96,29 +96,29 @@
       "hash": "72010c4f53f30b0d",
       "size": 1256,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T16:49:45.119Z",
+      "updatedAt": "2026-08-31T17:31:24.932Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".github/zizmor.yml": {
       "description": "zizmor audit configuration. Every entry here is a deliberate, reviewed",
       "tokens": 453,
       "hash": "fd893a6ee60fedf8",
       "size": 1586,
-      "mtimeMs": 1788193766549.9558,
-      "updatedAt": "2026-08-31T16:49:45.119Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.932Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".gitignore": {
       "description": "Git ignore rules",
       "tokens": 183,
       "hash": "03b7b222e8b43ad9",
       "size": 684,
-      "mtimeMs": 1788193766549.9558,
-      "updatedAt": "2026-08-31T16:49:45.120Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.932Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".golangci.yml": {
       "description": "Declares is",
@@ -126,19 +126,19 @@
       "hash": "a52e1e52ac6311c4",
       "size": 6828,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T16:49:45.120Z",
+      "updatedAt": "2026-08-31T17:31:24.932Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".goreleaser.yaml": {
       "description": "",
       "tokens": 2477,
       "hash": "0ccf30cf8132c2a9",
       "size": 8668,
-      "mtimeMs": 1788193766549.9558,
-      "updatedAt": "2026-08-31T16:49:45.120Z",
+      "mtimeMs": 1788196252191.49,
+      "updatedAt": "2026-08-31T17:31:24.933Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     ".tool-versions": {
       "description": "",
@@ -146,9 +146,9 @@
       "hash": "b062f0966dddabf6",
       "size": 14,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T16:49:45.121Z",
+      "updatedAt": "2026-08-31T17:31:24.933Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "AGENTS.md": {
       "description": "OpenWolf",
@@ -156,65 +156,65 @@
       "hash": "8c90778623bf50ac",
       "size": 271,
       "mtimeMs": 1787951059703.7485,
-      "updatedAt": "2026-08-31T16:49:45.121Z",
+      "updatedAt": "2026-08-31T17:31:24.933Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "CLAUDE.md": {
       "description": "CLAUDE.md — working in `rapid-issue-triage`",
-      "tokens": 3104,
-      "hash": "a5002e9d240f8980",
-      "size": 12614,
-      "mtimeMs": 1788193766557.9558,
-      "updatedAt": "2026-08-31T16:49:45.121Z",
+      "tokens": 3258,
+      "hash": "bf4d03f5b7e66b23",
+      "size": 13243,
+      "mtimeMs": 1788197213658.2727,
+      "updatedAt": "2026-08-31T17:31:24.933Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "cmd/triage/CLAUDE.md": {
       "description": "Startup order, flags, the hidden `triage tool` shim",
       "tokens": 719,
       "hash": "291f7f18b6a39bc0",
       "size": 2899,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.121Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.934Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "cmd/triage/main.go": {
       "description": "rapid-issue-triage: a local-only, keyboard-first rapid triaging tool for",
-      "tokens": 1494,
-      "hash": "e1de5179f30426c4",
-      "size": 5226,
-      "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T16:49:45.122Z",
+      "tokens": 1629,
+      "hash": "47ddbcca349890d6",
+      "size": 5700,
+      "mtimeMs": 1788196688953.689,
+      "updatedAt": "2026-08-31T17:31:24.934Z",
       "source": "scan",
       "symbols": [
         {
           "name": "main",
           "kind": "fn",
-          "startLine": 39,
-          "endLine": 68,
-          "tokens": 296
+          "startLine": 42,
+          "endLine": 64,
+          "tokens": 247
         },
         {
           "name": "run",
           "kind": "fn",
-          "startLine": 70,
-          "endLine": 151,
-          "tokens": 596
+          "startLine": 66,
+          "endLine": 158,
+          "tokens": 720
         },
         {
           "name": "toolClient",
           "kind": "fn",
-          "startLine": 155,
-          "endLine": 185,
+          "startLine": 162,
+          "endLine": 192,
           "tokens": 241
         },
         {
           "name": "openBrowser",
           "kind": "fn",
-          "startLine": 187,
-          "endLine": 200,
+          "startLine": 194,
+          "endLine": 207,
           "tokens": 80
         }
       ],
@@ -226,19 +226,21 @@
         "internal/linear/api.go",
         "internal/server/CLAUDE.md",
         "internal/store/activity.go",
-        "internal/syncer/CLAUDE.md"
+        "internal/syncer/CLAUDE.md",
+        "internal/update/update_test.go",
+        "internal/version/version_test.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "Dockerfile": {
       "description": "Release runtime image: COPYs GoReleaser's prebuilt `$TARGETPLATFORM/triage` onto pinned distroless, OCI labels from build args, binds 0.0.0.0:7333 as uid 65532 with /data as $HOME",
       "tokens": 1170,
       "hash": "d6ea785c137e3cc0",
       "size": 4384,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.122Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "go.mod": {
       "description": "Go module definition",
@@ -246,9 +248,9 @@
       "hash": "bfc76863f7d48b07",
       "size": 563,
       "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T16:49:45.122Z",
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "go.sum": {
       "description": "Go dependency checksums",
@@ -256,19 +258,19 @@
       "hash": "b169d454eb9814db",
       "size": 4495,
       "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T16:49:45.122Z",
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/ai/CLAUDE.md": {
       "description": "Fast enrichment: verdict set, prompt/truncation invariants",
       "tokens": 656,
       "hash": "05c633c2f2e1f86c",
       "size": 2631,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.123Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.14
+      "importance": 0.1348
     },
     "internal/ai/enrich.go": {
       "description": "shells out to the Claude Code CLI (no API key required) to",
@@ -276,7 +278,7 @@
       "hash": "3e5a58013f66d17e",
       "size": 4783,
       "mtimeMs": 1787951059711.4011,
-      "updatedAt": "2026-08-31T16:49:45.123Z",
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
       "symbols": [
         {
@@ -333,158 +335,172 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/CLAUDE.md": {
-      "description": "Go package map, dependency direction, cross-package conventions",
-      "tokens": 724,
-      "hash": "5541b6c9791e1160",
-      "size": 2940,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.123Z",
+      "description": "internal/ — Go packages",
+      "tokens": 979,
+      "hash": "535ea07ae61b6703",
+      "size": 3967,
+      "mtimeMs": 1788197175208.251,
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/config/CLAUDE.md": {
-      "description": "Config search order, Settings->env->.env lookup chain",
-      "tokens": 606,
-      "hash": "788cb3fc1fe45634",
-      "size": 2452,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.123Z",
+      "description": "internal/config — YAML config + credential lookup",
+      "tokens": 682,
+      "hash": "a877c153dfc5ce39",
+      "size": 2758,
+      "mtimeMs": 1788197175208.6714,
+      "updatedAt": "2026-08-31T17:31:24.935Z",
       "source": "scan",
-      "importance": 0.2444
+      "importance": 0.243
     },
     "internal/config/config_test.go": {
-      "description": "TestExpandHome, TestLookupEnvThenDotenv, TestEnvFileValueQuotesExportAndComments, TestLoadYAMLAndPageSizeClamp + 2 more",
-      "tokens": 1094,
-      "hash": "6523fdcd7f811db2",
-      "size": 3828,
-      "mtimeMs": 1787951059712.3862,
-      "updatedAt": "2026-08-31T16:49:45.124Z",
+      "description": "TestExpandHome, TestLookupEnvThenDotenv, TestEnvFileValueQuotesExportAndComments, TestLoadYAMLAndPageSizeClamp + 3 more",
+      "tokens": 1455,
+      "hash": "bf463b843b1f19ab",
+      "size": 5092,
+      "mtimeMs": 1788196640520.3347,
+      "updatedAt": "2026-08-31T17:31:24.936Z",
       "source": "scan",
       "symbols": [
         {
           "name": "TestExpandHome",
           "kind": "fn",
-          "startLine": 9,
-          "endLine": 23,
+          "startLine": 10,
+          "endLine": 24,
           "tokens": 98
         },
         {
           "name": "TestLookupEnvThenDotenv",
           "kind": "fn",
-          "startLine": 25,
-          "endLine": 39,
+          "startLine": 26,
+          "endLine": 40,
           "tokens": 132
         },
         {
           "name": "TestEnvFileValueQuotesExportAndComments",
           "kind": "fn",
-          "startLine": 41,
-          "endLine": 60,
+          "startLine": 42,
+          "endLine": 61,
           "tokens": 191
         },
         {
           "name": "TestLoadYAMLAndPageSizeClamp",
           "kind": "fn",
-          "startLine": 62,
-          "endLine": 124,
+          "startLine": 63,
+          "endLine": 125,
           "tokens": 486
         },
         {
           "name": "TestLoadEmptyPathUsesDefaults",
           "kind": "fn",
-          "startLine": 126,
-          "endLine": 137,
+          "startLine": 127,
+          "endLine": 138,
           "tokens": 64
         },
         {
           "name": "TestAPIKey",
           "kind": "fn",
-          "startLine": 139,
-          "endLine": 155,
+          "startLine": 140,
+          "endLine": 156,
           "tokens": 104
+        },
+        {
+          "name": "TestLoadUpdateCheck",
+          "kind": "fn",
+          "startLine": 161,
+          "endLine": 195,
+          "tokens": 308
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/config/config.go": {
       "description": "loads rapid-triage configuration from YAML with sane",
-      "tokens": 1278,
-      "hash": "71094df0e46ae358",
-      "size": 4477,
-      "mtimeMs": 1787951059711.4011,
-      "updatedAt": "2026-08-31T16:49:45.124Z",
+      "tokens": 1464,
+      "hash": "a05a82bfe712c271",
+      "size": 5129,
+      "mtimeMs": 1788196621669.943,
+      "updatedAt": "2026-08-31T17:31:24.936Z",
       "source": "scan",
       "symbols": [
         {
           "name": "Config",
           "kind": "class",
           "startLine": 16,
-          "endLine": 27,
-          "tokens": 137
+          "endLine": 28,
+          "tokens": 150
         },
         {
           "name": "SyncConfig",
           "kind": "class",
-          "startLine": 29,
-          "endLine": 34,
+          "startLine": 30,
+          "endLine": 35,
           "tokens": 52
         },
         {
           "name": "AIConfig",
           "kind": "class",
-          "startLine": 36,
-          "endLine": 46,
+          "startLine": 37,
+          "endLine": 47,
           "tokens": 119
+        },
+        {
+          "name": "UpdateConfig",
+          "kind": "class",
+          "startLine": 53,
+          "endLine": 59,
+          "tokens": 72
         },
         {
           "name": "Default",
           "kind": "fn",
-          "startLine": 48,
-          "endLine": 62,
-          "tokens": 167
+          "startLine": 61,
+          "endLine": 76,
+          "tokens": 196
         },
         {
           "name": "Load",
           "kind": "fn",
-          "startLine": 67,
-          "endLine": 100,
+          "startLine": 81,
+          "endLine": 114,
           "tokens": 214
         },
         {
           "name": "APIKey",
           "kind": "method",
-          "startLine": 102,
-          "endLine": 107,
+          "startLine": 116,
+          "endLine": 121,
           "tokens": 77
         },
         {
           "name": "Lookup",
           "kind": "fn",
-          "startLine": 111,
-          "endLine": 122,
+          "startLine": 125,
+          "endLine": 136,
           "tokens": 77
         },
         {
           "name": "ExpandHome",
           "kind": "fn",
-          "startLine": 125,
-          "endLine": 135,
+          "startLine": 139,
+          "endLine": 149,
           "tokens": 56
         },
         {
           "name": "envFileValue",
           "kind": "fn",
-          "startLine": 139,
-          "endLine": 158,
+          "startLine": 153,
+          "endLine": 172,
           "tokens": 139
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/deep/claude.go": {
       "description": "streamOpts (56 fields)",
@@ -492,7 +508,7 @@
       "hash": "28d64e360aff550e",
       "size": 4264,
       "mtimeMs": 1787951059712.3862,
-      "updatedAt": "2026-08-31T16:49:45.125Z",
+      "updatedAt": "2026-08-31T17:31:24.937Z",
       "source": "scan",
       "symbols": [
         {
@@ -553,17 +569,17 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.14
+      "importance": 0.1348
     },
     "internal/deep/CLAUDE.md": {
       "description": "Scout fanout, the credential boundary, run lifecycle, report schema",
       "tokens": 1317,
       "hash": "a493d5a1ba78878a",
       "size": 5319,
-      "mtimeMs": 1788193766565.9558,
-      "updatedAt": "2026-08-31T16:49:45.125Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.937Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/deep/orchestrator.go": {
       "description": "Orchestrator (83 fields); methods: ValidateToken, Subscribe, LogToolCall, Start",
@@ -571,7 +587,7 @@
       "hash": "56617742eb5917c5",
       "size": 10273,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T16:49:45.126Z",
+      "updatedAt": "2026-08-31T17:31:24.938Z",
       "source": "scan",
       "symbols": [
         {
@@ -692,7 +708,7 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/deep/scouts.go": {
       "description": "scoutDef (30 fields)",
@@ -700,7 +716,7 @@
       "hash": "6dc1d9fba1a191d5",
       "size": 7615,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T16:49:45.127Z",
+      "updatedAt": "2026-08-31T17:31:24.938Z",
       "source": "scan",
       "symbols": [
         {
@@ -772,7 +788,7 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/deep/toolbox.go": {
       "description": "implements deep AI enrichment: a fanout of read-only scout",
@@ -780,7 +796,7 @@
       "hash": "000cad621173603f",
       "size": 11417,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T16:49:45.127Z",
+      "updatedAt": "2026-08-31T17:31:24.938Z",
       "source": "scan",
       "symbols": [
         {
@@ -924,15 +940,15 @@
         "internal/linear/api.go",
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/linear/api.go": {
       "description": "CustomView (89 fields); methods: Viewer, Teams, WorkflowStates, Labels",
       "tokens": 2596,
       "hash": "47316b61fe38191b",
       "size": 9084,
-      "mtimeMs": 1788193932859.5366,
-      "updatedAt": "2026-08-31T16:49:45.128Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.940Z",
       "source": "scan",
       "symbols": [
         {
@@ -1064,17 +1080,17 @@
       ],
       "symbolSource": "ts",
       "skeleton": "func (c *Client) Viewer(ctx context.Context) (User, error) {\nfunc (c *Client) Teams(ctx context.Context) ([]Team, error) {\nfunc (c *Client) WorkflowStates(ctx context.Context) ([]WorkflowState, error) {\nfunc (c *Client) Labels(ctx context.Context) ([]Label, error) {\nfunc (c *Client) Projects(ctx context.Context) ([]Project, error) {\nfunc (c *Client) Cycles(ctx context.Context) ([]Cycle, error) {\nfunc (c *Client) Users(ctx context.Context) ([]User, error) {\nfunc paginate[T any](ctx context.Context, c *Client, field, fields string, filter map[string]any) ([]T, error) {\nfunc filterTypeFor(field string) string {\nfunc (c *Client) Issues(ctx context.Context, filter map[string]any, pageSize int, onPage func([]Issue) error) error {\ntype CustomView struct {\nfunc (c *Client) CustomViews(ctx context.Context) ([]CustomView, error) {\nfunc (c *Client) IssueComments(ctx context.Context, issueID string) ([]Comment, error) {\nfunc (c *Client) UpdateIssue(ctx context.Context, issueID string, input map[string]any) (Issue, error) {\nfunc (c *Client) CreateComment(ctx context.Context, issueID, body string) (string, error) {\nfunc (c *Client) DeleteComment(ctx context.Context, commentID string) error {\nfunc (c *Client) CreateDuplicateRelation(ctx context.Context, issueID, canonicalID string) (string, error) {\nfunc (c *Client) DeleteIssueRelation(ctx context.Context, relationID string) error {",
-      "importance": 0.3089
+      "importance": 0.3048
     },
     "internal/linear/CLAUDE.md": {
       "description": "internal/linear — minimal Linear GraphQL client",
       "tokens": 839,
       "hash": "70ef8c5d04556854",
       "size": 3365,
-      "mtimeMs": 1788194926145.8958,
-      "updatedAt": "2026-08-31T16:49:45.130Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.940Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/linear/client.go": {
       "description": "is a minimal GraphQL client for the Linear API, covering the",
@@ -1082,7 +1098,7 @@
       "hash": "97335de28585e964",
       "size": 3057,
       "mtimeMs": 1787951059715.1064,
-      "updatedAt": "2026-08-31T16:49:45.130Z",
+      "updatedAt": "2026-08-31T17:31:24.940Z",
       "source": "scan",
       "symbols": [
         {
@@ -1143,15 +1159,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/linear/types.go": {
       "description": "Ref (54 fields)",
       "tokens": 682,
       "hash": "07e9910d7bad17ec",
       "size": 2386,
-      "mtimeMs": 1788193932859.3718,
-      "updatedAt": "2026-08-31T16:49:45.130Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.940Z",
       "source": "scan",
       "symbols": [
         {
@@ -1226,17 +1242,17 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/CLAUDE.md": {
       "description": "internal/server — local HTTP API + embedded UI",
-      "tokens": 1515,
-      "hash": "e485302ea8193df6",
-      "size": 6100,
-      "mtimeMs": 1788194926145.6816,
-      "updatedAt": "2026-08-31T16:49:45.130Z",
+      "tokens": 1639,
+      "hash": "4be29042cc33d2da",
+      "size": 6598,
+      "mtimeMs": 1788197175208.5083,
+      "updatedAt": "2026-08-31T17:31:24.940Z",
       "source": "scan",
-      "importance": 0.1216
+      "importance": 0.1194
     },
     "internal/server/deep.go": {
       "description": "HTTP handlers: sendSSE",
@@ -1244,7 +1260,7 @@
       "hash": "0f3678bafeb83d31",
       "size": 5809,
       "mtimeMs": 1787951059715.1064,
-      "updatedAt": "2026-08-31T16:49:45.131Z",
+      "updatedAt": "2026-08-31T17:31:24.941Z",
       "source": "scan",
       "symbols": [
         {
@@ -1329,15 +1345,15 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/handlers.go": {
       "description": "applyRequest (80 fields)",
       "tokens": 4924,
       "hash": "b213c020faf2157c",
       "size": 17235,
-      "mtimeMs": 1788194072205.364,
-      "updatedAt": "2026-08-31T16:49:45.132Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.941Z",
       "source": "scan",
       "symbols": [
         {
@@ -1543,15 +1559,15 @@
         "internal/linear/api.go",
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/labelgroups_test.go": {
       "description": "TestGroupsWithSiblingsKeepsOnlyClashes, TestClassifyGroupSplitsIncomingFromExisting, TestClassifyGroupTwoIncomingIsNotResolvable, TestClassifyGroup...",
       "tokens": 1429,
       "hash": "eb65e736d8fa09ef",
       "size": 5000,
-      "mtimeMs": 1788194602813.079,
-      "updatedAt": "2026-08-31T16:49:45.132Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.942Z",
       "source": "scan",
       "symbols": [
         {
@@ -1629,15 +1645,15 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/labelgroups.go": {
       "description": "labelGroupConflict (45 fields); methods: Error",
       "tokens": 1691,
       "hash": "d22651893e980819",
       "size": 5934,
-      "mtimeMs": 1788194889176.8682,
-      "updatedAt": "2026-08-31T16:49:45.132Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.942Z",
       "source": "scan",
       "symbols": [
         {
@@ -1722,15 +1738,15 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/ops.go": {
       "description": "opOptions (153 fields)",
       "tokens": 3443,
       "hash": "7bc0b24239322bdc",
       "size": 12055,
-      "mtimeMs": 1788194602812.915,
-      "updatedAt": "2026-08-31T16:49:45.133Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.942Z",
       "source": "scan",
       "symbols": [
         {
@@ -1908,7 +1924,7 @@
         "internal/store/activity.go",
         "internal/syncer/CLAUDE.md"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/pickfolder_test.go": {
       "description": "TestCanceledDetection",
@@ -1916,9 +1932,9 @@
       "hash": "65b2c9f334f8d2e3",
       "size": 372,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.133Z",
+      "updatedAt": "2026-08-31T17:31:24.942Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/pickfolder.go": {
       "description": "",
@@ -1926,7 +1942,7 @@
       "hash": "77997e30bbf0758e",
       "size": 3651,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.133Z",
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
       "symbols": [
         {
@@ -1973,7 +1989,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/reportcomment_test.go": {
       "description": "TestLinearIssueURL",
@@ -1981,9 +1997,9 @@
       "hash": "fe59e1e5d853d8b9",
       "size": 558,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.133Z",
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/reportcomment.go": {
       "description": "deepReport (54 fields)",
@@ -1991,7 +2007,7 @@
       "hash": "13c9d7d81c4ab648",
       "size": 4815,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.134Z",
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
       "symbols": [
         {
@@ -2048,78 +2064,78 @@
       "imports": [
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/server.go": {
       "description": "exposes the local HTTP API and serves the embedded web UI.",
-      "tokens": 1463,
-      "hash": "a2a9fde53a792fb9",
-      "size": 5120,
-      "mtimeMs": 1788194485755.7124,
-      "updatedAt": "2026-08-31T16:49:45.134Z",
+      "tokens": 1546,
+      "hash": "3344ecbc91059d75",
+      "size": 5410,
+      "mtimeMs": 1788196658225.0525,
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
       "symbols": [
         {
           "name": "Server",
           "kind": "class",
-          "startLine": 22,
-          "endLine": 37,
-          "tokens": 137
+          "startLine": 23,
+          "endLine": 39,
+          "tokens": 160
         },
         {
           "name": "New",
           "kind": "fn",
-          "startLine": 39,
-          "endLine": 46,
-          "tokens": 91
+          "startLine": 41,
+          "endLine": 48,
+          "tokens": 101
         },
         {
           "name": "Handler",
           "kind": "method",
-          "startLine": 48,
-          "endLine": 84,
-          "tokens": 592
+          "startLine": 50,
+          "endLine": 88,
+          "tokens": 626
         },
         {
           "name": "spaHandler",
           "kind": "fn",
-          "startLine": 88,
-          "endLine": 104,
+          "startLine": 92,
+          "endLine": 108,
           "tokens": 121
         },
         {
           "name": "writeJSON",
           "kind": "fn",
-          "startLine": 106,
-          "endLine": 112,
+          "startLine": 110,
+          "endLine": 116,
           "tokens": 64
         },
         {
           "name": "writeErr",
           "kind": "fn",
-          "startLine": 114,
-          "endLine": 116,
+          "startLine": 118,
+          "endLine": 120,
           "tokens": 35
         },
         {
           "name": "writeActionErr",
           "kind": "fn",
-          "startLine": 121,
-          "endLine": 132,
+          "startLine": 125,
+          "endLine": 136,
           "tokens": 98
         },
         {
           "name": "decodeBody",
           "kind": "fn",
-          "startLine": 134,
-          "endLine": 138,
+          "startLine": 138,
+          "endLine": 142,
           "tokens": 36
         },
         {
           "name": "bgCtx",
           "kind": "fn",
-          "startLine": 142,
-          "endLine": 142,
+          "startLine": 146,
+          "endLine": 146,
           "tokens": 18
         }
       ],
@@ -2129,9 +2145,10 @@
         "internal/deep/claude.go",
         "internal/linear/api.go",
         "internal/store/activity.go",
-        "internal/syncer/CLAUDE.md"
+        "internal/syncer/CLAUDE.md",
+        "internal/update/update_test.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/server/settings.go": {
       "description": "ClaudeAvail (35 fields)",
@@ -2139,7 +2156,7 @@
       "hash": "df1f5d6c7a1c264c",
       "size": 3465,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.134Z",
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
       "symbols": [
         {
@@ -2211,7 +2228,52 @@
         "internal/config/CLAUDE.md",
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
+    },
+    "internal/server/version_test.go": {
+      "description": "TestHandleVersionShape, TestHandleVersionCheckDisabled",
+      "tokens": 720,
+      "hash": "14b4764426861030",
+      "size": 2521,
+      "mtimeMs": 1788196757754.1772,
+      "updatedAt": "2026-08-31T17:31:24.943Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "TestHandleVersionShape",
+          "kind": "fn",
+          "startLine": 16,
+          "endLine": 52,
+          "tokens": 378
+        },
+        {
+          "name": "TestHandleVersionCheckDisabled",
+          "kind": "fn",
+          "startLine": 56,
+          "endLine": 73,
+          "tokens": 196
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "internal/update/update_test.go",
+        "internal/version/version_test.go"
+      ],
+      "importance": 0.1091
+    },
+    "internal/server/version.go": {
+      "description": "versionResponse (2 fields)",
+      "tokens": 358,
+      "hash": "3afbe9382daadec7",
+      "size": 1252,
+      "mtimeMs": 1788196658214.816,
+      "updatedAt": "2026-08-31T17:31:24.943Z",
+      "source": "scan",
+      "imports": [
+        "internal/update/update_test.go",
+        "internal/version/version_test.go"
+      ],
+      "importance": 0.1091
     },
     "internal/store/activity.go": {
       "description": "",
@@ -2219,7 +2281,7 @@
       "hash": "9daa4f083afbf64c",
       "size": 5016,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T16:49:45.134Z",
+      "updatedAt": "2026-08-31T17:31:24.943Z",
       "source": "scan",
       "symbols": [
         {
@@ -2308,10 +2370,10 @@
       "tokens": 1113,
       "hash": "f1eae36b3188de21",
       "size": 4488,
-      "mtimeMs": 1788194947160.9392,
-      "updatedAt": "2026-08-31T16:49:45.135Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/enrichments.go": {
       "description": "IssueContentHash",
@@ -2319,7 +2381,7 @@
       "hash": "5bf991e0bdd5b6a5",
       "size": 2487,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.135Z",
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
       "symbols": [
         {
@@ -2352,7 +2414,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/enrichruns.go": {
       "description": "EnrichRun (46 fields); methods: CreateEnrichRun, FinishEnrichRun, GetEnrichRun, LatestRunForIssue",
@@ -2360,7 +2422,7 @@
       "hash": "74a1acd2e4b71d45",
       "size": 4157,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.135Z",
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
       "symbols": [
         {
@@ -2435,7 +2497,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/enrichsettings.go": {
       "description": "EnrichSettings gates deep enrichment. Every source is read-only by",
@@ -2443,9 +2505,9 @@
       "hash": "6fadc7fa380f855f",
       "size": 1384,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.135Z",
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/issues.go": {
       "description": "Declares issueCols",
@@ -2453,7 +2515,7 @@
       "hash": "d96d052b27409c57",
       "size": 7856,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.135Z",
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
       "symbols": [
         {
@@ -2571,7 +2633,7 @@
       ],
       "symbolSource": "ts",
       "skeleton": "func (s *Store) UpsertIssue(tx *sql.Tx, gen int64, r IssueRow) error {\nfunc (s *Store) Begin() (*sql.Tx, error) { return s.db.Begin() }\nfunc (s *Store) PruneStale(gen int64) (int64, error) {\nfunc scanIssue(sc interface{ Scan(...any) error }) (IssueRow, error) {\nfunc (s *Store) Queue(f QueueFilter, exclude []string, limit int) ([]IssueRow, error) {\nfunc (s *Store) GetIssue(id string) (IssueRow, error) {\nfunc (s *Store) QueueCount(f QueueFilter) (int, error) {\nfunc (s *Store) MarkSkipped(id string) error {\nfunc (s *Store) MarkSnoozed(id string, until time.Time) error {\nfunc (s *Store) MarkTriaged(id string) error {\nfunc (s *Store) RestoreIssue(r IssueRow) error {\nfunc (s *Store) ApplySyncedIssue(r IssueRow, triaged bool) error {\nfunc (s *Store) SetIssueContext(id, contextJSON string) error {\nfunc (s *Store) GetIssueContext(id string) (string, string, error) {\nfunc (s *Store) UnenrichedQueueHeads(limit int) ([]string, error) {\nfunc (s *Store) TeamCounts() (map[string]int, error) {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/macros.go": {
       "description": "",
@@ -2579,134 +2641,134 @@
       "hash": "6274e69169c8a186",
       "size": 1708,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.136Z",
+      "updatedAt": "2026-08-31T17:31:24.944Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/metadata.go": {
-      "description": "LabelGroupMember (64 fields); methods: ReplaceTeams, ReplaceStates, ReplaceLabels, ReplaceProjects",
-      "tokens": 1804,
-      "hash": "4826d139a1ef22d9",
-      "size": 6315,
-      "mtimeMs": 1788193952475.812,
-      "updatedAt": "2026-08-31T16:49:45.136Z",
+      "description": "Replace-all upserts for workspace metadata. Each runs in the caller's sync",
+      "tokens": 1797,
+      "hash": "8cc6bfcae06bc9f0",
+      "size": 6291,
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.945Z",
       "source": "scan",
       "symbols": [
         {
           "name": "replaceAll",
           "kind": "fn",
-          "startLine": 11,
-          "endLine": 26,
+          "startLine": 8,
+          "endLine": 23,
           "tokens": 99
         },
         {
           "name": "ReplaceTeams",
           "kind": "method",
-          "startLine": 28,
-          "endLine": 30,
+          "startLine": 25,
+          "endLine": 27,
           "tokens": 45
         },
         {
           "name": "ReplaceStates",
           "kind": "method",
-          "startLine": 32,
-          "endLine": 35,
+          "startLine": 29,
+          "endLine": 32,
           "tokens": 62
         },
         {
           "name": "ReplaceLabels",
           "kind": "method",
-          "startLine": 37,
-          "endLine": 40,
+          "startLine": 34,
+          "endLine": 37,
           "tokens": 58
         },
         {
           "name": "ReplaceProjects",
           "kind": "method",
-          "startLine": 42,
-          "endLine": 44,
+          "startLine": 39,
+          "endLine": 41,
           "tokens": 48
         },
         {
           "name": "ReplaceCycles",
           "kind": "method",
-          "startLine": 46,
-          "endLine": 49,
+          "startLine": 43,
+          "endLine": 46,
           "tokens": 58
         },
         {
           "name": "ReplaceUsers",
           "kind": "method",
-          "startLine": 51,
-          "endLine": 54,
+          "startLine": 48,
+          "endLine": 51,
           "tokens": 54
         },
         {
           "name": "Metadata",
           "kind": "method",
-          "startLine": 57,
-          "endLine": 101,
+          "startLine": 54,
+          "endLine": 98,
           "tokens": 524
         },
         {
           "name": "LabelIDByName",
           "kind": "method",
-          "startLine": 105,
-          "endLine": 112,
+          "startLine": 102,
+          "endLine": 109,
           "tokens": 112
         },
         {
           "name": "LabelGroupMember",
           "kind": "class",
-          "startLine": 117,
-          "endLine": 122,
+          "startLine": 114,
+          "endLine": 119,
           "tokens": 30
         },
         {
           "name": "LabelGroupsFor",
           "kind": "method",
-          "startLine": 127,
-          "endLine": 152,
-          "tokens": 191
+          "startLine": 124,
+          "endLine": 150,
+          "tokens": 189
         },
         {
           "name": "StateIDByName",
           "kind": "method",
-          "startLine": 154,
-          "endLine": 159,
+          "startLine": 152,
+          "endLine": 157,
           "tokens": 71
         },
         {
           "name": "StateIDByType",
           "kind": "method",
-          "startLine": 161,
-          "endLine": 166,
+          "startLine": 159,
+          "endLine": 164,
           "tokens": 71
         },
         {
           "name": "StateType",
           "kind": "method",
-          "startLine": 168,
-          "endLine": 172,
+          "startLine": 166,
+          "endLine": 170,
           "tokens": 54
         },
         {
           "name": "ActiveCycleID",
           "kind": "method",
-          "startLine": 174,
-          "endLine": 180,
+          "startLine": 172,
+          "endLine": 178,
           "tokens": 80
         },
         {
           "name": "MyUserID",
           "kind": "method",
-          "startLine": 182,
-          "endLine": 186,
+          "startLine": 180,
+          "endLine": 184,
           "tokens": 48
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/models.go": {
       "description": "View models served to the frontend.",
@@ -2714,7 +2776,7 @@
       "hash": "e1bc4b407a16875d",
       "size": 3839,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.136Z",
+      "updatedAt": "2026-08-31T17:31:24.945Z",
       "source": "scan",
       "symbols": [
         {
@@ -2761,7 +2823,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/queuefilter.go": {
       "description": "QueueFilter (19 fields); methods: Empty",
@@ -2769,7 +2831,7 @@
       "hash": "c6ebe1ac529c54c0",
       "size": 2258,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.136Z",
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
       "symbols": [
         {
@@ -2802,7 +2864,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/secrets_test.go": {
       "description": "TestSecretsRoundTripAndHint, TestHintMasks",
@@ -2810,9 +2872,9 @@
       "hash": "654f235c730b2a77",
       "size": 1364,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.138Z",
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/secrets.go": {
       "description": "Secrets (36 fields); methods: GetSecrets, SetSecret, Resolve, SecretStatus",
@@ -2820,7 +2882,7 @@
       "hash": "8252adaabf0d2136",
       "size": 3131,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T16:49:45.138Z",
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
       "symbols": [
         {
@@ -2892,15 +2954,15 @@
         "internal/config/CLAUDE.md",
         "internal/linear/api.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/store_test.go": {
       "description": "TestMetaRoundTrip, TestQueueFilterEmpty, TestIssueQueueSkipSnoozeTriageAndFilters, TestMacrosCRUD + 5 more",
       "tokens": 3703,
       "hash": "954702fda6a7ddda",
       "size": 12960,
-      "mtimeMs": 1788194140813.971,
-      "updatedAt": "2026-08-31T16:49:45.139Z",
+      "mtimeMs": 1788196252211.49,
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
       "symbols": [
         {
@@ -2990,15 +3052,15 @@
       ],
       "symbolSource": "ts",
       "skeleton": "func testStore(t *testing.T) *Store {\nfunc mustIssue(t *testing.T, st *Store, r IssueRow, gen int64) {\nfunc sampleIssue(id, ident, team string, pri int, labels ...LabelChip) IssueRow {\nfunc TestMetaRoundTrip(t *testing.T) {\nfunc TestQueueFilterEmpty(t *testing.T) {\nfunc TestIssueQueueSkipSnoozeTriageAndFilters(t *testing.T) {\nfunc TestMacrosCRUD(t *testing.T) {\nfunc TestEnrichSettingsAndEnrichmentHash(t *testing.T) {\nfunc TestActivityReportAndUndo(t *testing.T) {\nfunc TestMetadataLookupsAndEnrichRuns(t *testing.T) {\nfunc TestMustJSONAndErrRow(t *testing.T) {\nfunc TestLabelGroupsFor(t *testing.T) {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/store/store.go": {
       "description": "owns the local sqlite database: the issue index, skip/snooze",
       "tokens": 1585,
       "hash": "bf1a22b043828f7c",
       "size": 5546,
-      "mtimeMs": 1788193940200.3335,
-      "updatedAt": "2026-08-31T16:49:45.139Z",
+      "mtimeMs": 1788196252207.49,
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
       "symbols": [
         {
@@ -3066,25 +3128,25 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "internal/syncer/CLAUDE.md": {
       "description": "Generation-based sync, stale vs reindexing semantics",
       "tokens": 689,
       "hash": "8928421dcc355ada",
       "size": 2783,
-      "mtimeMs": 1788193766565.9558,
-      "updatedAt": "2026-08-31T16:49:45.139Z",
+      "mtimeMs": 1788196252211.49,
+      "updatedAt": "2026-08-31T17:31:24.946Z",
       "source": "scan",
-      "importance": 0.1861
+      "importance": 0.1812
     },
     "internal/syncer/syncer.go": {
       "description": "indexes Linear metadata and untriaged issues into sqlite in",
       "tokens": 2648,
       "hash": "658c13fbb98f2037",
       "size": 9268,
-      "mtimeMs": 1788193957920.073,
-      "updatedAt": "2026-08-31T16:49:45.139Z",
+      "mtimeMs": 1788196252211.49,
+      "updatedAt": "2026-08-31T17:31:24.947Z",
       "source": "scan",
       "symbols": [
         {
@@ -3269,7 +3331,332 @@
         "internal/linear/api.go",
         "internal/store/activity.go"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
+    },
+    "internal/update/update_test.go": {
+      "description": "TestCheckFindsNewerRelease, TestCheckUpToDateAndDevBuild, TestCheckNoReleasesIsNotAnError, TestCheckErrorsKeepLastGoodResult + 4 more",
+      "tokens": 1923,
+      "hash": "3a1b9b3862703b2b",
+      "size": 6728,
+      "mtimeMs": 1788197326479.141,
+      "updatedAt": "2026-08-31T17:31:24.947Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "newTestChecker",
+          "kind": "fn",
+          "startLine": 13,
+          "endLine": 24,
+          "tokens": 90
+        },
+        {
+          "name": "TestCheckFindsNewerRelease",
+          "kind": "fn",
+          "startLine": 26,
+          "endLine": 52,
+          "tokens": 288
+        },
+        {
+          "name": "TestCheckUpToDateAndDevBuild",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 70,
+          "tokens": 159
+        },
+        {
+          "name": "TestCheckNoReleasesIsNotAnError",
+          "kind": "fn",
+          "startLine": 73,
+          "endLine": 84,
+          "tokens": 140
+        },
+        {
+          "name": "TestCheckErrorsKeepLastGoodResult",
+          "kind": "fn",
+          "startLine": 86,
+          "endLine": 110,
+          "tokens": 228
+        },
+        {
+          "name": "TestCheckRejectsBadPayloads",
+          "kind": "fn",
+          "startLine": 112,
+          "endLine": 126,
+          "tokens": 136
+        },
+        {
+          "name": "TestDisabledCheckerNeverRequests",
+          "kind": "fn",
+          "startLine": 129,
+          "endLine": 146,
+          "tokens": 188
+        },
+        {
+          "name": "TestNewNormalizesOptions",
+          "kind": "fn",
+          "startLine": 148,
+          "endLine": 176,
+          "tokens": 326
+        },
+        {
+          "name": "TestRunChecksOnItsOwnAndStops",
+          "kind": "fn",
+          "startLine": 179,
+          "endLine": 208,
+          "tokens": 267
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "internal/version/version_test.go"
+      ],
+      "importance": 0.2275
+    },
+    "internal/update/update.go": {
+      "description": "checks GitHub for a newer released version, on a timer, in",
+      "tokens": 2196,
+      "hash": "2a7cca94ed78c643",
+      "size": 7689,
+      "mtimeMs": 1788197326479.0503,
+      "updatedAt": "2026-08-31T17:31:24.947Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Status",
+          "kind": "class",
+          "startLine": 55,
+          "endLine": 73,
+          "tokens": 269
+        },
+        {
+          "name": "Options",
+          "kind": "class",
+          "startLine": 76,
+          "endLine": 84,
+          "tokens": 63
+        },
+        {
+          "name": "Checker",
+          "kind": "class",
+          "startLine": 86,
+          "endLine": 97,
+          "tokens": 73
+        },
+        {
+          "name": "New",
+          "kind": "fn",
+          "startLine": 99,
+          "endLine": 127,
+          "tokens": 193
+        },
+        {
+          "name": "Info",
+          "kind": "method",
+          "startLine": 130,
+          "endLine": 130,
+          "tokens": 16
+        },
+        {
+          "name": "Status",
+          "kind": "method",
+          "startLine": 133,
+          "endLine": 137,
+          "tokens": 26
+        },
+        {
+          "name": "Run",
+          "kind": "method",
+          "startLine": 141,
+          "endLine": 156,
+          "tokens": 70
+        },
+        {
+          "name": "Check",
+          "kind": "method",
+          "startLine": 161,
+          "endLine": 188,
+          "tokens": 196
+        },
+        {
+          "name": "release",
+          "kind": "class",
+          "startLine": 191,
+          "endLine": 194,
+          "tokens": 26
+        },
+        {
+          "name": "fetchLatest",
+          "kind": "method",
+          "startLine": 200,
+          "endLine": 234,
+          "tokens": 328
+        },
+        {
+          "name": "releasesURL",
+          "kind": "method",
+          "startLine": 236,
+          "endLine": 238,
+          "tokens": 30
+        },
+        {
+          "name": "statusErr",
+          "kind": "fn",
+          "startLine": 242,
+          "endLine": 253,
+          "tokens": 103
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "type Status struct {\ntype Options struct {\ntype Checker struct {\nfunc New(o Options) *Checker {\nfunc (c *Checker) Info() version.Info { return c.info }\nfunc (c *Checker) Status() Status {\nfunc (c *Checker) Run(ctx context.Context) {\nfunc (c *Checker) Check(ctx context.Context) Status {\ntype release struct {\nfunc (c *Checker) fetchLatest(ctx context.Context) (tag, url string, err error) {\nfunc (c *Checker) releasesURL() string {\nfunc statusErr(resp *http.Response) error {",
+      "imports": [
+        "internal/version/version_test.go"
+      ],
+      "importance": 0.1091
+    },
+    "internal/version/version_test.go": {
+      "description": "TestParse, TestCompareAndIsNewer, TestIsNewerRejectsUnparseable, TestResolveStamped + 3 more",
+      "tokens": 1259,
+      "hash": "8110b3118e6d6971",
+      "size": 4407,
+      "mtimeMs": 1788196728383.5183,
+      "updatedAt": "2026-08-31T17:31:24.947Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "TestParse",
+          "kind": "fn",
+          "startLine": 5,
+          "endLine": 35,
+          "tokens": 255
+        },
+        {
+          "name": "TestCompareAndIsNewer",
+          "kind": "fn",
+          "startLine": 37,
+          "endLine": 68,
+          "tokens": 263
+        },
+        {
+          "name": "TestIsNewerRejectsUnparseable",
+          "kind": "fn",
+          "startLine": 72,
+          "endLine": 83,
+          "tokens": 77
+        },
+        {
+          "name": "TestResolveStamped",
+          "kind": "fn",
+          "startLine": 85,
+          "endLine": 99,
+          "tokens": 150
+        },
+        {
+          "name": "TestResolveUnstamped",
+          "kind": "fn",
+          "startLine": 104,
+          "endLine": 112,
+          "tokens": 75
+        },
+        {
+          "name": "TestInfoString",
+          "kind": "fn",
+          "startLine": 114,
+          "endLine": 128,
+          "tokens": 115
+        },
+        {
+          "name": "TestPseudoVersionIsNotARelease",
+          "kind": "fn",
+          "startLine": 133,
+          "endLine": 148,
+          "tokens": 138
+        }
+      ],
+      "symbolSource": "ts",
+      "importance": 0.4981
+    },
+    "internal/version/version.go": {
+      "description": "carries this binary's build stamp and knows how to order",
+      "tokens": 1567,
+      "hash": "291341ea6afecb30",
+      "size": 5490,
+      "mtimeMs": 1788197326478.8796,
+      "updatedAt": "2026-08-31T17:31:24.947Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Info",
+          "kind": "class",
+          "startLine": 22,
+          "endLine": 29,
+          "tokens": 88
+        },
+        {
+          "name": "Resolve",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 46,
+          "tokens": 119
+        },
+        {
+          "name": "fillFromBuildInfo",
+          "kind": "fn",
+          "startLine": 57,
+          "endLine": 76,
+          "tokens": 121
+        },
+        {
+          "name": "String",
+          "kind": "method",
+          "startLine": 79,
+          "endLine": 88,
+          "tokens": 65
+        },
+        {
+          "name": "Semver",
+          "kind": "class",
+          "startLine": 92,
+          "endLine": 95,
+          "tokens": 22
+        },
+        {
+          "name": "Parse",
+          "kind": "fn",
+          "startLine": 100,
+          "endLine": 126,
+          "tokens": 158
+        },
+        {
+          "name": "Compare",
+          "kind": "fn",
+          "startLine": 130,
+          "endLine": 145,
+          "tokens": 91
+        },
+        {
+          "name": "comparePre",
+          "kind": "fn",
+          "startLine": 149,
+          "endLine": 168,
+          "tokens": 133
+        },
+        {
+          "name": "sign",
+          "kind": "fn",
+          "startLine": 170,
+          "endLine": 178,
+          "tokens": 28
+        },
+        {
+          "name": "IsNewer",
+          "kind": "fn",
+          "startLine": 183,
+          "endLine": 189,
+          "tokens": 45
+        }
+      ],
+      "symbolSource": "ts",
+      "importance": 0.1091
     },
     "LICENSE": {
       "description": "Project license",
@@ -3277,69 +3664,69 @@
       "hash": "c71d239df91726fc",
       "size": 11357,
       "mtimeMs": 1787951059703.7485,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "updatedAt": "2026-08-31T17:31:24.947Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "Makefile": {
       "description": "Make build targets",
       "tokens": 4331,
       "hash": "28b72a3a40b26e54",
       "size": 16239,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "mtimeMs": 1788196252203.49,
+      "updatedAt": "2026-08-31T17:31:24.948Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "rapid-triage.example.yaml": {
       "description": "Rapid Triage configuration. Copy to ./rapid-triage.yaml or",
-      "tokens": 352,
-      "hash": "2b79e8a08786d7e0",
-      "size": 1231,
-      "mtimeMs": 1787951059723.7485,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "tokens": 467,
+      "hash": "83a79dbe689d45a2",
+      "size": 1634,
+      "mtimeMs": 1788197151622.6357,
+      "updatedAt": "2026-08-31T17:31:24.948Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "README.md": {
       "description": "Project documentation",
-      "tokens": 3039,
-      "hash": "114f7b216583d703",
-      "size": 12209,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "tokens": 3159,
+      "hash": "669665b43cf68ebe",
+      "size": 12693,
+      "mtimeMs": 1788197151622.9255,
+      "updatedAt": "2026-08-31T17:31:24.948Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "SECURITY.md": {
       "description": "Security Policy",
-      "tokens": 519,
-      "hash": "d6d0ec460a2e6e38",
-      "size": 2077,
-      "mtimeMs": 1788193766561.9558,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "tokens": 627,
+      "hash": "8a8a164a7cef618f",
+      "size": 2515,
+      "mtimeMs": 1788197151623.0366,
+      "updatedAt": "2026-08-31T17:31:24.948Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/CLAUDE.md": {
       "description": "web/ — the embedded frontend",
       "tokens": 1411,
       "hash": "cdcad2cfb58f5d6d",
       "size": 5683,
-      "mtimeMs": 1788193766565.9558,
-      "updatedAt": "2026-08-31T16:49:45.140Z",
+      "mtimeMs": 1788196252211.49,
+      "updatedAt": "2026-08-31T17:31:24.948Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/eslint.config.js": {
       "description": "ESLint flat configuration",
       "tokens": 1902,
       "hash": "decbdf3c6c54f7a4",
       "size": 6660,
-      "mtimeMs": 1788193766577.9558,
-      "updatedAt": "2026-08-31T16:49:45.141Z",
+      "mtimeMs": 1788196252219.49,
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/index.html": {
       "description": "Rapid Triage",
@@ -3347,27 +3734,27 @@
       "hash": "fd1c04b2eadc064d",
       "size": 299,
       "mtimeMs": 1787951059739.7485,
-      "updatedAt": "2026-08-31T16:49:45.142Z",
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/package.json": {
       "description": "Node.js package manifest",
       "tokens": 349,
       "hash": "2e9afe314a1c576b",
       "size": 1220,
-      "mtimeMs": 1788193766581.9558,
-      "updatedAt": "2026-08-31T16:49:45.142Z",
+      "mtimeMs": 1788196252223.49,
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/scripts/check-licenses.mjs": {
       "description": "Dependency license gate for the frontend tree.",
       "tokens": 1581,
       "hash": "b8b0144519a028e9",
       "size": 5926,
-      "mtimeMs": 1788193766585.9558,
-      "updatedAt": "2026-08-31T16:49:45.142Z",
+      "mtimeMs": 1788196252223.49,
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
       "symbols": [
         {
@@ -3428,7 +3815,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/App.tsx": {
       "description": "Hash-based page switch (triage | macros | reports) — no router dependency,",
@@ -3436,19 +3823,19 @@
       "hash": "7fb6ab76051a3598",
       "size": 1402,
       "mtimeMs": 1787951059739.7485,
-      "updatedAt": "2026-08-31T16:49:45.142Z",
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
-      "importance": 0.1545
+      "importance": 0.1554
     },
     "web/src/components/CLAUDE.md": {
       "description": "web/src/components/ — shared components + two subtrees",
       "tokens": 844,
       "hash": "9f519d7c5b33e00b",
       "size": 3391,
-      "mtimeMs": 1788193766585.9558,
-      "updatedAt": "2026-08-31T16:49:45.143Z",
+      "mtimeMs": 1788196252223.49,
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ErrorBoundary.tsx": {
       "description": "A render crash anywhere below must not blank the whole app: show what",
@@ -3456,7 +3843,7 @@
       "hash": "ec8212178b5d41fc",
       "size": 2083,
       "mtimeMs": 1787951059743.8818,
-      "updatedAt": "2026-08-31T16:49:45.143Z",
+      "updatedAt": "2026-08-31T17:31:24.949Z",
       "source": "scan",
       "symbols": [
         {
@@ -3503,15 +3890,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/Markdown.tsx": {
       "description": "Inline markdown (bold, code, links) without wrapping block elements.",
       "tokens": 2141,
       "hash": "8bf72470787e81ac",
       "size": 7494,
-      "mtimeMs": 1788193766585.9558,
-      "updatedAt": "2026-08-31T16:49:45.143Z",
+      "mtimeMs": 1788196252223.49,
+      "updatedAt": "2026-08-31T17:31:24.950Z",
       "source": "scan",
       "symbols": [
         {
@@ -3538,7 +3925,7 @@
       ],
       "symbolSource": "ts",
       "skeleton": "function inline(text: string): ReactNode[] {\nexport function MarkdownInline({ source }: { source: string }) {\nexport function Markdown({ source }: { source: string }) {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/PriorityIcon.tsx": {
       "description": "Linear priorities: 0 none, 1 urgent, 2 high, 3 medium, 4 low.",
@@ -3546,17 +3933,17 @@
       "hash": "fbadc139c0cf65c3",
       "size": 986,
       "mtimeMs": 1787951059744.42,
-      "updatedAt": "2026-08-31T16:49:45.143Z",
+      "updatedAt": "2026-08-31T17:31:24.950Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/ActionBar.tsx": {
       "description": "OUTCOME_VARIANT",
       "tokens": 621,
       "hash": "082c482ce256182a",
       "size": 2173,
-      "mtimeMs": 1788193766585.9558,
-      "updatedAt": "2026-08-31T16:49:45.144Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.950Z",
       "source": "scan",
       "symbols": [
         {
@@ -3568,25 +3955,25 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/CLAUDE.md": {
       "description": "web/src/components/triage/ — the triage screen",
-      "tokens": 1072,
-      "hash": "3fc4aa5c4eefa1fb",
-      "size": 4312,
-      "mtimeMs": 1788194947161.4988,
-      "updatedAt": "2026-08-31T16:49:45.144Z",
+      "tokens": 1100,
+      "hash": "3df52691c9f96ba0",
+      "size": 4424,
+      "mtimeMs": 1788197187687.6238,
+      "updatedAt": "2026-08-31T17:31:24.950Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/Confetti.tsx": {
       "description": "TONES — renders chart — uses useState, useCallback, useEffect",
       "tokens": 726,
       "hash": "626fc4763b0ccf32",
       "size": 2542,
-      "mtimeMs": 1788193766585.9558,
-      "updatedAt": "2026-08-31T16:49:45.145Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.950Z",
       "source": "scan",
       "symbols": [
         {
@@ -3619,15 +4006,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/DeepPanel.tsx": {
       "description": "Deep enrichment UI: live per-scout progress + Claude-Code-style thinking",
       "tokens": 5250,
       "hash": "3271b1c6249d0819",
       "size": 18385,
-      "mtimeMs": 1788193766589.9558,
-      "updatedAt": "2026-08-31T16:49:45.145Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.951Z",
       "source": "scan",
       "symbols": [
         {
@@ -3685,15 +4072,15 @@
       "imports": [
         "web/src/components/triage/report-format.ts"
       ],
-      "importance": 0.1545
+      "importance": 0.1554
     },
     "web/src/components/triage/DuplicateOfPicker.tsx": {
       "description": "\"Duplicate of…\" picker: Linear requires a duplicate relation before an",
       "tokens": 1688,
       "hash": "189eaf9beedd5051",
       "size": 5917,
-      "mtimeMs": 1788193766589.9558,
-      "updatedAt": "2026-08-31T16:49:45.145Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.951Z",
       "source": "scan",
       "symbols": [
         {
@@ -3705,15 +4092,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.2005
+      "importance": 0.2018
     },
     "web/src/components/triage/FilterPanel.tsx": {
       "description": "Queue-source panel: pick a saved Linear view (its filter becomes the index",
       "tokens": 2692,
       "hash": "47bc869c948ac8e8",
       "size": 9442,
-      "mtimeMs": 1788193766589.9558,
-      "updatedAt": "2026-08-31T16:49:45.146Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.951Z",
       "source": "scan",
       "symbols": [
         {
@@ -3740,7 +4127,7 @@
       ],
       "symbolSource": "ts",
       "skeleton": "function ViewsColumn({ onClose }: { onClose: () => void }) {\nfunction IndexFilterEditor({ onClose }: { onClose: () => void }) {\nexport function FilterPanel({ open, onClose }: { open: boolean; onClose: () => void }) {",
-      "importance": 0.1545
+      "importance": 0.1554
     },
     "web/src/components/triage/HelpOverlay.tsx": {
       "description": "SHORTCUTS — renders modal",
@@ -3748,17 +4135,17 @@
       "hash": "3bdced617d6a6076",
       "size": 1692,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T16:49:45.146Z",
+      "updatedAt": "2026-08-31T17:31:24.951Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/IssueCard.tsx": {
       "description": "VERDICT_META — uses useState, useMemo, useEffect",
       "tokens": 4631,
       "hash": "d7371b506800d9df",
       "size": 16215,
-      "mtimeMs": 1788193766589.9558,
-      "updatedAt": "2026-08-31T16:49:45.147Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.952Z",
       "source": "scan",
       "symbols": [
         {
@@ -3803,15 +4190,15 @@
         "web/src/components/triage/DeepPanel.tsx",
         "web/src/components/triage/report-format.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/LabelGroupPrompt.tsx": {
       "description": "Linear label groups hold one label per issue. When a macro or a quick edit",
       "tokens": 1181,
       "hash": "0c0f3fd8694adf54",
       "size": 4137,
-      "mtimeMs": 1788194218960.9631,
-      "updatedAt": "2026-08-31T16:49:45.147Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.952Z",
       "source": "scan",
       "symbols": [
         {
@@ -3823,15 +4210,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/NotificationBell.tsx": {
       "description": "Bell dropdown tracking background enrichments. Clicking an entry jumps",
       "tokens": 1445,
       "hash": "e0cab8f3047c73f4",
       "size": 5060,
-      "mtimeMs": 1788193766589.9558,
-      "updatedAt": "2026-08-31T16:49:45.147Z",
+      "mtimeMs": 1788196252227.49,
+      "updatedAt": "2026-08-31T17:31:24.952Z",
       "source": "scan",
       "symbols": [
         {
@@ -3843,15 +4230,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1545
+      "importance": 0.1554
     },
     "web/src/components/triage/QuickEditRow.tsx": {
       "description": "Quick edit: fast keyboard pickers that apply single-field ops to the",
       "tokens": 2074,
       "hash": "61200fac80f5891f",
       "size": 7266,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.148Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.953Z",
       "source": "scan",
       "symbols": [
         {
@@ -3874,15 +4261,15 @@
       "imports": [
         "web/src/components/triage/DuplicateOfPicker.tsx"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/report-format.ts": {
       "description": "VERDICT_META + deep report -> Linear markdown (not a component)",
       "tokens": 776,
       "hash": "214fe56f45d84008",
       "size": 2719,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.148Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.953Z",
       "source": "scan",
       "symbols": [
         {
@@ -3894,7 +4281,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.2858
+      "importance": 0.2875
     },
     "web/src/components/triage/ShortcutBar.tsx": {
       "description": "ITEMS",
@@ -3902,32 +4289,39 @@
       "hash": "f7547234066e7526",
       "size": 1178,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T16:49:45.148Z",
+      "updatedAt": "2026-08-31T17:31:24.953Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/triage/TopBar.tsx": {
       "description": "SyncPill — renders chart — uses useState",
-      "tokens": 1542,
-      "hash": "a8fbe74f9999f365",
-      "size": 5406,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.148Z",
+      "tokens": 1853,
+      "hash": "e3bf33e1ae05a32f",
+      "size": 6496,
+      "mtimeMs": 1788196896852.471,
+      "updatedAt": "2026-08-31T17:31:24.953Z",
       "source": "scan",
       "symbols": [
         {
           "name": "SyncPill",
           "kind": "fn",
-          "startLine": 10,
-          "endLine": 50,
+          "startLine": 11,
+          "endLine": 51,
           "tokens": 516
+        },
+        {
+          "name": "VersionBadge",
+          "kind": "fn",
+          "startLine": 56,
+          "endLine": 78,
+          "tokens": 217
         },
         {
           "name": "TopBar",
           "kind": "fn",
-          "startLine": 52,
-          "endLine": 126,
-          "tokens": 900
+          "startLine": 80,
+          "endLine": 155,
+          "tokens": 907
         }
       ],
       "symbolSource": "ts",
@@ -3935,7 +4329,7 @@
         "web/src/components/triage/FilterPanel.tsx",
         "web/src/components/triage/NotificationBell.tsx"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/button.tsx": {
       "description": "buttonVariants",
@@ -3943,7 +4337,7 @@
       "hash": "c7d76a398703d965",
       "size": 2039,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T16:49:45.149Z",
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
       "symbols": [
         {
@@ -3962,17 +4356,17 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/CLAUDE.md": {
       "description": "Primitive kit and its keyboard-first contract",
       "tokens": 560,
       "hash": "a463d2edae87c776",
       "size": 2246,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.149Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/dialog.tsx": {
       "description": "Dialog — uses useEffect",
@@ -3980,7 +4374,7 @@
       "hash": "cb4cd3d9a0151e2a",
       "size": 1983,
       "mtimeMs": 1787951059748.5085,
-      "updatedAt": "2026-08-31T16:49:45.149Z",
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
       "symbols": [
         {
@@ -3992,15 +4386,15 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/picker.tsx": {
       "description": "Keyboard-first fuzzy picker popover: input on top, arrow-navigable list,",
       "tokens": 1334,
       "hash": "72d13205db339d59",
       "size": 4670,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.150Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
       "symbols": [
         {
@@ -4019,7 +4413,7 @@
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/select.tsx": {
       "description": "Styled native select: fastest possible dropdown, fully keyboard accessible.",
@@ -4027,17 +4421,17 @@
       "hash": "af813d7710165890",
       "size": 837,
       "mtimeMs": 1787951059748.5085,
-      "updatedAt": "2026-08-31T16:49:45.150Z",
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/toast.tsx": {
       "description": "Minimal toast system with an optional Undo action.",
       "tokens": 658,
       "hash": "c7c0466abd3d60b4",
       "size": 2300,
-      "mtimeMs": 1788193766593.9558,
-      "updatedAt": "2026-08-31T16:49:45.150Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
       "symbols": [
         {
@@ -4059,25 +4453,25 @@
       "imports": [
         "web/src/components/ui/use-toast.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/components/ui/use-toast.ts": {
       "description": "ToastContext + useToast, split from toast.tsx for react-refresh",
       "tokens": 147,
       "hash": "2f797daec2d548c1",
       "size": 514,
-      "mtimeMs": 1788193766597.9558,
-      "updatedAt": "2026-08-31T16:49:45.150Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.954Z",
       "source": "scan",
-      "importance": 0.2005
+      "importance": 0.2018
     },
     "web/src/lib/api.ts": {
       "description": "Thin fetch wrapper over the local Go API.",
-      "tokens": 2084,
-      "hash": "c97013de3b343803",
-      "size": 7295,
-      "mtimeMs": 1788194194085.9731,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "tokens": 2168,
+      "hash": "7d78e01b6e401332",
+      "size": 7589,
+      "mtimeMs": 1788196780454.6023,
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "symbols": [
         {
@@ -4126,8 +4520,8 @@
           "name": "api",
           "kind": "fn",
           "startLine": 60,
-          "endLine": 141,
-          "tokens": 1360
+          "endLine": 145,
+          "tokens": 1440
         }
       ],
       "symbolSource": "ts",
@@ -4135,17 +4529,17 @@
       "imports": [
         "web/src/lib/types.ts"
       ],
-      "importance": 0.2069
+      "importance": 0.2081
     },
     "web/src/lib/CLAUDE.md": {
       "description": "web/src/lib/ — state, transport, types, pure helpers",
-      "tokens": 1209,
-      "hash": "fbace316168981a1",
-      "size": 4885,
-      "mtimeMs": 1788194947161.2852,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "tokens": 1352,
+      "hash": "be4c52837e439bc6",
+      "size": 5464,
+      "mtimeMs": 1788197199705.3372,
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/colors.test.ts": {
       "description": "Declares key",
@@ -4153,12 +4547,12 @@
       "hash": "8c0524a65077be44",
       "size": 1047,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "imports": [
         "web/src/lib/colors.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/colors.ts": {
       "description": "Teams come from Linear dynamically; give each a stable, readable hue.",
@@ -4166,17 +4560,17 @@
       "hash": "bf23b3458ef41410",
       "size": 524,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
-      "importance": 0.2005
+      "importance": 0.2018
     },
     "web/src/lib/enrichmode.test.ts": {
       "description": "Declares enrichSettings",
       "tokens": 618,
       "hash": "771ec61c1ca5e894",
       "size": 2161,
-      "mtimeMs": 1788193766597.9558,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "symbols": [
         {
@@ -4199,7 +4593,7 @@
         "web/src/lib/types.ts",
         "web/src/lib/enrichmode.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/enrichmode.ts": {
       "description": "Tiny module-level cache of enrichment settings so every card doesn't",
@@ -4207,21 +4601,21 @@
       "hash": "0a61cf814098fa74",
       "size": 832,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T16:49:45.151Z",
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "imports": [
         "web/src/lib/api.ts",
         "web/src/lib/types.ts"
       ],
-      "importance": 0.1775
+      "importance": 0.1786
     },
     "web/src/lib/labelgroups.test.ts": {
       "description": "\"Area\" is a group; infrastructure and ci-cd are its exclusive children.",
       "tokens": 1679,
       "hash": "4b41f85ed2fe7b69",
       "size": 5906,
-      "mtimeMs": 1788194382873.9807,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "symbols": [
         {
@@ -4244,15 +4638,15 @@
         "web/src/lib/labelgroups.ts",
         "web/src/lib/types.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/labelgroups.ts": {
       "description": "Linear label groups are mutually exclusive: only one child of a group may be",
       "tokens": 1324,
       "hash": "8fe4feb89f22d5fa",
       "size": 4638,
-      "mtimeMs": 1788194398867.865,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.955Z",
       "source": "scan",
       "symbols": [
         {
@@ -4295,7 +4689,7 @@
       "imports": [
         "web/src/lib/types.ts"
       ],
-      "importance": 0.1775
+      "importance": 0.1786
     },
     "web/src/lib/linear.test.ts": {
       "description": "Declares from",
@@ -4303,12 +4697,12 @@
       "hash": "15f4909062891eca",
       "size": 1079,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "updatedAt": "2026-08-31T17:31:24.956Z",
       "source": "scan",
       "imports": [
         "web/src/lib/linear.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/linear.ts": {
       "description": "linearIssueHref: identifier + template URL -> Linear issue URL",
@@ -4316,17 +4710,17 @@
       "hash": "9e00caa8927802a6",
       "size": 451,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "updatedAt": "2026-08-31T17:31:24.956Z",
       "source": "scan",
-      "importance": 0.2005
+      "importance": 0.2018
     },
     "web/src/lib/linearfilter.test.ts": {
       "description": "Mirrors what linear.app puts in ?filter=: base64url, padding stripped.",
       "tokens": 571,
       "hash": "f306ecf31f75fce3",
       "size": 1997,
-      "mtimeMs": 1788193766597.9558,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.956Z",
       "source": "scan",
       "symbols": [
         {
@@ -4341,33 +4735,33 @@
       "imports": [
         "web/src/lib/linearfilter.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/linearfilter.ts": {
       "description": "decodeLinearFilterURL: base64url ?filter= -> IssueFilter JSON",
       "tokens": 246,
       "hash": "448e2170197b009f",
       "size": 863,
-      "mtimeMs": 1788193766597.9558,
-      "updatedAt": "2026-08-31T16:49:45.152Z",
+      "mtimeMs": 1788196252231.49,
+      "updatedAt": "2026-08-31T17:31:24.956Z",
       "source": "scan",
-      "importance": 0.2005
+      "importance": 0.2018
     },
     "web/src/lib/store.tsx": {
       "description": "Global app state: metadata, macro list, the card deck, and every triage",
-      "tokens": 6722,
-      "hash": "55b45623b9ba2a87",
-      "size": 23543,
-      "mtimeMs": 1788194430246.2534,
-      "updatedAt": "2026-08-31T16:49:45.153Z",
+      "tokens": 7013,
+      "hash": "6d94fa45440ea916",
+      "size": 24560,
+      "mtimeMs": 1788196874627.5984,
+      "updatedAt": "2026-08-31T17:31:24.957Z",
       "source": "scan",
       "symbols": [
         {
           "name": "TriageProvider",
           "kind": "fn",
           "startLine": 34,
-          "endLine": 612,
-          "tokens": 6410
+          "endLine": 637,
+          "tokens": 6696
         }
       ],
       "symbolSource": "ts",
@@ -4378,7 +4772,7 @@
         "web/src/lib/labelgroups.ts",
         "web/src/lib/types.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/theme.tsx": {
       "description": "Ctx — uses useState, useEffect, useCallback, useContext",
@@ -4386,79 +4780,79 @@
       "hash": "1dfe906cf473729e",
       "size": 1166,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T16:49:45.153Z",
+      "updatedAt": "2026-08-31T17:31:24.957Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/triage-context.ts": {
       "description": "The triage context object, its accessor hook, and the deck types they",
-      "tokens": 873,
-      "hash": "a41b2c20a12e4697",
-      "size": 3054,
-      "mtimeMs": 1788194306623.8582,
-      "updatedAt": "2026-08-31T16:49:45.154Z",
+      "tokens": 931,
+      "hash": "f0b3855361aee59a",
+      "size": 3258,
+      "mtimeMs": 1788196874641.7976,
+      "updatedAt": "2026-08-31T17:31:24.958Z",
       "source": "scan",
       "symbols": [
         {
           "name": "CardStatus",
           "kind": "section",
-          "startLine": 17,
-          "endLine": 17,
+          "startLine": 18,
+          "endLine": 18,
           "tokens": 21
         },
         {
           "name": "Swipe",
           "kind": "section",
-          "startLine": 18,
-          "endLine": 18,
+          "startLine": 19,
+          "endLine": 19,
           "tokens": 16
         },
         {
           "name": "Card",
           "kind": "section",
-          "startLine": 20,
-          "endLine": 25,
+          "startLine": 21,
+          "endLine": 26,
           "tokens": 31
         },
         {
           "name": "TriageCtx",
           "kind": "section",
-          "startLine": 27,
-          "endLine": 78,
-          "tokens": 493
+          "startLine": 28,
+          "endLine": 84,
+          "tokens": 547
         },
         {
           "name": "LabelPrompt",
           "kind": "section",
-          "startLine": 83,
-          "endLine": 87,
+          "startLine": 89,
+          "endLine": 93,
           "tokens": 31
         },
         {
           "name": "EnrichNotice",
           "kind": "section",
-          "startLine": 89,
-          "endLine": 98,
+          "startLine": 95,
+          "endLine": 104,
           "tokens": 58
         },
         {
           "name": "useTriage",
           "kind": "fn",
-          "startLine": 102,
-          "endLine": 106,
+          "startLine": 108,
+          "endLine": 112,
           "tokens": 43
         }
       ],
       "symbolSource": "ts",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/types.ts": {
       "description": "Shared types mirroring the Go server's JSON payloads.",
-      "tokens": 2050,
-      "hash": "a7f144f7847a693e",
-      "size": 7176,
-      "mtimeMs": 1788194165870.009,
-      "updatedAt": "2026-08-31T16:49:45.154Z",
+      "tokens": 2214,
+      "hash": "5844bcc058e1cafc",
+      "size": 7753,
+      "mtimeMs": 1788196780443.7473,
+      "updatedAt": "2026-08-31T17:31:24.958Z",
       "source": "scan",
       "symbols": [
         {
@@ -4609,72 +5003,72 @@
           "tokens": 52
         },
         {
+          "name": "UpdateStatus",
+          "kind": "section",
+          "startLine": 167,
+          "endLine": 175,
+          "tokens": 51
+        },
+        {
+          "name": "VersionInfo",
+          "kind": "section",
+          "startLine": 179,
+          "endLine": 185,
+          "tokens": 37
+        },
+        {
           "name": "ViewFilter",
           "kind": "section",
-          "startLine": 165,
-          "endLine": 172,
+          "startLine": 187,
+          "endLine": 194,
           "tokens": 48
         },
         {
           "name": "filterIsEmpty",
           "kind": "fn",
-          "startLine": 178,
-          "endLine": 181,
+          "startLine": 200,
+          "endLine": 203,
           "tokens": 59
         },
         {
           "name": "IndexFilterInfo",
           "kind": "section",
-          "startLine": 183,
-          "endLine": 189,
+          "startLine": 205,
+          "endLine": 211,
           "tokens": 66
         },
         {
           "name": "Meta",
           "kind": "section",
-          "startLine": 191,
-          "endLine": 202,
+          "startLine": 213,
+          "endLine": 224,
           "tokens": 72
         },
         {
           "name": "OpType",
           "kind": "section",
-          "startLine": 204,
-          "endLine": 206,
+          "startLine": 226,
+          "endLine": 228,
           "tokens": 49
         },
         {
           "name": "Op",
           "kind": "section",
-          "startLine": 208,
-          "endLine": 223,
+          "startLine": 230,
+          "endLine": 245,
           "tokens": 91
         },
         {
           "name": "Macro",
           "kind": "section",
-          "startLine": 225,
-          "endLine": 232,
+          "startLine": 247,
+          "endLine": 254,
           "tokens": 49
-        },
-        {
-          "name": "Comment",
-          "kind": "section",
-          "startLine": 234,
-          "endLine": 239,
-          "tokens": 39
-        },
-        {
-          "name": "ActivityItem",
-          "kind": "section",
-          "startLine": 241,
-          "endLine": 252,
-          "tokens": 68
         }
       ],
       "symbolSource": "ts",
-      "skeleton": "export interface LabelChip {\nexport interface Enrichment {\nexport interface DeepReport {\nexport type SourceKey = \"repo\" | \"github\" | \"linear\" | \"datadog\" | \"gcloud\";\nexport interface EnrichSettings {\nexport interface SourceAvail {\nexport interface ClaudeAvail {\nexport interface SecretField {\nexport interface EnrichSettingsInfo {\nexport interface EnrichRun {\nexport interface EnrichPayload {\nexport interface EnrichEvent {\nexport interface Issue {\nexport interface Team { id: string; key: string; name: string }\nexport interface WorkflowState { id: string; teamId: string; name: string; type: string; color: string; position: number }\nexport interface Label { id: string; teamId: string; name: string; color: string; isGroup: number; parentId: string }\nexport interface LabelGroupConflict {\nexport interface Project { id: string; name: string; state: string }\nexport interface Cycle { id: string; teamId: string; number: number; name: string; startsAt: string; endsAt: string }\nexport interface User { id: string; name: string; displayName: string; email: string; isMe: number }\nexport interface SyncStatus {\nexport interface ViewFilter {\nexport function filterIsEmpty(f: ViewFilter): boolean {\nexport interface IndexFilterInfo {\nexport interface Meta {\nexport type OpType =\nexport interface Op {\nexport interface Macro {\nexport interface Comment {\nexport interface ActivityItem {",
-      "importance": 0.6258
+      "skeleton": "export interface LabelChip {\nexport interface Enrichment {\nexport interface DeepReport {\nexport type SourceKey = \"repo\" | \"github\" | \"linear\" | \"datadog\" | \"gcloud\";\nexport interface EnrichSettings {\nexport interface SourceAvail {\nexport interface ClaudeAvail {\nexport interface SecretField {\nexport interface EnrichSettingsInfo {\nexport interface EnrichRun {\nexport interface EnrichPayload {\nexport interface EnrichEvent {\nexport interface Issue {\nexport interface Team { id: string; key: string; name: string }\nexport interface WorkflowState { id: string; teamId: string; name: string; type: string; color: string; position: number }\nexport interface Label { id: string; teamId: string; name: string; color: string; isGroup: number; parentId: string }\nexport interface LabelGroupConflict {\nexport interface Project { id: string; name: string; state: string }\nexport interface Cycle { id: string; teamId: string; number: number; name: string; startsAt: string; endsAt: string }\nexport interface User { id: string; name: string; displayName: string; email: string; isMe: number }\nexport interface SyncStatus {\nexport interface UpdateStatus {\nexport interface VersionInfo {\nexport interface ViewFilter {\nexport function filterIsEmpty(f: ViewFilter): boolean {\nexport interface IndexFilterInfo {\nexport interface Meta {\nexport type OpType =\nexport interface Op {\nexport interface Macro {",
+      "importance": 0.8149
     },
     "web/src/lib/utils.test.ts": {
       "description": "Declares enabled",
@@ -4682,12 +5076,12 @@
       "hash": "43959c878896a8c7",
       "size": 2218,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T16:49:45.155Z",
+      "updatedAt": "2026-08-31T17:31:24.958Z",
       "source": "scan",
       "imports": [
         "web/src/lib/utils.ts"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/lib/utils.ts": {
       "description": "Exports cn, timeAgo, fmtMs, PRIORITY_NAMES",
@@ -4695,9 +5089,97 @@
       "hash": "fc700450f01fe229",
       "size": 988,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T16:49:45.155Z",
+      "updatedAt": "2026-08-31T17:31:24.959Z",
       "source": "scan",
-      "importance": 0.2005
+      "importance": 0.2018
+    },
+    "web/src/lib/version.test.ts": {
+      "description": "Declares info",
+      "tokens": 1381,
+      "hash": "66c665e71bf4d26e",
+      "size": 4839,
+      "mtimeMs": 1788196826973.401,
+      "updatedAt": "2026-08-31T17:31:24.959Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "info",
+          "kind": "fn",
+          "startLine": 13,
+          "endLine": 20,
+          "tokens": 77
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "web/src/lib/types.ts"
+      ],
+      "importance": 0.1091
+    },
+    "web/src/lib/version.ts": {
+      "description": "Pure formatting for the build stamp and the update check. The server decides",
+      "tokens": 869,
+      "hash": "df30febe9c470067",
+      "size": 3045,
+      "mtimeMs": 1788196803267.5227,
+      "updatedAt": "2026-08-31T17:31:24.959Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "shortCommit",
+          "kind": "fn",
+          "startLine": 9,
+          "endLine": 11,
+          "tokens": 32
+        },
+        {
+          "name": "displayVersion",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 19,
+          "tokens": 55
+        },
+        {
+          "name": "buildDate",
+          "kind": "fn",
+          "startLine": 23,
+          "endLine": 26,
+          "tokens": 42
+        },
+        {
+          "name": "buildTooltip",
+          "kind": "fn",
+          "startLine": 30,
+          "endLine": 42,
+          "tokens": 164
+        },
+        {
+          "name": "hasUpdate",
+          "kind": "fn",
+          "startLine": 46,
+          "endLine": 50,
+          "tokens": 53
+        },
+        {
+          "name": "releaseHref",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 56,
+          "tokens": 45
+        },
+        {
+          "name": "updateSummary",
+          "kind": "fn",
+          "startLine": 59,
+          "endLine": 68,
+          "tokens": 156
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "web/src/lib/types.ts"
+      ],
+      "importance": 0.1091
     },
     "web/src/main.tsx": {
       "description": "",
@@ -4705,31 +5187,31 @@
       "hash": "7ea4097e683f3e07",
       "size": 533,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T16:49:45.155Z",
+      "updatedAt": "2026-08-31T17:31:24.959Z",
       "source": "scan",
       "imports": [
         "web/src/styles.css",
         "web/src/App.tsx"
       ],
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/pages/CLAUDE.md": {
-      "description": "The four hash routes; keyboard map; Settings invariants",
-      "tokens": 796,
-      "hash": "abc6cd7ae8b5418b",
-      "size": 3216,
-      "mtimeMs": 1788193766601.9558,
-      "updatedAt": "2026-08-31T16:49:45.155Z",
+      "description": "web/src/pages/ — the four hash routes",
+      "tokens": 882,
+      "hash": "fa2ede580c3c8fa0",
+      "size": 3561,
+      "mtimeMs": 1788197199717.6362,
+      "updatedAt": "2026-08-31T17:31:24.959Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/pages/Macros.tsx": {
       "description": "Macro management: user-defined one-key action sequences.",
       "tokens": 5158,
       "hash": "1d7fc46e611571d0",
       "size": 18089,
-      "mtimeMs": 1788193766601.9558,
-      "updatedAt": "2026-08-31T16:49:45.156Z",
+      "mtimeMs": 1788196252235.49,
+      "updatedAt": "2026-08-31T17:31:24.959Z",
       "source": "scan",
       "symbols": [
         {
@@ -4756,15 +5238,15 @@
       ],
       "symbolSource": "ts",
       "skeleton": "type Draft = Omit<Macro, \"id\"> & { id?: number };\nfunction describeOp(op: Op, projectName: (id: string) => string): string {\nexport function MacrosPage() {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/pages/Reports.tsx": {
       "description": "Gamified report page: stat tiles, per-day bar chart, outcome donut,",
       "tokens": 2998,
       "hash": "1ddc8d49fe5c9d2b",
       "size": 10496,
-      "mtimeMs": 1788193766601.9558,
-      "updatedAt": "2026-08-31T16:49:45.158Z",
+      "mtimeMs": 1788196252235.49,
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
       "symbols": [
         {
@@ -4798,43 +5280,50 @@
       ],
       "symbolSource": "ts",
       "skeleton": "function Tile({ label, value, hint, icon }: { label: string; value: string; hint?: string; icon?: React.ReactNode }) {\nfunction BarChart({ data }: { data: { date: string; count: number }[] }) {\nfunction Donut({ counts }: { counts: Record<string, number> }) {\nexport function ReportsPage() {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/pages/Settings.tsx": {
       "description": "Enrichment settings: fast vs deep mode, per-source toggles with live",
-      "tokens": 5276,
-      "hash": "07aee38986d82cfd",
-      "size": 18493,
-      "mtimeMs": 1788193766605.9558,
-      "updatedAt": "2026-08-31T16:49:45.159Z",
+      "tokens": 6130,
+      "hash": "0bfe6cd313e105b4",
+      "size": 21479,
+      "mtimeMs": 1788196918064.9937,
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
       "symbols": [
         {
           "name": "SettingsPage",
           "kind": "fn",
-          "startLine": 40,
-          "endLine": 384,
-          "tokens": 4246
+          "startLine": 43,
+          "endLine": 388,
+          "tokens": 4252
+        },
+        {
+          "name": "AboutCard",
+          "kind": "fn",
+          "startLine": 393,
+          "endLine": 457,
+          "tokens": 757
         },
         {
           "name": "SecretRow",
           "kind": "fn",
-          "startLine": 386,
-          "endLine": 441,
+          "startLine": 459,
+          "endLine": 514,
           "tokens": 508
         }
       ],
       "symbolSource": "ts",
-      "skeleton": "export function SettingsPage() {\nfunction SecretRow({",
-      "importance": 0.1084
+      "skeleton": "export function SettingsPage() {\nfunction AboutCard() {\nfunction SecretRow({",
+      "importance": 0.1091
     },
     "web/src/pages/Triage.tsx": {
       "description": "TriagePage — uses useState, useCallback, useEffect",
       "tokens": 2271,
       "hash": "9b85b9d76ef1b9ce",
       "size": 7951,
-      "mtimeMs": 1788194306624.5098,
-      "updatedAt": "2026-08-31T16:49:45.159Z",
+      "mtimeMs": 1788196252239.49,
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
       "symbols": [
         {
@@ -4847,7 +5336,7 @@
       ],
       "symbolSource": "ts",
       "skeleton": "export function TriagePage() {",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/src/styles.css": {
       "description": "Styles: 22 rules, 134 vars, 6 animations, 1 layers",
@@ -4855,9 +5344,9 @@
       "hash": "f5661a8206093bfc",
       "size": 8666,
       "mtimeMs": 1787951059755.1182,
-      "updatedAt": "2026-08-31T16:49:45.160Z",
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
-      "importance": 0.1545
+      "importance": 0.1554
     },
     "web/tsconfig.json": {
       "description": "TypeScript configuration",
@@ -4865,9 +5354,9 @@
       "hash": "cc901e603bb0b42c",
       "size": 454,
       "mtimeMs": 1787951059755.1182,
-      "updatedAt": "2026-08-31T16:49:45.160Z",
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/vite.config.ts": {
       "description": "Vite build configuration",
@@ -4875,19 +5364,19 @@
       "hash": "af7ce1d70ea9643d",
       "size": 509,
       "mtimeMs": 1787951059755.7485,
-      "updatedAt": "2026-08-31T16:49:45.160Z",
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "web/vitest.config.ts": {
       "description": "Vitest test configuration",
-      "tokens": 256,
-      "hash": "4e188ce94b2790f2",
-      "size": 894,
-      "mtimeMs": 1788194382891.21,
-      "updatedAt": "2026-08-31T16:49:45.160Z",
+      "tokens": 264,
+      "hash": "632d67437ea570e8",
+      "size": 924,
+      "mtimeMs": 1788196826986.4,
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     },
     "webui.go": {
       "description": "embeds the built frontend (web/dist) into the binary.",
@@ -4895,9 +5384,9 @@
       "hash": "305222e660da2420",
       "size": 291,
       "mtimeMs": 1787951059755.7485,
-      "updatedAt": "2026-08-31T16:49:45.160Z",
+      "updatedAt": "2026-08-31T17:31:24.960Z",
       "source": "scan",
-      "importance": 0.1084
+      "importance": 0.1091
     }
   },
   "rawLines": {

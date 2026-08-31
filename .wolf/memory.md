@@ -393,3 +393,14 @@
 | 16:52 | Mirrored the rule as a UI pre-flight + prompt | web/src/lib/labelgroups.ts, store.tsx, components/triage/LabelGroupPrompt.tsx | Replace/Cancel prompt fires before the request — no round trip, no card swipe to undo | ~16k |
 | 17:00 | Seeded an "Area" label group into the offline fixture and drove it | .claude/skills/run-rapid-issue-triage/fixture.mjs | Verified in the real app: prompt renders on ENG-412 + macro 4; API returns 409 then 502 with replaceGroupLabels | ~9k |
 | 17:15 | CI SAST failed on PR #46 (semgrep string-formatted-query, mine) | internal/store/metadata.go | Reproduced locally with pinned semgrep in a venv, fixed to match issues.go's `+=` shape + the existing placeholders() helper; 1 finding → 0 | ~11k |
+
+## Session: 2026-08-31 17:10
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:14 | Added `internal/version`: build stamp resolution (ldflags → Go's embedded VCS info) + semver ordering (`Parse`/`Compare`/`IsNewer`) | internal/version/version.go, version_test.go | stdlib-only leaf; a synthesized pseudo-version is treated as `dev`, so a local build is never told to upgrade | ~9k |
+| 17:16 | Added `internal/update`: daily background check against GitHub's public `releases/latest`, cached in memory, `update_check.enabled: false` to switch off | internal/update/update.go, update_test.go | 8 tests incl. a disabled checker that must never make a request; repo string regexp-validated so config cannot steer the URL | ~10k |
+| 17:18 | Wired config (`update_check`), `GET /api/version` + `POST /api/version/check`, and `cmd/triage` (`-version` now prints `version.Resolve`) | internal/config/config.go, internal/server/version.go, server.go, cmd/triage/main.go | endpoints verified live against the running server | ~7k |
+| 17:20 | Frontend: `VersionInfo`/`UpdateStatus` wire types, `api.version`/`checkForUpdate`, the pure `lib/version.ts` formatter (24 tests, added to the vitest coverage include), version state on the triage provider | web/src/lib/{types,api,version,store,triage-context}.ts(x), vitest.config.ts | coverage 99.4% statements on the scoped lib set | ~12k |
+| 17:22 | UI: `VersionBadge` in the top bar (muted string → info-toned release link when an update exists) and a Settings → About card with "Check now" | web/src/components/triage/TopBar.tsx, web/src/pages/Settings.tsx | verified in the real app both ways by pointing `defaultBaseURL` at a local stub returning v9.9.9 then v0.0.1; light + dark screenshots | ~10k |
+| 17:31 | Docs: root CLAUDE.md (outbound-destinations non-negotiable + diagram), internal/, server/, config/, web lib/, triage/, pages/ CLAUDE.md, README Configuration, SECURITY.md "Outbound requests", example yaml | 12 docs | `make ci-go`, `make quality`, `make web-ci`, `make licenses`, `make vuln` all green | ~9k |
