@@ -409,4 +409,13 @@
 | 17:20 | Built the AI-enrichment usage panel: 4 tiles, by-responsibility bars, token-composition bar + legend | web/src/pages/Reports.tsx, lib/{types,utils}.ts | Palette validated with the dataviz validator; light passes fully, dark's only flag is the house-wide lightness band the existing donut shares | ~16k |
 | 17:24 | Verified end-to-end in the running app: seeded fixture rows, then ran a REAL fast enrichment | .run-sandbox | Real row landed: 40,719 tokens / $0.0805, model resolved to claude-sonnet-5 via dominantModel since config sets none | ~10k |
 
+## Session: 2026-08-31 17:09
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:20 | Traced "Action failed: not found" on Skip/Snooze to the syncer's PruneStale racing the in-browser deck | internal/store/issues.go, internal/syncer/syncer.go, internal/server/handlers.go | Root cause: the deck is a snapshot; PruneStale DELETEs any issue that left the index filter, and skip/snooze 404 on the vanished row | ~12k |
+| 17:24 | Made a pruned row a distinguishable outcome, not a bare error | internal/store/store.go, internal/server/server.go, handlers.go, deep.go | store.ErrNotFound exported; new writeIssueErr → 404 {code:"issue_gone"} + explanation, real faults now 500; all 6 GetIssue-by-path sites wired | ~10k |
+| 17:28 | Retired gone cards in the UI instead of rolling them back | web/src/lib/store.tsx, triage-context.ts, api.ts | New "gone" CardStatus + retireGoneCard: card dims with a LEFT THE INDEX badge, deck advances, informational toast — no "Action failed" | ~9k |
+| 17:35 | Verified live with the driver by DELETEing the visible card's row from sqlite behind the deck | .run-sandbox (driver repl) | S and Z both retire the card and advance; toast fits the 420px single line; Prev shows the disabled retired card | ~8k |
+| 17:42 | Regression test + gates | internal/server/issuegone_test.go | ci-go, web-ci (52 tests), quality all green; web/dist rebuilt and staged | ~6k |
 | 17:35 | User reported the Labels picker rendering two stacked panels while filtering | web/src/components/triage/QuickEditRow.tsx, pages/Triage.tsx | Root cause: QuickEditRow is mounted twice for the responsive layout and portalled its Picker past the hiding CSS. Split into QuickEditRow (buttons) + QuickEditPickers (modals, once per page); 2 panels → 1, verified in app | ~13k |

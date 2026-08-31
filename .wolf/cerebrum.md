@@ -244,6 +244,19 @@ Two gotchas worth remembering:
 
 ## Do-Not-Repeat
 
+- [2026-08-31] Do not answer a missing sqlite row with a bare `writeErr(w, 404,
+  err)`. The syncer's `PruneStale` deletes every issue that leaves the index
+  filter, and the browser's deck is a snapshot — so "row not found" is usually
+  an ordinary race, not a bad id, and it reached the user as
+  "Action failed: not found" with the card rolled back onto a keystroke that
+  could never clear it. A vanished row is a *state*, not a failure: give it a
+  machine-readable code, an explanation, and a UI path that moves on. Also,
+  404-ing every `GetIssue` error hid real database faults behind the same
+  message; only `store.ErrNotFound` is a 404.
+- [2026-08-31] Toast text must fit **one 420px line** — `toast.tsx` renders it
+  in a `truncate` span. "ENG-208 is no longer in the index — triaged or closed
+  in Linear" was cut mid-sentence in the running app. Match the existing toasts
+  ("Skipped ENG-355") and keep it under ~50 characters.
 - [2026-08-31] Do not render a portalled overlay from a component the layout
   mounts more than once. `QuickEditRow` is mounted twice by `TriagePage` for the
   two breakpoints, so the Labels picker portalled two panels to `document.body`
@@ -398,3 +411,14 @@ make the panel under-report exactly when spend is worst. `RecordTokenUsage`
 no-ops on an all-zero row, so a call that died before spending anything does
 not inflate the call count.
 
+- [2026-08-31] Skip and snooze **retire** a card the sync pruned; macros and
+  quick edits do **not**. Skip/snooze are local bookkeeping on the row itself,
+  so with the row gone there is nothing to record, nothing to undo, and no
+  reason to report a failure — the card is marked `gone` and the deck advances.
+  A macro is a Linear write that did not happen; retiring its card would read
+  as "applied". It keeps the card pending and shows the (now explanatory) error,
+  and the user can clear it with Skip.
+- [2026-08-31] `issue_gone` rides the same `ApiError.code` seam as
+  `label_group_conflict`: a 404 body carrying `{error, code}`. The seam is now
+  established for both 409 and 404 — a new failure the UI should *act* on gets
+  a code, not a special-cased message match.

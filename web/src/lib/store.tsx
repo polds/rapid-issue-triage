@@ -253,29 +253,56 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     [busy, advance, toast],
   );
 
+  // retireGoneCard claims the one failure that is not a failure: the deck is a
+  // snapshot, and the background sync deletes issues that leave the index
+  // filter, so a card can outlive its row. Skip and snooze are local
+  // bookkeeping on that row — with it gone there is nothing to record and
+  // nothing to undo. Rolling the card back would strand the user on a card no
+  // keystroke can ever clear, so retire it and move on instead.
+  const retireGoneCard = useCallback(
+    (e: unknown, issue: { id: string; identifier: string }) => {
+      if (!(e instanceof ApiError) || e.code !== "issue_gone") return false;
+      updateCard(issue.id, { status: "gone", outcome: "left the index" });
+      advance();
+      // Toasts truncate at one line, so this says only what the user needs:
+      // the card is gone and their keystroke was not the reason.
+      toast(`${issue.identifier} left the index — triaged or closed`);
+      return true;
+    },
+    [updateCard, advance, toast],
+  );
+
   const skip = useCallback(() => {
     const card = current;
     if (!card || card.status !== "pending") return;
     const d = duration();
-    swipeAway("left", async () => {
-      const r = await api.skip(card.issue.id, d);
-      updateCard(card.issue.id, { status: "skipped", outcome: "skipped", activityId: r.activityId });
-      pushUndo(r.activityId, card.issue.id, false);
-      toast(`Skipped ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
-    });
-  }, [current, duration, swipeAway, updateCard, pushUndo, toast]);
+    swipeAway(
+      "left",
+      async () => {
+        const r = await api.skip(card.issue.id, d);
+        updateCard(card.issue.id, { status: "skipped", outcome: "skipped", activityId: r.activityId });
+        pushUndo(r.activityId, card.issue.id, false);
+        toast(`Skipped ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
+      },
+      (e) => retireGoneCard(e, card.issue),
+    );
+  }, [current, duration, swipeAway, updateCard, pushUndo, toast, retireGoneCard]);
 
   const snooze = useCallback(() => {
     const card = current;
     if (!card || card.status !== "pending") return;
     const d = duration();
-    swipeAway("down", async () => {
-      const r = await api.snooze(card.issue.id, 24 * 7, d);
-      updateCard(card.issue.id, { status: "snoozed", outcome: "snoozed", activityId: r.activityId });
-      pushUndo(r.activityId, card.issue.id, false);
-      toast(`Snoozed ${card.issue.identifier} for 7 days`, { onUndo: () => undoRef.current() });
-    });
-  }, [current, duration, swipeAway, updateCard, pushUndo, toast]);
+    swipeAway(
+      "down",
+      async () => {
+        const r = await api.snooze(card.issue.id, 24 * 7, d);
+        updateCard(card.issue.id, { status: "snoozed", outcome: "snoozed", activityId: r.activityId });
+        pushUndo(r.activityId, card.issue.id, false);
+        toast(`Snoozed ${card.issue.identifier} for 7 days`, { onUndo: () => undoRef.current() });
+      },
+      (e) => retireGoneCard(e, card.issue),
+    );
+  }, [current, duration, swipeAway, updateCard, pushUndo, toast, retireGoneCard]);
 
   // labelClash: would these ops put two labels of one exclusive Linear group on
   // the issue? Checked against synced metadata before the request goes out, so

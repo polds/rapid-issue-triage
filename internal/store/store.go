@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -201,9 +200,15 @@ func mustJSON(v any) string {
 	return string(b)
 }
 
+// ErrNotFound reports a row the index does not hold. It is worth
+// distinguishing from a database fault: the syncer prunes every issue that
+// falls out of the index filter, so a missing row is an ordinary race with a
+// background sync, not a failure.
+var ErrNotFound = errors.New("not found")
+
 func errRow(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("not found")
+		return ErrNotFound
 	}
 	return err
 }

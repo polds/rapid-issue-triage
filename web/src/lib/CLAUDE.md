@@ -12,7 +12,7 @@ logic belongs here with a test, not inline in a component.
 |---|---|---|
 | `store.tsx` | `TriageProvider` — metadata, macros, the card deck, and every triage action. The app's single source of truth. | — |
 | `triage-context.ts` | The context object, `useTriage`, and the deck types (`Card`, `CardStatus`, `Swipe`, `EnrichNotice`). Split out so `store.tsx` exports only components. | — |
-| `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on. **The one place a response is asserted into a type.** | — |
+| `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on (`label_group_conflict` → replace prompt, `issue_gone` → retire the card). **The one place a response is asserted into a type.** | — |
 | `types.ts` | Every wire type, mirroring the Go JSON tags. `EMPTY_FILTER`, `filterIsEmpty`. | — |
 | `theme.tsx` | Light/dark provider, persisted. | — |
 | `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`, `PRIORITY_NAMES`. | ✔ |
