@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:27:31.182Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:34:05.182Z
 > Files: 130 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -143,7 +143,7 @@
 ## web/src/components/triage/
 
 - `ActionBar.tsx` — OUTCOME_VARIANT (~621 tok)
-- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1072 tok)
+- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1229 tok)
 - `Confetti.tsx` — TONES — renders chart — uses useState, useCallback, useEffect (~726 tok)
 - `DeepPanel.tsx` — Deep enrichment UI: live per-scout progress + Claude-Code-style thinking (~5250 tok)
 - `DuplicateOfPicker.tsx` — "Duplicate of…" picker: Linear requires a duplicate relation before an (~1688 tok)
@@ -152,7 +152,7 @@
 - `IssueCard.tsx` — VERDICT_META — uses useState, useMemo, useEffect (~4631 tok)
 - `LabelGroupPrompt.tsx` — Linear label groups hold one label per issue. When a macro or a quick edit (~1181 tok)
 - `NotificationBell.tsx` — Bell dropdown tracking background enrichments. Clicking an entry jumps (~1445 tok)
-- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2074 tok)
+- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2269 tok)
 - `report-format.ts` — VERDICT_META + deep report -> Linear markdown (not a component) (~776 tok)
 - `ShortcutBar.tsx` — ITEMS (~335 tok)
 - `TopBar.tsx` — SyncPill — renders chart — uses useState (~1542 tok)
@@ -198,4 +198,4 @@
 - `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5158 tok)
 - `Reports.tsx` — Gamified report page: stat tiles, per-day bar chart, outcome donut, (~2998 tok)
 - `Settings.tsx` — Enrichment settings: fast vs deep mode, per-source toggles with live (~5276 tok)
-- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2271 tok)
+- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2327 tok)

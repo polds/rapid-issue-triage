@@ -1,13 +1,13 @@
 {
   "version": 1,
   "meta": {
-    "lastScanned": "2026-08-31T17:27:31.182Z",
+    "lastScanned": "2026-08-31T17:34:05.182Z",
     "fileCount": 130,
     "hits": 0,
     "misses": 0,
-    "renderedHash": "d0546ad2b64b33978417708be68c8e1779e77e4928d92d1530168a018ce7426f",
-    "storeUpdatedAt": "2026-08-31T17:27:31.184Z",
-    "rootHash": "ec5adad9b58c9443"
+    "renderedHash": "ddddad3b40dc478c7761b29b6e3ff4ed880e0fcaaf5779562791b132bdf7f206",
+    "storeUpdatedAt": "2026-08-31T17:34:05.183Z",
+    "rootHash": "05134cd466a9a02e"
   },
   "files": {
     ".gitattributes": {
@@ -16,7 +16,7 @@
       "hash": "fc8a2a06489eac3f",
       "size": 1403,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.543Z",
+      "updatedAt": "2026-08-31T17:34:03.554Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -26,7 +26,7 @@
       "hash": "46abe88a9f24852c",
       "size": 3250,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.544Z",
+      "updatedAt": "2026-08-31T17:34:03.555Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -36,7 +36,7 @@
       "hash": "c0264c90801ef424",
       "size": 20837,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.544Z",
+      "updatedAt": "2026-08-31T17:34:03.555Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -46,7 +46,7 @@
       "hash": "7108ef64a925dfcf",
       "size": 2815,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.545Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -56,7 +56,7 @@
       "hash": "3d72c4a0e4dca4c9",
       "size": 16305,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.545Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -66,7 +66,7 @@
       "hash": "067d9d28ff0a048f",
       "size": 1940,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T17:27:29.545Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -76,7 +76,7 @@
       "hash": "84590ff3ce124589",
       "size": 5035,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.546Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -86,7 +86,7 @@
       "hash": "9825f028c4a1cea8",
       "size": 7657,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.546Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -96,7 +96,7 @@
       "hash": "72010c4f53f30b0d",
       "size": 1256,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T17:27:29.546Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -106,7 +106,7 @@
       "hash": "fd893a6ee60fedf8",
       "size": 1586,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.546Z",
+      "updatedAt": "2026-08-31T17:34:03.556Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -116,7 +116,7 @@
       "hash": "03b7b222e8b43ad9",
       "size": 684,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.546Z",
+      "updatedAt": "2026-08-31T17:34:03.557Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -126,7 +126,7 @@
       "hash": "a52e1e52ac6311c4",
       "size": 6828,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T17:27:29.547Z",
+      "updatedAt": "2026-08-31T17:34:03.557Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -136,7 +136,7 @@
       "hash": "0ccf30cf8132c2a9",
       "size": 8668,
       "mtimeMs": 1788196146692.2288,
-      "updatedAt": "2026-08-31T17:27:29.548Z",
+      "updatedAt": "2026-08-31T17:34:03.558Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -146,7 +146,7 @@
       "hash": "b062f0966dddabf6",
       "size": 14,
       "mtimeMs": 1787951059693.385,
-      "updatedAt": "2026-08-31T17:27:29.548Z",
+      "updatedAt": "2026-08-31T17:34:03.558Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -156,7 +156,7 @@
       "hash": "8c90778623bf50ac",
       "size": 271,
       "mtimeMs": 1787951059703.7485,
-      "updatedAt": "2026-08-31T17:27:29.548Z",
+      "updatedAt": "2026-08-31T17:34:03.558Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -166,7 +166,7 @@
       "hash": "a5002e9d240f8980",
       "size": 12614,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.548Z",
+      "updatedAt": "2026-08-31T17:34:03.558Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -176,7 +176,7 @@
       "hash": "291f7f18b6a39bc0",
       "size": 2899,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.548Z",
+      "updatedAt": "2026-08-31T17:34:03.558Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -186,7 +186,7 @@
       "hash": "e1de5179f30426c4",
       "size": 5226,
       "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "symbols": [
         {
@@ -236,7 +236,7 @@
       "hash": "d6ea785c137e3cc0",
       "size": 4384,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -246,7 +246,7 @@
       "hash": "bfc76863f7d48b07",
       "size": 563,
       "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -256,7 +256,7 @@
       "hash": "b169d454eb9814db",
       "size": 4495,
       "mtimeMs": 1787951059710.052,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -266,7 +266,7 @@
       "hash": "05c633c2f2e1f86c",
       "size": 2631,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.1282
     },
@@ -276,7 +276,7 @@
       "hash": "3e5a58013f66d17e",
       "size": 4783,
       "mtimeMs": 1787951059711.4011,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "symbols": [
         {
@@ -341,7 +341,7 @@
       "hash": "5541b6c9791e1160",
       "size": 2940,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.549Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -351,7 +351,7 @@
       "hash": "788cb3fc1fe45634",
       "size": 2452,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.550Z",
+      "updatedAt": "2026-08-31T17:34:03.559Z",
       "source": "scan",
       "importance": 0.2238
     },
@@ -361,7 +361,7 @@
       "hash": "6523fdcd7f811db2",
       "size": 3828,
       "mtimeMs": 1787951059712.3862,
-      "updatedAt": "2026-08-31T17:27:29.550Z",
+      "updatedAt": "2026-08-31T17:34:03.560Z",
       "source": "scan",
       "symbols": [
         {
@@ -416,7 +416,7 @@
       "hash": "71094df0e46ae358",
       "size": 4477,
       "mtimeMs": 1787951059711.4011,
-      "updatedAt": "2026-08-31T17:27:29.550Z",
+      "updatedAt": "2026-08-31T17:34:03.560Z",
       "source": "scan",
       "symbols": [
         {
@@ -492,7 +492,7 @@
       "hash": "28d64e360aff550e",
       "size": 4264,
       "mtimeMs": 1787951059712.3862,
-      "updatedAt": "2026-08-31T17:27:29.551Z",
+      "updatedAt": "2026-08-31T17:34:03.561Z",
       "source": "scan",
       "symbols": [
         {
@@ -561,7 +561,7 @@
       "hash": "a493d5a1ba78878a",
       "size": 5319,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.551Z",
+      "updatedAt": "2026-08-31T17:34:03.561Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -571,7 +571,7 @@
       "hash": "56617742eb5917c5",
       "size": 10273,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T17:27:29.552Z",
+      "updatedAt": "2026-08-31T17:34:03.561Z",
       "source": "scan",
       "symbols": [
         {
@@ -700,7 +700,7 @@
       "hash": "6dc1d9fba1a191d5",
       "size": 7615,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T17:27:29.552Z",
+      "updatedAt": "2026-08-31T17:34:03.561Z",
       "source": "scan",
       "symbols": [
         {
@@ -780,7 +780,7 @@
       "hash": "000cad621173603f",
       "size": 11417,
       "mtimeMs": 1787951059713.203,
-      "updatedAt": "2026-08-31T17:27:29.552Z",
+      "updatedAt": "2026-08-31T17:34:03.562Z",
       "source": "scan",
       "symbols": [
         {
@@ -932,7 +932,7 @@
       "hash": "47316b61fe38191b",
       "size": 9084,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.553Z",
+      "updatedAt": "2026-08-31T17:34:03.562Z",
       "source": "scan",
       "symbols": [
         {
@@ -1072,7 +1072,7 @@
       "hash": "70ef8c5d04556854",
       "size": 3365,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.553Z",
+      "updatedAt": "2026-08-31T17:34:03.562Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -1082,7 +1082,7 @@
       "hash": "97335de28585e964",
       "size": 3057,
       "mtimeMs": 1787951059715.1064,
-      "updatedAt": "2026-08-31T17:27:29.553Z",
+      "updatedAt": "2026-08-31T17:34:03.562Z",
       "source": "scan",
       "symbols": [
         {
@@ -1151,7 +1151,7 @@
       "hash": "07e9910d7bad17ec",
       "size": 2386,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.554Z",
+      "updatedAt": "2026-08-31T17:34:03.563Z",
       "source": "scan",
       "symbols": [
         {
@@ -1234,7 +1234,7 @@
       "hash": "3b3f15b229ede8d2",
       "size": 6606,
       "mtimeMs": 1788197195503.5613,
-      "updatedAt": "2026-08-31T17:27:29.555Z",
+      "updatedAt": "2026-08-31T17:34:03.564Z",
       "source": "scan",
       "importance": 0.1113
     },
@@ -1244,7 +1244,7 @@
       "hash": "8c8ab0d01ee578c3",
       "size": 5809,
       "mtimeMs": 1788196416149.0317,
-      "updatedAt": "2026-08-31T17:27:29.555Z",
+      "updatedAt": "2026-08-31T17:34:03.564Z",
       "source": "scan",
       "symbols": [
         {
@@ -1337,7 +1337,7 @@
       "hash": "c5759205407ab30c",
       "size": 17235,
       "mtimeMs": 1788196416148.861,
-      "updatedAt": "2026-08-31T17:27:29.555Z",
+      "updatedAt": "2026-08-31T17:34:03.564Z",
       "source": "scan",
       "symbols": [
         {
@@ -1551,7 +1551,7 @@
       "hash": "84c4afce96e06953",
       "size": 2959,
       "mtimeMs": 1788196446326.647,
-      "updatedAt": "2026-08-31T17:27:29.559Z",
+      "updatedAt": "2026-08-31T17:34:03.565Z",
       "source": "scan",
       "symbols": [
         {
@@ -1595,7 +1595,7 @@
       "hash": "eb65e736d8fa09ef",
       "size": 5000,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.559Z",
+      "updatedAt": "2026-08-31T17:34:03.565Z",
       "source": "scan",
       "symbols": [
         {
@@ -1681,7 +1681,7 @@
       "hash": "d22651893e980819",
       "size": 5934,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.559Z",
+      "updatedAt": "2026-08-31T17:34:03.565Z",
       "source": "scan",
       "symbols": [
         {
@@ -1774,7 +1774,7 @@
       "hash": "7bc0b24239322bdc",
       "size": 12055,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -1960,7 +1960,7 @@
       "hash": "65b2c9f334f8d2e3",
       "size": 372,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -1970,7 +1970,7 @@
       "hash": "77997e30bbf0758e",
       "size": 3651,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -2025,7 +2025,7 @@
       "hash": "fe59e1e5d853d8b9",
       "size": 558,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -2035,7 +2035,7 @@
       "hash": "13c9d7d81c4ab648",
       "size": 4815,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -2100,7 +2100,7 @@
       "hash": "0ec68f7a56d7f4d4",
       "size": 6183,
       "mtimeMs": 1788196828195.214,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -2190,7 +2190,7 @@
       "hash": "df1f5d6c7a1c264c",
       "size": 3465,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.560Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -2270,7 +2270,7 @@
       "hash": "9daa4f083afbf64c",
       "size": 5016,
       "mtimeMs": 1787951059715.9797,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.566Z",
       "source": "scan",
       "symbols": [
         {
@@ -2360,7 +2360,7 @@
       "hash": "7ad9ac752c3f0f02",
       "size": 4613,
       "mtimeMs": 1788197209825.6965,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -2370,7 +2370,7 @@
       "hash": "5bf991e0bdd5b6a5",
       "size": 2487,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2411,7 +2411,7 @@
       "hash": "74a1acd2e4b71d45",
       "size": 4157,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2494,7 +2494,7 @@
       "hash": "6fadc7fa380f855f",
       "size": 1384,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -2504,7 +2504,7 @@
       "hash": "d96d052b27409c57",
       "size": 7856,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2630,7 +2630,7 @@
       "hash": "6274e69169c8a186",
       "size": 1708,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.561Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -2640,7 +2640,7 @@
       "hash": "8cc6bfcae06bc9f0",
       "size": 6291,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.562Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2765,7 +2765,7 @@
       "hash": "e1bc4b407a16875d",
       "size": 3839,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.562Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2820,7 +2820,7 @@
       "hash": "c6ebe1ac529c54c0",
       "size": 2258,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.562Z",
+      "updatedAt": "2026-08-31T17:34:03.567Z",
       "source": "scan",
       "symbols": [
         {
@@ -2861,7 +2861,7 @@
       "hash": "654f235c730b2a77",
       "size": 1364,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.562Z",
+      "updatedAt": "2026-08-31T17:34:03.568Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -2871,7 +2871,7 @@
       "hash": "8252adaabf0d2136",
       "size": 3131,
       "mtimeMs": 1787951059720.1274,
-      "updatedAt": "2026-08-31T17:27:29.563Z",
+      "updatedAt": "2026-08-31T17:34:03.568Z",
       "source": "scan",
       "symbols": [
         {
@@ -2951,7 +2951,7 @@
       "hash": "954702fda6a7ddda",
       "size": 12960,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.563Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "symbols": [
         {
@@ -3049,7 +3049,7 @@
       "hash": "91840db57f8b08b0",
       "size": 5825,
       "mtimeMs": 1788196364250.176,
-      "updatedAt": "2026-08-31T17:27:29.563Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "symbols": [
         {
@@ -3125,7 +3125,7 @@
       "hash": "8928421dcc355ada",
       "size": 2783,
       "mtimeMs": 1788196146699.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "importance": 0.1704
     },
@@ -3135,7 +3135,7 @@
       "hash": "658c13fbb98f2037",
       "size": 9268,
       "mtimeMs": 1788196146703.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "symbols": [
         {
@@ -3328,7 +3328,7 @@
       "hash": "c71d239df91726fc",
       "size": 11357,
       "mtimeMs": 1787951059703.7485,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3338,7 +3338,7 @@
       "hash": "28b72a3a40b26e54",
       "size": 16239,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3348,7 +3348,7 @@
       "hash": "2b79e8a08786d7e0",
       "size": 1231,
       "mtimeMs": 1787951059723.7485,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.569Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3358,7 +3358,7 @@
       "hash": "114f7b216583d703",
       "size": 12209,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.570Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3368,7 +3368,7 @@
       "hash": "d6d0ec460a2e6e38",
       "size": 2077,
       "mtimeMs": 1788196146695.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.570Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3378,7 +3378,7 @@
       "hash": "cdcad2cfb58f5d6d",
       "size": 5683,
       "mtimeMs": 1788196146703.9202,
-      "updatedAt": "2026-08-31T17:27:29.564Z",
+      "updatedAt": "2026-08-31T17:34:03.570Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3388,7 +3388,7 @@
       "hash": "decbdf3c6c54f7a4",
       "size": 6660,
       "mtimeMs": 1788196146707.9202,
-      "updatedAt": "2026-08-31T17:27:29.565Z",
+      "updatedAt": "2026-08-31T17:34:03.570Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3398,7 +3398,7 @@
       "hash": "fd1c04b2eadc064d",
       "size": 299,
       "mtimeMs": 1787951059739.7485,
-      "updatedAt": "2026-08-31T17:27:29.565Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3408,7 +3408,7 @@
       "hash": "2e9afe314a1c576b",
       "size": 1220,
       "mtimeMs": 1788196146707.9202,
-      "updatedAt": "2026-08-31T17:27:29.565Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3418,7 +3418,7 @@
       "hash": "b8b0144519a028e9",
       "size": 5926,
       "mtimeMs": 1788196146707.9202,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "symbols": [
         {
@@ -3487,7 +3487,7 @@
       "hash": "7fb6ab76051a3598",
       "size": 1402,
       "mtimeMs": 1787951059739.7485,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "importance": 0.1414
     },
@@ -3497,7 +3497,7 @@
       "hash": "9f519d7c5b33e00b",
       "size": 3391,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3507,7 +3507,7 @@
       "hash": "ec8212178b5d41fc",
       "size": 2083,
       "mtimeMs": 1787951059743.8818,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.571Z",
       "source": "scan",
       "symbols": [
         {
@@ -3562,7 +3562,7 @@
       "hash": "8bf72470787e81ac",
       "size": 7494,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.572Z",
       "source": "scan",
       "symbols": [
         {
@@ -3597,7 +3597,7 @@
       "hash": "fbadc139c0cf65c3",
       "size": 986,
       "mtimeMs": 1787951059744.42,
-      "updatedAt": "2026-08-31T17:27:29.566Z",
+      "updatedAt": "2026-08-31T17:34:03.572Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3607,7 +3607,7 @@
       "hash": "082c482ce256182a",
       "size": 2173,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.567Z",
+      "updatedAt": "2026-08-31T17:34:03.572Z",
       "source": "scan",
       "symbols": [
         {
@@ -3623,11 +3623,11 @@
     },
     "web/src/components/triage/CLAUDE.md": {
       "description": "web/src/components/triage/ — the triage screen",
-      "tokens": 1072,
-      "hash": "3fc4aa5c4eefa1fb",
-      "size": 4312,
-      "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.567Z",
+      "tokens": 1229,
+      "hash": "f73d620c9d8d5f2b",
+      "size": 4946,
+      "mtimeMs": 1788197520296.002,
+      "updatedAt": "2026-08-31T17:34:03.572Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3637,7 +3637,7 @@
       "hash": "626fc4763b0ccf32",
       "size": 2542,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.567Z",
+      "updatedAt": "2026-08-31T17:34:03.572Z",
       "source": "scan",
       "symbols": [
         {
@@ -3678,7 +3678,7 @@
       "hash": "3271b1c6249d0819",
       "size": 18385,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.567Z",
+      "updatedAt": "2026-08-31T17:34:03.573Z",
       "source": "scan",
       "symbols": [
         {
@@ -3744,7 +3744,7 @@
       "hash": "189eaf9beedd5051",
       "size": 5917,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.568Z",
+      "updatedAt": "2026-08-31T17:34:03.573Z",
       "source": "scan",
       "symbols": [
         {
@@ -3764,7 +3764,7 @@
       "hash": "47bc869c948ac8e8",
       "size": 9442,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.568Z",
+      "updatedAt": "2026-08-31T17:34:03.573Z",
       "source": "scan",
       "symbols": [
         {
@@ -3799,7 +3799,7 @@
       "hash": "3bdced617d6a6076",
       "size": 1692,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T17:27:29.568Z",
+      "updatedAt": "2026-08-31T17:34:03.573Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3809,7 +3809,7 @@
       "hash": "d7371b506800d9df",
       "size": 16215,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.568Z",
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "symbols": [
         {
@@ -3862,7 +3862,7 @@
       "hash": "0c0f3fd8694adf54",
       "size": 4137,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "symbols": [
         {
@@ -3882,7 +3882,7 @@
       "hash": "e0cab8f3047c73f4",
       "size": 5060,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "symbols": [
         {
@@ -3898,30 +3898,37 @@
     },
     "web/src/components/triage/QuickEditRow.tsx": {
       "description": "Quick edit: fast keyboard pickers that apply single-field ops to the",
-      "tokens": 2074,
-      "hash": "61200fac80f5891f",
-      "size": 7266,
-      "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "tokens": 2269,
+      "hash": "7b9a0f1c22efec7d",
+      "size": 7955,
+      "mtimeMs": 1788197520296.002,
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "symbols": [
         {
           "name": "PickerKey",
           "kind": "section",
-          "startLine": 12,
-          "endLine": 12,
+          "startLine": 19,
+          "endLine": 19,
           "tokens": 27
         },
         {
           "name": "QuickEditRow",
           "kind": "fn",
-          "startLine": 25,
-          "endLine": 200,
-          "tokens": 1719
+          "startLine": 32,
+          "endLine": 58,
+          "tokens": 241
+        },
+        {
+          "name": "QuickEditPickers",
+          "kind": "fn",
+          "startLine": 62,
+          "endLine": 216,
+          "tokens": 1497
         }
       ],
       "symbolSource": "ts",
-      "skeleton": "export type PickerKey = \"labels\" | \"estimate\" | \"cycle\" | \"project\" | \"status\" | \"assignee\";\nexport function QuickEditRow({",
+      "skeleton": "export type PickerKey = \"labels\" | \"estimate\" | \"cycle\" | \"project\" | \"status\" | \"assignee\";\nexport function QuickEditRow({\nexport function QuickEditPickers({",
       "imports": [
         "web/src/components/triage/DuplicateOfPicker.tsx"
       ],
@@ -3933,7 +3940,7 @@
       "hash": "214fe56f45d84008",
       "size": 2719,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "symbols": [
         {
@@ -3953,7 +3960,7 @@
       "hash": "f7547234066e7526",
       "size": 1178,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "updatedAt": "2026-08-31T17:34:03.574Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -3963,7 +3970,7 @@
       "hash": "a8fbe74f9999f365",
       "size": 5406,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.569Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "symbols": [
         {
@@ -3994,7 +4001,7 @@
       "hash": "c7d76a398703d965",
       "size": 2039,
       "mtimeMs": 1787951059745.1885,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "symbols": [
         {
@@ -4021,7 +4028,7 @@
       "hash": "a463d2edae87c776",
       "size": 2246,
       "mtimeMs": 1788196146711.9202,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4031,7 +4038,7 @@
       "hash": "cb4cd3d9a0151e2a",
       "size": 1983,
       "mtimeMs": 1787951059748.5085,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "symbols": [
         {
@@ -4051,7 +4058,7 @@
       "hash": "72d13205db339d59",
       "size": 4670,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "symbols": [
         {
@@ -4078,7 +4085,7 @@
       "hash": "af813d7710165890",
       "size": 837,
       "mtimeMs": 1787951059748.5085,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4088,7 +4095,7 @@
       "hash": "c7c0466abd3d60b4",
       "size": 2300,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "symbols": [
         {
@@ -4118,7 +4125,7 @@
       "hash": "2f797daec2d548c1",
       "size": 514,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.575Z",
       "source": "scan",
       "importance": 0.1836
     },
@@ -4128,7 +4135,7 @@
       "hash": "b1d29eca40e650e1",
       "size": 7399,
       "mtimeMs": 1788196466486.1624,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "symbols": [
         {
@@ -4194,7 +4201,7 @@
       "hash": "2314d5981ff08da3",
       "size": 4963,
       "mtimeMs": 1788197209825.8484,
-      "updatedAt": "2026-08-31T17:27:29.570Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4204,7 +4211,7 @@
       "hash": "8c0524a65077be44",
       "size": 1047,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "imports": [
         "web/src/lib/colors.ts"
@@ -4217,7 +4224,7 @@
       "hash": "bf23b3458ef41410",
       "size": 524,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "importance": 0.1836
     },
@@ -4227,7 +4234,7 @@
       "hash": "771ec61c1ca5e894",
       "size": 2161,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "symbols": [
         {
@@ -4258,7 +4265,7 @@
       "hash": "0a61cf814098fa74",
       "size": 832,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "imports": [
         "web/src/lib/api.ts",
@@ -4272,7 +4279,7 @@
       "hash": "4b41f85ed2fe7b69",
       "size": 5906,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "symbols": [
         {
@@ -4303,7 +4310,7 @@
       "hash": "8fe4feb89f22d5fa",
       "size": 4638,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.576Z",
       "source": "scan",
       "symbols": [
         {
@@ -4354,7 +4361,7 @@
       "hash": "15f4909062891eca",
       "size": 1079,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "imports": [
         "web/src/lib/linear.ts"
@@ -4367,7 +4374,7 @@
       "hash": "9e00caa8927802a6",
       "size": 451,
       "mtimeMs": 1787951059750.5537,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "importance": 0.1836
     },
@@ -4377,7 +4384,7 @@
       "hash": "f306ecf31f75fce3",
       "size": 1997,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "symbols": [
         {
@@ -4400,7 +4407,7 @@
       "hash": "448e2170197b009f",
       "size": 863,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.571Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "importance": 0.1836
     },
@@ -4410,7 +4417,7 @@
       "hash": "93aea148a7de6888",
       "size": 24721,
       "mtimeMs": 1788196815272.1016,
-      "updatedAt": "2026-08-31T17:27:29.572Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "symbols": [
         {
@@ -4437,7 +4444,7 @@
       "hash": "1dfe906cf473729e",
       "size": 1166,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T17:27:29.572Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4447,7 +4454,7 @@
       "hash": "b1b46ff36d5ea8fb",
       "size": 3242,
       "mtimeMs": 1788196466486.2847,
-      "updatedAt": "2026-08-31T17:27:29.572Z",
+      "updatedAt": "2026-08-31T17:34:03.577Z",
       "source": "scan",
       "symbols": [
         {
@@ -4509,7 +4516,7 @@
       "hash": "a7f144f7847a693e",
       "size": 7176,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.573Z",
+      "updatedAt": "2026-08-31T17:34:03.578Z",
       "source": "scan",
       "symbols": [
         {
@@ -4733,7 +4740,7 @@
       "hash": "43959c878896a8c7",
       "size": 2218,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T17:27:29.573Z",
+      "updatedAt": "2026-08-31T17:34:03.578Z",
       "source": "scan",
       "imports": [
         "web/src/lib/utils.ts"
@@ -4746,7 +4753,7 @@
       "hash": "fc700450f01fe229",
       "size": 988,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T17:27:29.573Z",
+      "updatedAt": "2026-08-31T17:34:03.578Z",
       "source": "scan",
       "importance": 0.1836
     },
@@ -4756,7 +4763,7 @@
       "hash": "7ea4097e683f3e07",
       "size": 533,
       "mtimeMs": 1787951059751.7485,
-      "updatedAt": "2026-08-31T17:27:29.573Z",
+      "updatedAt": "2026-08-31T17:34:03.578Z",
       "source": "scan",
       "imports": [
         "web/src/styles.css",
@@ -4770,7 +4777,7 @@
       "hash": "abc6cd7ae8b5418b",
       "size": 3216,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.573Z",
+      "updatedAt": "2026-08-31T17:34:03.578Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4780,7 +4787,7 @@
       "hash": "1d7fc46e611571d0",
       "size": 18089,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.574Z",
+      "updatedAt": "2026-08-31T17:34:03.579Z",
       "source": "scan",
       "symbols": [
         {
@@ -4815,7 +4822,7 @@
       "hash": "1ddc8d49fe5c9d2b",
       "size": 10496,
       "mtimeMs": 1788196146715.9202,
-      "updatedAt": "2026-08-31T17:27:29.574Z",
+      "updatedAt": "2026-08-31T17:34:03.580Z",
       "source": "scan",
       "symbols": [
         {
@@ -4857,7 +4864,7 @@
       "hash": "07aee38986d82cfd",
       "size": 18493,
       "mtimeMs": 1788196146719.9202,
-      "updatedAt": "2026-08-31T17:27:29.575Z",
+      "updatedAt": "2026-08-31T17:34:03.580Z",
       "source": "scan",
       "symbols": [
         {
@@ -4881,19 +4888,19 @@
     },
     "web/src/pages/Triage.tsx": {
       "description": "TriagePage — uses useState, useCallback, useEffect",
-      "tokens": 2271,
-      "hash": "9b85b9d76ef1b9ce",
-      "size": 7951,
-      "mtimeMs": 1788196146719.9202,
-      "updatedAt": "2026-08-31T17:27:29.575Z",
+      "tokens": 2327,
+      "hash": "b2e06874b8f2257d",
+      "size": 8149,
+      "mtimeMs": 1788197520296.002,
+      "updatedAt": "2026-08-31T17:34:03.580Z",
       "source": "scan",
       "symbols": [
         {
           "name": "TriagePage",
           "kind": "fn",
           "startLine": 14,
-          "endLine": 189,
-          "tokens": 2056
+          "endLine": 192,
+          "tokens": 2107
         }
       ],
       "symbolSource": "ts",
@@ -4906,7 +4913,7 @@
       "hash": "f5661a8206093bfc",
       "size": 8666,
       "mtimeMs": 1787951059755.1182,
-      "updatedAt": "2026-08-31T17:27:29.575Z",
+      "updatedAt": "2026-08-31T17:34:03.581Z",
       "source": "scan",
       "importance": 0.1414
     },
@@ -4916,7 +4923,7 @@
       "hash": "cc901e603bb0b42c",
       "size": 454,
       "mtimeMs": 1787951059755.1182,
-      "updatedAt": "2026-08-31T17:27:29.576Z",
+      "updatedAt": "2026-08-31T17:34:03.581Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4926,7 +4933,7 @@
       "hash": "af7ce1d70ea9643d",
       "size": 509,
       "mtimeMs": 1787951059755.7485,
-      "updatedAt": "2026-08-31T17:27:29.576Z",
+      "updatedAt": "2026-08-31T17:34:03.581Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4936,7 +4943,7 @@
       "hash": "4e188ce94b2790f2",
       "size": 894,
       "mtimeMs": 1788196146719.9202,
-      "updatedAt": "2026-08-31T17:27:29.576Z",
+      "updatedAt": "2026-08-31T17:34:03.581Z",
       "source": "scan",
       "importance": 0.0993
     },
@@ -4946,7 +4953,7 @@
       "hash": "305222e660da2420",
       "size": 291,
       "mtimeMs": 1787951059755.7485,
-      "updatedAt": "2026-08-31T17:27:29.576Z",
+      "updatedAt": "2026-08-31T17:34:03.581Z",
       "source": "scan",
       "importance": 0.0993
     }

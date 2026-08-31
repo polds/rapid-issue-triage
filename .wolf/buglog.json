@@ -534,6 +534,27 @@
     },
     {
       "id": "bug-029",
+      "timestamp": "2026-08-31T17:40:00-07:00",
+      "error_message": "Filtering the Labels picker showed two stacked picker panels \u2014 the typed/filtered list on top and the full unfiltered list behind it, each with its own \"Enter toggles \u00b7 Esc closes\" footer",
+      "file": "web/src/components/triage/QuickEditRow.tsx",
+      "root_cause": "TriagePage mounts QuickEditRow twice for the responsive layout \u2014 once under the card (xl:hidden) and once in the wide rail (hidden xl:flex) \u2014 and both shared the same `picker` state. QuickEditRow rendered the <Picker> itself, and Picker uses createPortal(..., document.body), which escapes the wrapper doing the responsive hiding. So both instances portalled a panel to body regardless of viewport width, each with independent query/cursor state; the last-mounted one took focus, leaving the other rendered unfiltered behind it.",
+      "fix": "Split the component: QuickEditRow now renders only the buttons (safe to duplicate \u2014 they are in-flow and CSS-hidden), and a new QuickEditPickers holds the Picker + DuplicateOfPicker and is rendered exactly once by TriagePage off the same shared `open` state. Verified in the running app: 2 panels before, 1 after. Invariant recorded in web/src/components/triage/CLAUDE.md.",
+      "tags": [
+        "ui",
+        "react",
+        "portal",
+        "createPortal",
+        "responsive",
+        "picker",
+        "duplicate-render",
+        "labels"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T17:40:00-07:00"
+    },
+    {
+      "id": "bug-030",
       "timestamp": "2026-08-31T00:00:00Z",
       "error_message": "Action failed: not found \u2014 occasional error on Skip or Snooze",
       "file": "internal/server/handlers.go, internal/server/server.go, internal/store/store.go, web/src/lib/store.tsx",
