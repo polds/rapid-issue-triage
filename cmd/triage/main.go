@@ -27,13 +27,16 @@ import (
 	"github.com/polds/rapid-issue-triage/internal/server"
 	"github.com/polds/rapid-issue-triage/internal/store"
 	"github.com/polds/rapid-issue-triage/internal/syncer"
+	"github.com/polds/rapid-issue-triage/internal/update"
+	"github.com/polds/rapid-issue-triage/internal/version"
 )
 
-// Filled by GoReleaser via -ldflags.
+// Filled by GoReleaser via -ldflags. An unstamped build falls back to the VCS
+// information Go embeds; see internal/version.
 var (
-	version = "dev"
-	commit  = ""
-	date    = ""
+	buildVersion = ""
+	commit       = ""
+	date         = ""
 )
 
 func main() {
@@ -50,14 +53,7 @@ func main() {
 	)
 	flag.Parse()
 	if *showVersion {
-		switch {
-		case commit != "" && date != "":
-			fmt.Printf("triage %s (%s, %s)\n", version, commit, date)
-		case commit != "":
-			fmt.Printf("triage %s (%s)\n", version, commit)
-		default:
-			fmt.Printf("triage %s\n", version)
-		}
+		fmt.Println(version.Resolve(buildVersion, commit, date))
 		return
 	}
 
@@ -114,7 +110,17 @@ func run(configPath, addrOverride string, noOpen bool) error {
 		}
 	}
 
-	srv := server.New(st, lc, sy, enricher, orch, cfg.AI.Command)
+	// The update check is the app's only outbound call that is not Linear or
+	// the local claude binary. It runs on its own timer, reports through
+	// /api/version, and never blocks anything: a failed check is status text.
+	upd := update.New(update.Options{
+		Info:     version.Resolve(buildVersion, commit, date),
+		Repo:     cfg.Update.Repo,
+		Interval: cfg.Update.Interval,
+		Enabled:  cfg.Update.Enabled,
+	})
+
+	srv := server.New(st, lc, sy, enricher, orch, cfg.AI.Command, upd)
 	ui, err := webui.Dist()
 	if err != nil {
 		return fmt.Errorf("embedded ui: %w", err)
@@ -125,6 +131,7 @@ func run(configPath, addrOverride string, noOpen bool) error {
 
 	go sy.Run(ctx)
 	go srv.PrefetchEnrichments(ctx, cfg.AI.Prefetch)
+	go upd.Run(ctx)
 
 	httpSrv := &http.Server{
 		Addr:              cfg.Addr,

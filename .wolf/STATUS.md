@@ -2,11 +2,37 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31 (a card the background sync pruned no longer fails Skip/Snooze with "not found"; previously: Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-31 (version display in the top bar + Settings → About, with a daily background update check; a card the background sync pruned no longer fails Skip/Snooze with "not found"; Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **The app knows what version it is, and whether a newer one exists.**
+  - `internal/version` (stdlib-only leaf) resolves the build stamp — GoReleaser's
+    `-ldflags` first, then Go's embedded VCS info — and orders releases
+    (`Parse`/`Compare`/`IsNewer`, prerelease precedence included). A synthesized
+    pseudo-version from a local `go build` is deliberately treated as `dev`, so a
+    developer build is never told to upgrade. `triage -version` now prints it.
+  - `internal/update` checks GitHub's public `releases/latest` 20s after start
+    and then every 24h (floored at 1h), caching the result in memory. No auth, no
+    request body, no workspace data — only the version in the User-Agent. 404 is
+    "no releases yet", not a failure; 403/429 says "rate limit". The repo string
+    is regexp-validated as `owner/name`, so config cannot steer the URL.
+    `update_check: {enabled, interval, repo}` in the YAML, and
+    `enabled: false` provably makes no request.
+  - `GET /api/version` returns the stamp plus the checker's snapshot;
+    `POST /api/version/check` runs one early and collapses into an in-flight
+    check rather than starting a second.
+  - UI: `VersionBadge` in the top bar — a muted `v0.1.1` (or `dev · 5fc31f4`)
+    that becomes an info-toned link to the release when one is newer — plus a
+    **Settings → About** card with the commit, build date, the check's verdict,
+    and "Check now". `web/src/lib/version.ts` is the pure formatter (24 tests,
+    in the vitest coverage include); the frontend never compares versions,
+    `update.available` is the server's single verdict.
+  - Verified in the real app both ways by pointing the checker's base URL at a
+    local stub (v9.9.9 → badge + "is available"; v0.0.1 → muted string + "You
+    are on the latest release"), light and dark.
 
 - **A pruned card no longer fails Skip/Snooze with "Action failed: not found".**
   The deck the browser holds is a snapshot, and the syncer's `PruneStale`
@@ -132,12 +158,13 @@
 
 ## 🚀 Next phase
 
-**Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work. First release is `v0.1.1` (run 33166540050). `v0.1.0` was abandoned: its tag predates the SBOM fix, and publishing a tag uses that tag's tree.
+**Goal:** Land the version/update-check branch (`claude/version-display-update-check-yxj8n8`), then cut the next release so a stamped binary actually exercises the update path end to end — every check so far ran against a local stub or an unstamped `dev` build, which by design reports no update.
 
 ### Acceptance criteria
-1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
-2. Card view shows the Claude-missing banner when the binary is absent.
-3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. (Done 2026-08-28: the unused `v0.1.0` tag and its draft release were deleted, before the tag ruleset went active.)
+1. CI green on the version/update PR; `web/dist` staged with the UI change (`make web-dist-check` reads the worktree column only).
+2. A released, ldflags-stamped binary reports its tag in the top bar and finds the published release through the real GitHub endpoint — the one path a stub cannot prove.
+3. Production `triage` on `:7333` restarted onto a build that carries all of this.
+4. Never hand-create a release in the UI — immutability burns the tag name.
 
 ### Closed decisions
 - Repo rulesets: "Main" (branch) requires all 11 CI contexts; "Release Tags" (tag, ~ALL) blocks deletion, tag moves, and force pushes. Neither has bypass actors. Adding `creation` to the tag ruleset would break `release.yml` - see cerebrum.
@@ -145,11 +172,14 @@
 - Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.
 - Native picker is a Go subprocess (osascript / zenity / PowerShell) because the browser cannot expose filesystem paths.
 - Coverage floor applies to `internal/config` + `internal/store` (70%), not the whole module.
+- The update check is server-side and in memory: no sqlite DDL for a value whose staleness costs one GET per restart, and one verdict (`internal/version.IsNewer`) rather than a second comparison in the frontend.
+- The app has exactly three outbound destinations — Linear, the local `claude` binary, and the switchable release check. A fourth needs a PR reason and a `SECURITY.md` line.
 
 ### Open decisions
 - Dependabot majors are open and not safe to merge blind: #9 bumps TypeScript to 7.0.2, outside `typescript-eslint@8`'s peer range (`<6.1.0`), which would break the whole type-aware config. #7 (vite 8) and #8 are also majors.
 - Whether first-run should boot without `LINEAR_API_KEY` and force a Settings setup screen (still required at process start today).
 - The container path is unrehearsed end to end: no local Docker daemon was available, so it was validated with `goreleaser check`, GoReleaser v2.18's own source (context layout, template fields, base-image parsing), and actionlint/shellcheck/zizmor — not an actual image build. **Run a snapshot dispatch (empty `tag`) before the next real tag**; it builds the image locally and pushes nothing.
+- Whether the update check should also surface in the released container, where the user cannot edit a YAML file as easily (env var override? a Settings toggle alongside the Claude path?). Config-only for now.
 - Whether to make the GHCR package public. It is created private on first push; the `org.opencontainers.image.source` label links it to the repo, and the setting is a one-time manual toggle.
 
 ---
@@ -157,7 +187,7 @@
 ## 📁 Active architecture
 
 - **Stack:** Go 1.27 HTTP API + sqlite (`~/.rapid-triage/triage.db`) + embedded Vite/React UI
-- **Key tables / modules:** `meta` (enrich_settings, secrets), `internal/server/settings.go`, `internal/server/pickfolder.go`, `internal/store/secrets.go`
+- **Key tables / modules:** `meta` (enrich_settings, secrets), `internal/server/settings.go`, `internal/server/pickfolder.go`, `internal/store/secrets.go`, `internal/version` + `internal/update` (build stamp, release check) → `internal/server/version.go`
 - **Patterns:** Toolbox never holds raw keys in JSON responses; Probe/Call resolve Settings then env/.env
 
 ---

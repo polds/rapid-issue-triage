@@ -39,3 +39,12 @@ ai:
   model: ""       # optional --model override
   timeout: 3m
   prefetch: 0     # enrich up to N upcoming queue items in the background
+
+# Periodic "is there a newer release?" check. This is the only outbound request
+# the app makes that is not to Linear or to your local claude binary: one
+# unauthenticated GET to GitHub's public releases endpoint. Nothing about your
+# workspace is sent. Set enabled: false and nothing leaves the machine.
+update_check:
+  enabled: true
+  interval: 24h   # floored at 1h
+  repo: polds/rapid-issue-triage

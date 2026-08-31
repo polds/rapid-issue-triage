@@ -580,6 +580,24 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-31T00:00:00Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-08-31T17:20:00-07:00",
+      "error_message": "`./triage -version` on a locally built binary printed `triage v0.0.0-20260831170347-5fc31f49c73e+dirty`, and the update check treated that build as a release (so any real tag looked like an available upgrade)",
+      "file": "internal/version/version.go",
+      "root_cause": "Resolve fell back to debug.ReadBuildInfo().Main.Version when -ldflags stamped nothing. For a `go build` inside a checkout the toolchain synthesizes a pseudo-version (vX.Y.Z-<14-digit timestamp>-<12 hex>), which parses as a perfectly valid v0.0.0 prerelease \u2014 so Dev was false and IsNewer said yes to every published tag.",
+      "fix": "Added a pseudoVersion regexp (`[-.]<14 digits>-<12 hex>` with optional build metadata) and reject a Main.Version matching it, keeping \"dev\" and taking only vcs.revision/vcs.time. A dev build is now never offered an update. Note the second form: `v1.2.4-0.<timestamp>-<hash>` separates with a dot, not a dash \u2014 anchoring on `-` alone missed it.",
+      "tags": [
+        "version",
+        "update-check",
+        "semver",
+        "buildinfo",
+        "pseudo-version"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T17:20:00-07:00"
     }
   ]
 }
