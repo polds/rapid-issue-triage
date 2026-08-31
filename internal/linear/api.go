@@ -37,7 +37,7 @@ func (c *Client) WorkflowStates(ctx context.Context) ([]WorkflowState, error) {
 }
 
 func (c *Client) Labels(ctx context.Context) ([]Label, error) {
-	return paginate[Label](ctx, c, "issueLabels", `id name color isGroup team { id }`, nil)
+	return paginate[Label](ctx, c, "issueLabels", `id name color isGroup team { id } parent { id }`, nil)
 }
 
 func (c *Client) Projects(ctx context.Context) ([]Project, error) {

@@ -15,6 +15,7 @@ and their own local UI state only. The keyboard map itself lives in
 | `DeepPanel.tsx` | Deep enrichment UI: live per-scout progress, a Claude-Code-style thinking feed, the rendered report, and the raw action log dialog. |
 | `report-format.ts` | `VERDICT_META` (label + tone per verdict) and the deep report → Linear markdown renderer. **Not a component** — split so `DeepPanel.tsx` stays fast-refresh clean. |
 | `DuplicateOfPicker.tsx` | Prompts for the canonical issue. Linear requires the duplicate relation *before* the state change, so this blocks the apply. |
+| `LabelGroupPrompt.tsx` | Replace-or-cancel when an action would add a second label from one exclusive Linear label group. Offers "Replace" only when the action adds exactly one sibling; otherwise it just explains the clash. |
 | `FilterPanel.tsx` | Two distinct things: pick a saved Linear view (its filter becomes the **index** filter and triggers a reindex) vs. narrow the **local** queue view. Don't conflate them. |
 | `TopBar.tsx` | Nav + `SyncPill` (fresh / stale / syncing / reindexing / error). |
 | `NotificationBell.tsx` | Background enrichment tracker; clicking an entry jumps to that issue. |

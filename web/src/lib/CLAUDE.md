@@ -12,7 +12,7 @@ logic belongs here with a test, not inline in a component.
 |---|---|---|
 | `store.tsx` | `TriageProvider` — metadata, macros, the card deck, and every triage action. The app's single source of truth. | — |
 | `triage-context.ts` | The context object, `useTriage`, and the deck types (`Card`, `CardStatus`, `Swipe`, `EnrichNotice`). Split out so `store.tsx` exports only components. | — |
-| `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message. **The one place a response is asserted into a type.** | — |
+| `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on. **The one place a response is asserted into a type.** | — |
 | `types.ts` | Every wire type, mirroring the Go JSON tags. `EMPTY_FILTER`, `filterIsEmpty`. | — |
 | `theme.tsx` | Light/dark provider, persisted. | — |
 | `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `PRIORITY_NAMES`. | ✔ |
@@ -20,6 +20,7 @@ logic belongs here with a test, not inline in a component.
 | `linear.ts` | `linearIssueHref` — build an issue URL from an identifier using the current issue's URL as a template. | ✔ |
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |
 | `enrichmode.ts` | Module-level cache of enrichment settings so every card doesn't refetch. | ✔ |
+| `labelgroups.ts` | Pre-flight for Linear's mutually exclusive label groups: which groups a set of ops would put two labels into, and how to say so. | ✔ |
 
 ## `store.tsx` — the contract
 
@@ -35,6 +36,13 @@ Optimistic, deck-shaped state:
 - **Deep runs are watched, not polled.** `startWatcher` opens the SSE stream,
   buffers events in a ref (`getRunEvents`), and drives the notification bell.
   Events live in a ref, not state — re-rendering per event would be unusable.
+- **`labelGroupConflicts` gates the label-replace flow**, the same way
+  `needsDuplicateOf` gates the duplicate one: it runs against synced metadata
+  before the request, so a clash raises its prompt with no round trip and no
+  card swipe to undo. It is a *pre-flight*, not the rule —
+  `internal/server/labelgroups.go` re-checks and is the authority. Both must
+  keep the same `labelsChanged` guard: with no label op the update carries no
+  `labelIds`, so a group the issue already violated is not that action's fault.
 - **`needsDuplicateOf` gates the duplicate flow.** Linear requires the
   relation before a duplicate-type state change, so the provider raises a
   prompt instead of applying.

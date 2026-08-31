@@ -4,6 +4,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"log"
 	"net/http"
@@ -112,6 +113,22 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 
 func writeErr(w http.ResponseWriter, code int, err error) {
 	writeJSON(w, code, map[string]string{"error": err.Error()})
+}
+
+// writeActionErr reports a failed apply/macro run. A label-group clash is a
+// conflict the user can resolve, not a Linear outage: it goes out as a 409 with
+// the offending groups attached so the UI can prompt for a replacement.
+func writeActionErr(w http.ResponseWriter, err error) {
+	if lg, ok := errors.AsType[*labelGroupError](err); ok {
+		writeJSON(w, http.StatusConflict, map[string]any{
+			"error":      lg.Error(),
+			"code":       "label_group_conflict",
+			"conflicts":  lg.conflicts,
+			"resolvable": lg.resolvable(),
+		})
+		return
+	}
+	writeErr(w, 502, err)
 }
 
 func decodeBody(r *http.Request, v any) error {

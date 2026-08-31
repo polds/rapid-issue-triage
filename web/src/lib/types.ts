@@ -136,7 +136,19 @@ export interface Issue {
 
 export interface Team { id: string; key: string; name: string }
 export interface WorkflowState { id: string; teamId: string; name: string; type: string; color: string; position: number }
-export interface Label { id: string; teamId: string; name: string; color: string; isGroup: number }
+// parentId is the label group this label belongs to, if any. Linear label
+// groups are mutually exclusive: only one child per group may be on an issue.
+export interface Label { id: string; teamId: string; name: string; color: string; isGroup: number; parentId: string }
+
+// LabelGroupConflict is one exclusive label group with more than one label
+// landing on an issue. `resolvable` means replacing `existing` with `incoming`
+// is unambiguous — true only when the action adds exactly one of the siblings.
+export interface LabelGroupConflict {
+  group: string;
+  existing: string[];
+  incoming: string[];
+  resolvable: boolean;
+}
 export interface Project { id: string; name: string; state: string }
 export interface Cycle { id: string; teamId: string; number: number; name: string; startsAt: string; endsAt: string }
 export interface User { id: string; name: string; displayName: string; email: string; isMe: number }

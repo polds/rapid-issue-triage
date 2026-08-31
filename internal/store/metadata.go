@@ -33,7 +33,7 @@ func (s *Store) ReplaceStates(tx *sql.Tx, rows [][]any) error {
 
 func (s *Store) ReplaceLabels(tx *sql.Tx, rows [][]any) error {
 	return replaceAll(tx, "labels",
-		`INSERT INTO labels (id, team_id, name, color, is_group) VALUES (?, ?, ?, ?, ?)`, rows)
+		`INSERT INTO labels (id, team_id, name, color, is_group, parent_id) VALUES (?, ?, ?, ?, ?, ?)`, rows)
 }
 
 func (s *Store) ReplaceProjects(tx *sql.Tx, rows [][]any) error {
@@ -84,7 +84,7 @@ func (s *Store) Metadata() (map[string]any, error) {
 	}{
 		{"teams", `SELECT id, key, name FROM teams ORDER BY name`, []string{"id", "key", "name"}},
 		{"states", `SELECT id, COALESCE(team_id,''), name, type, COALESCE(color,''), COALESCE(position,0) FROM workflow_states ORDER BY position`, []string{"id", "teamId", "name", "type", "color", "position"}},
-		{"labels", `SELECT id, COALESCE(team_id,''), name, COALESCE(color,''), is_group FROM labels ORDER BY name`, []string{"id", "teamId", "name", "color", "isGroup"}},
+		{"labels", `SELECT id, COALESCE(team_id,''), name, COALESCE(color,''), is_group, COALESCE(parent_id,'') FROM labels ORDER BY name`, []string{"id", "teamId", "name", "color", "isGroup", "parentId"}},
 		{"projects", `SELECT id, name, COALESCE(state,'') FROM projects ORDER BY name`, []string{"id", "name", "state"}},
 		{"cycles", `SELECT id, COALESCE(team_id,''), COALESCE(number,0), COALESCE(name,''), COALESCE(starts_at,''), COALESCE(ends_at,'') FROM cycles ORDER BY starts_at`, []string{"id", "teamId", "number", "name", "startsAt", "endsAt"}},
 		{"users", `SELECT id, COALESCE(name,''), COALESCE(display_name,''), COALESCE(email,''), is_me FROM users ORDER BY display_name`, []string{"id", "name", "displayName", "email", "isMe"}},
@@ -106,6 +106,47 @@ func (s *Store) LabelIDByName(teamID, name string) (string, error) {
 	  WHERE name = ? COLLATE NOCASE AND (team_id = ? OR team_id IS NULL OR team_id = '')
 	  ORDER BY CASE WHEN team_id = ? THEN 0 ELSE 1 END LIMIT 1`, name, teamID, teamID).Scan(&id)
 	return id, errRow(err)
+}
+
+// LabelGroupMember is one label's membership in a Linear label group. Groups
+// are mutually exclusive: Linear rejects an update carrying two children of
+// the same group.
+type LabelGroupMember struct {
+	ID        string
+	Name      string
+	GroupID   string
+	GroupName string
+}
+
+// LabelGroupsFor returns, for the given label ids, only those that belong to a
+// label group. Labels that are ungrouped — or whose group is not indexed yet —
+// are simply absent from the result.
+func (s *Store) LabelGroupsFor(ids []string) ([]LabelGroupMember, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	q := `SELECT l.id, l.name, g.id, g.name FROM labels l
+	  JOIN labels g ON g.id = l.parent_id
+	  WHERE l.id IN (`
+	q += placeholders(len(ids)) + `)`
+	rows, err := s.db.Query(q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []LabelGroupMember
+	for rows.Next() {
+		var m LabelGroupMember
+		if err := rows.Scan(&m.ID, &m.Name, &m.GroupID, &m.GroupName); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
 }
 
 func (s *Store) StateIDByName(teamID, name string) (string, error) {

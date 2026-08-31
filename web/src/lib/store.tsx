@@ -9,8 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import { getEnrichInfo } from "./enrichmode";
+import { labelGroupConflicts } from "./labelgroups";
 import { useToast } from "@/components/ui/use-toast";
 import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type SyncStatus, type ViewFilter } from "./types";
 import {
@@ -18,13 +19,14 @@ import {
   type Card,
   type CardStatus,
   type EnrichNotice,
+  type LabelPrompt,
   type Swipe,
   type TriageCtx,
 } from "./triage-context";
 
 // The context object, its hook and the shared deck types live in
 // ./triage-context so this module exports only components (react-refresh).
-export type { Card, CardStatus, EnrichNotice, Swipe };
+export type { Card, CardStatus, EnrichNotice, LabelPrompt, Swipe };
 
 const BATCH = 25;
 const SWIPE_MS = 300;
@@ -56,6 +58,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [milestone, setMilestone] = useState(0);
   const [enriching, setEnriching] = useState(false);
   const [duplicatePrompt, setDuplicatePrompt] = useState<Macro | null>(null);
+  const [labelPrompt, setLabelPrompt] = useState<LabelPrompt | null>(null);
   const [notices, setNotices] = useState<EnrichNotice[]>([]);
   const [eventsTick, setEventsTick] = useState(0);
   const runEvents = useRef<Map<string, EnrichEvent[]>>(new Map());
@@ -75,6 +78,11 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const cardsRef = useRef<Card[]>([]);
   const indexRef = useRef(0);
   const undoRef = useRef<() => void>(() => {});
+  // Retry handles for the label-group prompt. The prompt's "Replace" re-runs
+  // the very action that raised it, which would otherwise make each callback
+  // reference itself inside its own initializer.
+  const applyMacroRef = useRef<(m: Macro, duplicateOfId?: string, replaceGroupLabels?: boolean) => void>(() => {});
+  const applyOpsRef = useRef<(ops: Op[], description: string, replaceGroupLabels?: boolean) => void>(() => {});
   const focusIssueRef = useRef<(issueId: string) => Promise<boolean>>(() => Promise.resolve(false));
 
   const loadMeta = useCallback(async () => {
@@ -219,8 +227,11 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const duration = useCallback(() => (viewStart.current ? Date.now() - viewStart.current : 0), []);
 
   // Animate the card away, then advance. The API call runs concurrently.
+  // onError lets a caller claim a failure it can present better than a toast —
+  // a label-group clash raises its own prompt. Returning true suppresses the
+  // toast; the card still rolls back either way.
   const swipeAway = useCallback(
-    (dir: Swipe, run: () => Promise<void>) => {
+    (dir: Swipe, run: () => Promise<void>, onError?: (e: unknown) => boolean) => {
       if (busy) return;
       setBusy(true);
       setSwipe(dir);
@@ -234,6 +245,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         .catch(async (e) => {
           await animDone;
           setSwipe(null);
+          if (onError?.(e)) return;
           toast(`Action failed: ${(e as Error).message}`, { tone: "error" });
         })
         .finally(() => setBusy(false));
@@ -265,6 +277,29 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     });
   }, [current, duration, swipeAway, updateCard, pushUndo, toast]);
 
+  // labelClash: would these ops put two labels of one exclusive Linear group on
+  // the issue? Checked against synced metadata before the request goes out, so
+  // the prompt appears without a wasted round trip. The server re-checks.
+  const labelClash = useCallback(
+    (ops: Op[], issue: { teamId: string; labels: { id: string }[] }) => {
+      if (!meta) return [];
+      return labelGroupConflicts(ops, { teamId: issue.teamId, labels: issue.labels }, meta.labels);
+    },
+    [meta],
+  );
+
+  // raiseLabelPrompt claims a server-reported clash — the case pre-flight
+  // missed because the local label index predates the group. Returns whether
+  // it took ownership of the error.
+  const raiseLabelPrompt = useCallback(
+    (e: unknown, action: string, rerun: () => void) => {
+      if (!(e instanceof ApiError) || e.code !== "label_group_conflict" || !e.conflicts) return false;
+      setLabelPrompt({ action, conflicts: e.conflicts, rerun });
+      return true;
+    },
+    [],
+  );
+
   // needsDuplicateOf: does this macro move the issue into a duplicate-type
   // state? (Linear requires the canonical issue for that.)
   const needsDuplicateOf = useCallback(
@@ -286,7 +321,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   );
 
   const applyMacro = useCallback(
-    (m: Macro, duplicateOfId?: string) => {
+    (m: Macro, duplicateOfId?: string, replaceGroupLabels?: boolean) => {
       const card = current;
       if (!card || card.status !== "pending") return;
       if (!duplicateOfId && needsDuplicateOf(m, card.issue.teamId)) {
@@ -294,9 +329,17 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         return;
       }
       setDuplicatePrompt(null);
+      if (!replaceGroupLabels) {
+        const conflicts = labelClash(m.steps, card.issue);
+        if (conflicts.length) {
+          setLabelPrompt({ action: m.name, conflicts, rerun: () => applyMacroRef.current(m, duplicateOfId, true) });
+          return;
+        }
+      }
+      setLabelPrompt(null);
       const d = duration();
       swipeAway("right", async () => {
-        const r = await api.runMacro(card.issue.id, m.id, d, duplicateOfId);
+        const r = await api.runMacro(card.issue.id, m.id, d, duplicateOfId, replaceGroupLabels);
         updateCard(card.issue.id, {
           status: "triaged",
           outcome: m.outcome,
@@ -311,20 +354,33 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         });
         setRemaining((n) => Math.max(0, n - 1));
         toast(`${m.name} → ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
-      });
+      }, (e) => raiseLabelPrompt(e, m.name, () => applyMacroRef.current(m, duplicateOfId, true)));
     },
-    [current, duration, swipeAway, updateCard, pushUndo, toast, needsDuplicateOf],
+    [current, duration, swipeAway, updateCard, pushUndo, toast, needsDuplicateOf, labelClash, raiseLabelPrompt],
   );
 
   const cancelDuplicatePrompt = useCallback(() => setDuplicatePrompt(null), []);
+  const cancelLabelPrompt = useCallback(() => setLabelPrompt(null), []);
 
   // Quick edits: apply ops in place without advancing the deck.
   const applyOps = useCallback(
-    async (ops: Op[], description: string) => {
+    async (ops: Op[], description: string, replaceGroupLabels?: boolean) => {
       const card = current;
       if (!card) return;
+      if (!replaceGroupLabels) {
+        const conflicts = labelClash(ops, card.issue);
+        if (conflicts.length) {
+          setLabelPrompt({
+            action: description,
+            conflicts,
+            rerun: () => applyOpsRef.current(ops, description, true),
+          });
+          return;
+        }
+      }
+      setLabelPrompt(null);
       try {
-        const r = await api.apply(card.issue.id, ops, "edited", duration());
+        const r = await api.apply(card.issue.id, ops, "edited", duration(), replaceGroupLabels);
         updateCard(card.issue.id, {
           issue: { ...r.issue, enrichment: r.issue.enrichment ?? card.issue.enrichment },
           activityId: r.activityId,
@@ -332,10 +388,11 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         pushUndo(r.activityId, card.issue.id, false);
         toast(`${description} · ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       } catch (e) {
+        if (raiseLabelPrompt(e, description, () => applyOpsRef.current(ops, description, true))) return;
         toast(`Edit failed: ${(e as Error).message}`, { tone: "error" });
       }
     },
-    [current, duration, updateCard, pushUndo, toast],
+    [current, duration, updateCard, pushUndo, toast, labelClash, raiseLabelPrompt],
   );
 
   const undo = useCallback(() => {
@@ -372,6 +429,11 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     undoRef.current = undo;
   }, [undo]);
+
+  useEffect(() => {
+    applyMacroRef.current = applyMacro;
+    applyOpsRef.current = (ops, description, replace) => void applyOps(ops, description, replace);
+  }, [applyMacro, applyOps]);
 
   // startWatcher owns the run's SSE for its whole life, independent of which
   // card is on screen — enrichments continue and notify in the background.
@@ -533,6 +595,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
+      labelPrompt, cancelLabelPrompt,
     }),
     [
       meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
@@ -541,6 +604,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
       activeRunFor, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
+      labelPrompt, cancelLabelPrompt,
     ],
   );
 

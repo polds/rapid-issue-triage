@@ -383,3 +383,13 @@
 | 23:55 | Added `make osv` (osv-scanner v2.5.1 over go.mod + web/package-lock.json → SARIF) and `make trivy` (v0.74.0 over the Dockerfile's FROM digest → SARIF), wired both into `ci-security` | Makefile | both green locally; base image 0 CVEs | ~5k |
 | 23:58 | Wired both into ci.yml's existing `Security` job as steps (not new jobs — no ruleset edit needed), with `security-events: write` + two SARIF uploads guarded by `!cancelled() && hashFiles(...)` | .github/workflows/ci.yml | actionlint + zizmor + shellcheck clean | ~3k |
 | 00:02 | Documented the adoption and the full rejected list; added osv/trivy blocks to the pre-commit hook | .github/CLAUDE.md, CLAUDE.md, .githooks/pre-commit, .gitignore | `make ci-security` exit 0 | ~4k |
+
+## Session: 2026-08-31 16:29
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:35 | Traced "labelIds not exclusive child labels" to Linear's mutually exclusive label groups; nothing indexed the parent edge | internal/linear/api.go, internal/store/store.go | labels.parent_id added (additive migration) + `parent { id }` synced | ~14k |
+| 16:45 | Added server-side conflict detection + the replace resolution | internal/server/labelgroups.go, ops.go, handlers.go, server.go | resolveOps rejects a clashing label set with a named message; 409 {code, conflicts, resolvable}; opOptions.replaceGroupLabels drops the pre-existing sibling | ~18k |
+| 16:52 | Mirrored the rule as a UI pre-flight + prompt | web/src/lib/labelgroups.ts, store.tsx, components/triage/LabelGroupPrompt.tsx | Replace/Cancel prompt fires before the request — no round trip, no card swipe to undo | ~16k |
+| 17:00 | Seeded an "Area" label group into the offline fixture and drove it | .claude/skills/run-rapid-issue-triage/fixture.mjs | Verified in the real app: prompt renders on ENG-412 + macro 4; API returns 409 then 502 with replaceGroupLabels | ~9k |
+| 17:15 | CI SAST failed on PR #46 (semgrep string-formatted-query, mine) | internal/store/metadata.go | Reproduced locally with pinned semgrep in a venv, fixed to match issues.go's `+=` shape + the existing placeholders() helper; 1 finding → 0 | ~11k |

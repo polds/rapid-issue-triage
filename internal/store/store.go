@@ -45,6 +45,7 @@ func (s *Store) migrate() error {
 	// Additive migrations for existing databases; duplicate-column errors are fine.
 	_, _ = s.db.Exec(`ALTER TABLE enrichments ADD COLUMN report_json TEXT`)
 	_, _ = s.db.Exec(`ALTER TABLE enrichments ADD COLUMN issue_hash TEXT`)
+	_, _ = s.db.Exec(`ALTER TABLE labels ADD COLUMN parent_id TEXT`)
 	return nil
 }
 
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS workflow_states (
 );
 CREATE TABLE IF NOT EXISTS labels (
   id TEXT PRIMARY KEY, team_id TEXT, name TEXT NOT NULL, color TEXT,
-  is_group INTEGER DEFAULT 0
+  is_group INTEGER DEFAULT 0, parent_id TEXT
 );
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY, name TEXT NOT NULL, state TEXT

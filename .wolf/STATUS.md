@@ -2,11 +2,31 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-31 (Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Linear label-group clashes are now a prompt, not an error.** A macro adding
+  a label from an exclusive group (`Area`) to an issue that already carried a
+  sibling failed with Linear's own `labelIds not exclusive child labels`, after
+  the card had swiped away.
+  - `internal/linear` now requests `parent { id }` on `issueLabels`, the
+    `labels` table has `parent_id` (additive migration), and
+    `store.LabelGroupsFor` resolves group membership for a label set.
+  - `resolveOps` ends in `resolveLabelGroups` (`internal/server/labelgroups.go`),
+    which names the group and both sides. `writeActionErr` answers **409**
+    `{code:"label_group_conflict", conflicts, resolvable}` instead of a 502;
+    `opOptions.replaceGroupLabels` drops the pre-existing sibling once the user
+    confirms. `exclusiveLabelHint` rewrites the raw wording for a group created
+    since the last sync.
+  - The UI pre-flights the same rule (`web/src/lib/labelgroups.ts`, mirroring
+    `needsDuplicateOf`) and raises `LabelGroupPrompt` — Replace / Cancel — before
+    the request, so there is no round trip and no swipe to undo. "Replace" is
+    offered only when the action adds exactly one sibling.
+  - Verified in the running app via the driver: the offline fixture now seeds an
+    `Area` group (`ci-cd` on ENG-412, macro 4 adds `infrastructure`).
 
 - **Starter-workflow survey → two adopted (OSV-Scanner, Trivy).** Walked
   GitHub's *Actions → New workflow → Security* catalogue (~76 entries) for

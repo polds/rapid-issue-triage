@@ -243,7 +243,7 @@ func (s *Syncer) writeLabels(tx *sql.Tx, labels []linear.Label) error {
 		if l.IsGroup {
 			isGroup = 1
 		}
-		rows = append(rows, []any{l.ID, refID(l.Team), l.Name, l.Color, isGroup})
+		rows = append(rows, []any{l.ID, refID(l.Team), l.Name, l.Color, isGroup, refID(l.Parent)})
 	}
 	return s.store.ReplaceLabels(tx, rows)
 }

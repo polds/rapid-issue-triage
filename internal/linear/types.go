@@ -33,6 +33,10 @@ type Label struct {
 	Color   string `json:"color"`
 	IsGroup bool   `json:"isGroup"`
 	Team    *Ref   `json:"team"`
+	// Parent is the label group this label belongs to, if any. Linear label
+	// groups are mutually exclusive: at most one child per group may be on an
+	// issue at a time.
+	Parent *Ref `json:"parent"`
 }
 
 type Project struct {
