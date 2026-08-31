@@ -2,11 +2,30 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31 (Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-31 (a card the background sync pruned no longer fails Skip/Snooze with "not found"; previously: Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **A pruned card no longer fails Skip/Snooze with "Action failed: not found".**
+  The deck the browser holds is a snapshot, and the syncer's `PruneStale`
+  deletes every issue that leaves the index filter, so a card can outlive its
+  row. Skip and snooze then 404'd on `store.GetIssue`, the card rolled back, and
+  the user was stranded on a card no keystroke could clear.
+  - `store.ErrNotFound` is now an exported sentinel (same message,
+    `errors.Is`-able); `errRow` returns it.
+  - New `writeIssueErr` (`internal/server/server.go`) answers a pruned row with
+    **404 `{code:"issue_gone"}`** plus an explanation, and anything that is not
+    `ErrNotFound` with a **500** — the old code 404'd real database faults too.
+    All six `GetIssue(r.PathValue("id"))` sites use it.
+  - The UI adds a `"gone"` `CardStatus` and `retireGoneCard`: skip/snooze mark
+    the card gone (dimmed, "LEFT THE INDEX" badge, actions disabled), advance
+    the deck, and show a plain toast. Macros/quick edits deliberately keep the
+    card pending — that Linear write did not happen.
+  - Verified in the running app via the driver by `DELETE`ing the visible card's
+    row from sqlite behind the deck's back; regression test in
+    `internal/server/issuegone_test.go`.
 
 - **Linear label-group clashes are now a prompt, not an error.** A macro adding
   a label from an exclusive group (`Area`) to an issue that already carried a
