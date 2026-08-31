@@ -2,11 +2,40 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-28 (CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-28 (starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Starter-workflow survey → two adopted (OSV-Scanner, Trivy).** Walked
+  GitHub's *Actions → New workflow → Security* catalogue (~76 entries) for
+  anything worth adding beside CodeQL/semgrep/Scorecard.
+  - **OSV-Scanner** (`make osv`, pinned v2.5.1) over `go.mod` *and*
+    `web/package-lock.json`, SARIF to the Security tab. Not redundant with
+    govulncheck: that one filters by reachability, which is the right gate for
+    "fix it now" and the wrong one for an inventory of a binary users compile
+    themselves. It is also the only route by which an npm finding reaches the
+    Security tab at all — `npm audit` just prints.
+  - **Trivy** (`make trivy`, pinned v0.74.0) over the base image read off the
+    `Dockerfile`'s `FROM` line — the one part of the released container nothing
+    scanned. No registry auth, works on a PR that published nothing, tracks the
+    digest Dependabot bumps. Two passes on a warm DB: all findings into SARIF,
+    then a HIGH/CRITICAL `--ignore-unfixed` gate. Base is currently 0 CVEs.
+  - Both landed as **steps of the existing `Security` job**, not new jobs, so
+    the `Main` ruleset needed no edit and both are enforced from the first run.
+    Required checks stay at 14.
+  - **Rejected, with reasons recorded in `.github/CLAUDE.md`:** Snyk, SonarQube
+    /SonarCloud, Codacy, Checkmarx, Veracode, Fortify, Contrast, Black Duck,
+    JFrog/Frogbot, Endor, Prisma, Sysdig, Zscaler, Mayhem, NowSecure,
+    StackHawk, SOOS, Debricked, APIsec (all token-gated SaaS — same objection
+    that already rules out `semgrep/semgrep-action`, and a fork PR never holds
+    the secret); the `eslint.yml` starter (its only gain is a SARIF feed from a
+    linter that already *blocks*, bought with a new redistributable dep);
+    hadolint (nothing to match on a `COPY`-only distroless Dockerfile);
+    Anchore/Grype (the release already emits an SPDX SBOM); Defender for
+    DevOps and OSSAR (Azure/Windows); and everything targeting another
+    language or absent infrastructure.
 
 - **CI scanning tier (SAST, licenses, code quality).** Three new `ci.yml` jobs,
   each calling a `make` target so local and CI cannot drift.

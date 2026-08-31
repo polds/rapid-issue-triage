@@ -150,10 +150,12 @@ Use the Makefile; CI calls the same targets, so the two cannot drift.
 | `make web-ci` | eslint (incl. sonarjs), vitest + coverage floor, vite build. |
 | `make actions-lint` | actionlint + zizmor over the workflows. |
 | `make quality` | `go mod tidy -diff` + whole-program `deadcode`. |
-| `make ci-security` | `vuln` + `sast` + `licenses` — the scanners that need network. |
+| `make ci-security` | `vuln` + `osv` + `sast` + `trivy` + `licenses` — the scanners that need network. |
 | `make sast` | pinned semgrep over Go and TS/React; writes `semgrep.sarif`. |
 | `make licenses` | go-licenses + the npm license policy. `licenses-report` lists them all. |
-| `make vuln` | pinned govulncheck. |
+| `make vuln` | pinned govulncheck — reachability-filtered, Go only. |
+| `make osv` | pinned osv-scanner over `go.mod` **and** `web/package-lock.json`; writes `osv.sarif`. |
+| `make trivy` | pinned trivy over the base image on the `Dockerfile`'s `FROM` line; writes `trivy.sarif`. |
 | `make hooks` | install the path-scoped pre-commit hook. |
 
 ```sh
@@ -198,7 +200,7 @@ file **in the same PR**.
 | a keyboard shortcut | `pages/Triage.tsx`, `HelpOverlay.tsx`, `README.md` |
 | the report/verdict schema | `internal/deep`, `internal/ai`, `reportcomment.go`, `report-format.ts` |
 | a CI job name | the `Main` ruleset's required checks (same PR, or not at all) |
-| add a dependency | nothing — but `make licenses` must still pass, and it will not for a copyleft one |
+| add a dependency | nothing — but `make licenses` and `make osv` must still pass, and `licenses` will not for a copyleft one |
 | a pinned scanner version | the `Makefile` only; CI reads it back with `make -s print-<VAR>` |
 
 Keep entries terse and edge-focused: purpose, key files, the invariant that

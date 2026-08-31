@@ -374,3 +374,12 @@
 | 22:58 | Wired image provenance + base-image maintenance | .github/workflows/release.yml, .github/dependabot.yml, .github/workflows/dependabot-auto-merge.yml | second actions/attest over dist/digests.txt; docker ecosystem added to Dependabot and held from auto-merge | ~6k |
 | 23:02 | Documented the container everywhere it is load-bearing | README.md, SECURITY.md, CLAUDE.md, .github/CLAUDE.md, .wolf/anatomy.md | loopback-publishing rule stated in three places; anatomy regenerated at 123 files | ~8k |
 | 23:45 | Merged origin/main (container image #40 + web/dist freshness gate #39) into the branch - the PR was `mergeable_state: dirty`, which is why zero CI runs existed | Makefile, README.md, .wolf/{STATUS,anatomy*,buglog} | Resolved 7 conflicts; buglog merged by renumbering my 014-016 to 017-019; added semgrep p/dockerfile now that main ships a Dockerfile | ~9k |
+
+## Session: 2026-08-28 23:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:50 | Surveyed GitHub's Actions → Security starter-workflow catalogue (76 entries); rejected every token-gated SaaS scanner (Snyk, SonarQube, Codacy, Checkmarx, Veracode, …) and every irrelevant-language one | — | 2 adoptable: OSV-Scanner + Trivy | ~4k |
+| 23:55 | Added `make osv` (osv-scanner v2.5.1 over go.mod + web/package-lock.json → SARIF) and `make trivy` (v0.74.0 over the Dockerfile's FROM digest → SARIF), wired both into `ci-security` | Makefile | both green locally; base image 0 CVEs | ~5k |
+| 23:58 | Wired both into ci.yml's existing `Security` job as steps (not new jobs — no ruleset edit needed), with `security-events: write` + two SARIF uploads guarded by `!cancelled() && hashFiles(...)` | .github/workflows/ci.yml | actionlint + zizmor + shellcheck clean | ~3k |
+| 00:02 | Documented the adoption and the full rejected list; added osv/trivy blocks to the pre-commit hook | .github/CLAUDE.md, CLAUDE.md, .githooks/pre-commit, .gitignore | `make ci-security` exit 0 | ~4k |

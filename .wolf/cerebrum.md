@@ -166,6 +166,19 @@
 - Docker Hub rate-limits anonymous pulls (429 seen from this container). Another
   reason the base image comes from `gcr.io`: a rate-limited pull inside a release
   is a failed release.
+- zizmor's `unpinned-tools` audit fires on `with: version: ${{ steps.x.outputs.y }}`
+  even when the expression resolves to a Makefile pin. It is a false positive
+  here but a real pattern elsewhere, so it is suppressed inline
+  (`# zizmor: ignore[unpinned-tools]` **on the finding's own line**, not on the
+  `- uses:` line above it — a comment on the step is ignored) rather than by
+  adding a file-wide entry to `.github/zizmor.yml`. Curiously
+  `golangci/golangci-lint-action` uses the identical shape and is not flagged.
+- `osv-scanner --output` is deprecated in v2.5; it is `--output-file`. It exits
+  1 when it finds something *and still writes the report*, so one invocation is
+  both the gate and the SARIF producer.
+- A new gate added as a **step of an existing CI job** is enforced immediately;
+  a new **job** is not, until someone edits the `Main` ruleset's required
+  checks. Prefer the step when the risk belongs to a job that already exists.
 
 ## Do-Not-Repeat
 
@@ -273,4 +286,9 @@
 - [2026-08-28] A PR whose `mergeable_state` is `dirty` shows **zero** CI runs, not failing ones: a conflicted PR has no merge ref, so `pull_request`-triggered workflows never fire and every required context reads as absent. STATUS.md already recorded this; PR #41 hit it within a minute of being opened. Check `mergeable_state` before concluding CI is slow or a workflow trigger is wrong.
 - [2026-08-29] Do not compare SPDX license ids as raw strings. Every GPL-family license has two spellings -- modern `LGPL-3.0-only` / `GPL-2.0-or-later` and deprecated bare `LGPL-3.0` -- so a policy list written in one spelling silently passes the other. The license gate shipped that way and let `eslint-plugin-sonarjs` (LGPL-3.0-only) through a deny-list containing `LGPL-3.0`; socket-security[bot] noticed, the gate did not. Normalise (strip `-only`/`-or-later`/`+`) before comparing, and make a policy matcher self-test on every run -- a gate that fails open is worse than no gate, and this one was invisible.
 - [2026-08-29] The npm license policy is two tiers, and the tiers are not the same list on purpose. `dependency-review-action` pins `fail-on-scopes: runtime` and carries the strict deny-list (it only ever judges redistributed code); the Makefile's `WEB_LICENSE_DENY` is the dev-only tier and deliberately omits LGPL/MPL/EPL, because a lint plugin is *executed*, never conveyed, and copyleft obligations attach to conveying. Flattening the two would either let copyleft into the shipped binary or ban an LGPL lint plugin for no benefit. Decision made by the user on PR #41 after the gate correctly flagged sonarjs.
-
+- [2026-08-28] Surveyed GitHub's Actions → New workflow → Security catalogue (~76 starter workflows) and adopted exactly two: **OSV-Scanner** and **Trivy**. Every commercial entry (Snyk, SonarQube/SonarCloud, Codacy, Checkmarx, Veracode, Fortify, Contrast, Black Duck, JFrog/Frogbot, Endor, Prisma, Sysdig, Zscaler, Mayhem, NowSecure, StackHawk, SOOS, Debricked, APIsec) is token-gated SaaS — the same objection that already rules out `semgrep/semgrep-action` here, plus a fork PR never holds the secret and the check would silently no-op. The rest are other languages or absent infrastructure (Terraform, K8s, mobile, Azure).
+- [2026-08-28] Rejected the `eslint.yml` starter workflow specifically. Its only addition over the existing `Web` job is a Security-tab SARIF feed, bought with a new redistributable dependency (`@microsoft/eslint-formatter-sarif`) for the license gate to judge — and eslint is already a *blocking* gate, so alerting adds nothing. Security-tab alerts earn their keep for scanners that warn, not for checks that already fail the build.
+- [2026-08-28] Rejected hadolint: the Dockerfile is `COPY`-only on distroless with no `RUN` layer, so its `DL3xxx` rules have nothing to match, and semgrep `p/dockerfile` already reads the file.
+- [2026-08-28] OSV-Scanner is a hard gate despite overlapping govulncheck, because govulncheck filters by reachability and users compile this binary themselves from a tree they can configure differently. It is also the only path by which an npm finding reaches the Security tab — `npm audit` only prints to a console. Deliberate exceptions belong in an `osv-scanner.toml`, not in a narrower `--lockfile` list.
+- [2026-08-28] Trivy scans **the base image off the Dockerfile's `FROM` line**, not a pulled `ghcr.io` tag. It needs no registry auth, works on a PR that has published nothing, is deterministic, and tracks the digest Dependabot bumps — Dependabot moves the pin but cannot say whether today's pin has a CVE. Two passes on one warm DB: everything into SARIF, then a HIGH/CRITICAL `--ignore-unfixed` gate, because an unfixable Debian CVE blocking every merge only teaches people to bypass the hook.
+- [2026-08-28] Both new scanners went in as **steps of the existing `Security` job**, not as new jobs, so no `Main` ruleset edit was needed and the gates are enforced from the first run. The required-check count stays at 14.
