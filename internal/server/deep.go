@@ -24,7 +24,7 @@ func (s *Server) handleDeepEnrich(w http.ResponseWriter, r *http.Request) {
 	}
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	settings := s.store.GetEnrichSettings()

@@ -6,7 +6,9 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     // Set when the server returns a machine-readable failure the UI can act on
-    // rather than just report — today only "label_group_conflict".
+    // rather than just report: "label_group_conflict" raises a replace prompt,
+    // "issue_gone" retires a card the background sync pruned out from under
+    // the deck.
     public code?: string,
     public conflicts?: LabelGroupConflict[],
   ) {

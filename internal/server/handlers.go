@@ -224,7 +224,7 @@ func (s *Server) handleLinearSearch(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGetIssue(w http.ResponseWriter, r *http.Request) {
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	if e, err := s.store.GetEnrichment(issue.ID); err == nil {
@@ -279,7 +279,7 @@ func (s *Server) handleApply(w http.ResponseWriter, r *http.Request) {
 	}
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	outcome := req.Outcome
@@ -314,7 +314,7 @@ func (s *Server) handleRunMacro(w http.ResponseWriter, r *http.Request) {
 	}
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	steps := macro.Steps
@@ -343,7 +343,7 @@ func (s *Server) handleSkip(w http.ResponseWriter, r *http.Request) {
 	_ = decodeBody(r, &req)
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	if err := s.store.MarkSkipped(issue.ID); err != nil {
@@ -372,7 +372,7 @@ func (s *Server) handleSnooze(w http.ResponseWriter, r *http.Request) {
 	}
 	issue, err := s.store.GetIssue(r.PathValue("id"))
 	if err != nil {
-		writeErr(w, 404, err)
+		writeIssueErr(w, err)
 		return
 	}
 	if err := s.store.MarkSnoozed(issue.ID, time.Now().Add(time.Duration(req.Hours)*time.Hour)); err != nil {

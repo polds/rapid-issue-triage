@@ -81,6 +81,13 @@ boundary, and it must stay read-only and token-checked.
   a 409 with `{code, conflicts, resolvable}` the UI prompts on; everything else
   stays a 502. A raw clash that slips past (a group created since the last sync)
   is rewritten by `exclusiveLabelHint` on the way out.
+- **`writeIssueErr`, not `writeErr(w, 404, …)`, for every handler that loads
+  the issue out of `r.PathValue("id")`.** A row the store cannot find is
+  usually not a bad id: the syncer prunes issues that leave the index filter,
+  and the browser's deck is a snapshot that can outlive one. It goes out as a
+  404 `{code:"issue_gone"}` with an explanation, so the UI retires the card
+  rather than reporting "Action failed: not found". Anything that is not
+  `store.ErrNotFound` is a real fault and a 500.
 - **Secrets are write-only over HTTP.** `PUT /api/secrets` accepts a value;
   no handler ever returns one. Responses carry `{set, source, hint}`.
 - **`enriching` map guards duplicate concurrent enrichment per issue.** Hold

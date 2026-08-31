@@ -60,8 +60,10 @@ already-fetched values (`internal/syncer` inside its own transaction,
 
 - Go 1.27 rejects `QueueFilter{}.Empty()` (struct-literal field selector).
   Write `(QueueFilter{}).Empty()`.
-- `errRow` maps `sql.ErrNoRows` to a `not found` error — handlers rely on it
-  for 404s. Don't return the raw driver error.
+- `errRow` maps `sql.ErrNoRows` to the exported `ErrNotFound` sentinel —
+  handlers `errors.Is` it to tell a pruned row (a routine race with
+  `PruneStale`) from a database fault. Don't return the raw driver error, and
+  don't match on the message.
 - `golangci-lint` excludes only `G202` (SQL string concat) under this path.
   Concatenation is confined to `issueCols` and the generated `?` placeholder
   lists; **every user value stays a bind arg**. Keep it that way.

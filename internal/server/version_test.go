@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
+	"github.com/polds/rapid-issue-triage/internal/store"
 	"github.com/polds/rapid-issue-triage/internal/update"
 	"github.com/polds/rapid-issue-triage/internal/version"
 )
@@ -69,5 +71,29 @@ func TestHandleVersionCheckDisabled(t *testing.T) {
 	}
 	if body.Update.Enabled || body.Update.CheckedAt != "" {
 		t.Errorf("disabled checker performed a check: %+v", body.Update)
+	}
+}
+
+// A nil checker is a valid construction (tests that never touch /api/version
+// pass one), and it must not turn the version endpoint into a panic.
+func TestNilCheckerBecomesDisabled(t *testing.T) {
+	st, err := store.Open(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = st.Close() })
+
+	s := New(st, nil, nil, nil, nil, "", nil)
+	rec := httptest.NewRecorder()
+	s.handleVersion(rec, httptest.NewRequest(http.MethodGet, "/api/version", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	var body versionResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if body.Update.Enabled {
+		t.Errorf("update block = %+v, want a disabled checker", body.Update)
 	}
 }

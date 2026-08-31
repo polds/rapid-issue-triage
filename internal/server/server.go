@@ -39,6 +39,12 @@ type Server struct {
 }
 
 func New(st *store.Store, lc *linear.Client, sy *syncer.Syncer, en *ai.Enricher, orch *deep.Orchestrator, defaultClaude string, upd *update.Checker) *Server {
+	if upd == nil {
+		// Keep the "s.updates is never nil" invariant true by construction: a
+		// caller with no checker gets a disabled one, which reports the build
+		// stamp and never makes a request.
+		upd = update.New(update.Options{})
+	}
 	s := &Server{
 		store: st, linear: lc, syncer: sy, enricher: en, orch: orch,
 		defaultClaude: defaultClaude, updates: upd, enriching: map[string]bool{},
@@ -133,6 +139,28 @@ func writeActionErr(w http.ResponseWriter, err error) {
 		return
 	}
 	writeErr(w, 502, err)
+}
+
+// issueGoneMsg explains a card action that named an issue the index no longer
+// holds. The bare "not found" from the store reads as a bug; this is a normal
+// race with the background sync.
+const issueGoneMsg = "this issue is no longer indexed — the background sync dropped it after it left the index filter (triaged, closed, or reassigned in Linear)"
+
+// writeIssueErr answers a request whose issue the store could not load. A
+// pruned row goes out as a 404 carrying the machine-readable "issue_gone", so
+// the UI can retire the card instead of reporting "Action failed: not found":
+// the syncer deletes rows that leave the index filter, and a deck fetched
+// minutes ago can still be holding one. Anything else is a real fault and a
+// 500 — the old code answered 404 for those too.
+func writeIssueErr(w http.ResponseWriter, err error) {
+	if errors.Is(err, store.ErrNotFound) {
+		writeJSON(w, http.StatusNotFound, map[string]any{
+			"error": issueGoneMsg,
+			"code":  "issue_gone",
+		})
+		return
+	}
+	writeErr(w, http.StatusInternalServerError, err)
 }
 
 func decodeBody(r *http.Request, v any) error {
