@@ -12,8 +12,9 @@ import {
 import { api, ApiError } from "./api";
 import { getEnrichInfo } from "./enrichmode";
 import { labelGroupConflicts } from "./labelgroups";
+import { noticeIsActive } from "./notices";
 import { useToast } from "@/components/ui/use-toast";
-import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type SyncStatus, type VersionInfo, type ViewFilter } from "./types";
+import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type RunPlacement, type SyncStatus, type VersionInfo, type ViewFilter } from "./types";
 import {
   TriageContext,
   type Card,
@@ -78,6 +79,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   // same ref; each is kept in sync by an effect next to the value it mirrors.
   const cardsRef = useRef<Card[]>([]);
   const indexRef = useRef(0);
+  const noticesRef = useRef<EnrichNotice[]>([]);
   const undoRef = useRef<() => void>(() => {});
   // Retry handles for the label-group prompt. The prompt's "Replace" re-runs
   // the very action that raised it, which would otherwise make each callback
@@ -138,6 +140,9 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     indexRef.current = index;
   }, [index]);
+  useEffect(() => {
+    noticesRef.current = notices;
+  }, [notices]);
 
   // Initial loads. Both are fire-and-forget fetches whose state updates land in
   // the promise continuation, not in the effect body — the `void (async …)()`
@@ -488,21 +493,26 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   // startWatcher owns the run's SSE for its whole life, independent of which
   // card is on screen — enrichments continue and notify in the background.
   const startWatcher = useCallback(
-    (runId: string, issueId: string, identifier: string) => {
+    (runId: string, issueId: string, identifier: string, placed: RunPlacement) => {
       setNotices((n) => [
-        { runId, issueId, identifier, status: "running", at: new Date().toISOString(), read: false },
+        {
+          runId, issueId, identifier,
+          status: placed.status, position: placed.position,
+          at: new Date().toISOString(), read: false,
+        },
         ...n,
       ]);
       runEvents.current.set(runId, []);
       const es = new EventSource(`/api/enrich/runs/${runId}/events`);
       watchers.current.set(runId, es);
 
+      const patchNotice = (id: string, patch: Partial<EnrichNotice>) =>
+        setNotices((n) => n.map((x) => (x.runId === id ? { ...x, ...patch } : x)));
+
       const finish = (status: "done" | "error", patch: Partial<EnrichNotice>) => {
         es.close();
         watchers.current.delete(runId);
-        setNotices((n) =>
-          n.map((x) => (x.runId === runId ? { ...x, ...patch, status, read: false, at: new Date().toISOString() } : x)),
-        );
+        patchNotice(runId, { ...patch, status, position: undefined, read: false, at: new Date().toISOString() });
       };
 
       es.onmessage = (m: MessageEvent<string>) => {
@@ -518,6 +528,13 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           setEventsTick((t) => t + 1);
         }
         if (ev.agent !== "orchestrator") return;
+        // The pool re-announces a run's place in line every time the queue
+        // moves, and emits "started" the moment it actually gets a slot.
+        if (ev.kind === "status" && ev.payload?.state === "queued") {
+          patchNotice(runId, { status: "queued", position: ev.payload.position });
+        } else if (ev.kind === "status" && ev.payload?.state === "started") {
+          patchNotice(runId, { status: "running", position: undefined });
+        }
         if (ev.kind === "error") {
           const msg = String(ev.payload?.error ?? "enrichment failed");
           finish("error", { error: msg });
@@ -565,12 +582,15 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const enrich = useCallback(async () => {
     const card = current;
     if (!card || enriching) return;
+    // A pooled run can sit queued for minutes; without this, pressing enrich
+    // again would put a second run for the same card at the back of the line.
+    if (noticesRef.current.some((n) => n.issueId === card.issue.id && noticeIsActive(n))) return;
     setEnriching(true);
     try {
       const info = await getEnrichInfo();
       if (info.settings.mode === "deep") {
         const r = await api.deepEnrich(card.issue.id);
-        startWatcher(r.runId, card.issue.id, card.issue.identifier);
+        startWatcher(r.runId, card.issue.id, card.issue.identifier, r);
         return;
       }
       const r = await api.enrich(card.issue.id);
@@ -585,9 +605,19 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   }, [current, enriching, updateCard, toast]);
 
   const markNoticesRead = useCallback(() => setNotices((n) => n.map((x) => ({ ...x, read: true }))), []);
-  const clearDoneNotices = useCallback(() => setNotices((n) => n.filter((x) => x.status === "running")), []);
-  const activeRunFor = useCallback(
-    (issueId: string) => notices.find((n) => n.issueId === issueId && n.status === "running")?.runId ?? null,
+  const clearDoneNotices = useCallback(() => setNotices((n) => n.filter(noticeIsActive)), []);
+  // dismissNotice drops one finished entry and its buffered events. Active
+  // runs are refused: the notice is what the card and the live panel read.
+  const dismissNotice = useCallback((runId: string) => {
+    setNotices((n) => {
+      const hit = n.find((x) => x.runId === runId);
+      if (!hit || noticeIsActive(hit)) return n;
+      runEvents.current.delete(runId);
+      return n.filter((x) => x.runId !== runId);
+    });
+  }, []);
+  const activeRun = useCallback(
+    (issueId: string) => notices.find((n) => n.issueId === issueId && noticeIsActive(n)) ?? null,
     [notices],
   );
   const getRunEvents = useCallback((runId: string) => runEvents.current.get(runId) ?? [], []);
@@ -643,8 +673,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       reloadMeta: loadMeta,
-      setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
-      activeRunFor, getRunEvents, eventsTick, focusIssue,
+      setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,
+      activeRun, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
       labelPrompt, cancelLabelPrompt,
     }),
@@ -653,8 +683,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices,
-      activeRunFor, getRunEvents, eventsTick, focusIssue,
+      loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,
+      activeRun, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
       labelPrompt, cancelLabelPrompt,
     ],

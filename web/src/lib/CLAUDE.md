@@ -2,9 +2,10 @@
 
 Everything the UI runs on that isn't a component. Split so that the pure
 modules can carry a real coverage floor: **`utils`, `colors`, `linear`,
-`linearfilter`, `enrichmode`, `labelgroups`, `version` are the only files in
-`vitest.config.ts`'s coverage `include`** (90% statements/functions/lines, 85% branches). New pure
-logic belongs here with a test, not inline in a component.
+`linearfilter`, `enrichmode`, `labelgroups`, `notices`, `version` are the only
+files in `vitest.config.ts`'s coverage `include`** (90% statements/functions/
+lines, 85% branches). New pure logic belongs here with a test, not inline in a
+component.
 
 ## Layout
 
@@ -21,6 +22,7 @@ logic belongs here with a test, not inline in a component.
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |
 | `enrichmode.ts` | Module-level cache of enrichment settings so every card doesn't refetch. | ✔ |
 | `labelgroups.ts` | Pre-flight for Linear's mutually exclusive label groups: which groups a set of ops would put two labels into, and how to say so. | ✔ |
+| `notices.ts` | How an `EnrichNotice` reads: `noticeIsActive` (queued **or** running — the one definition every consumer shares), plus the dropdown's detail and timestamp lines. | ✔ |
 | `version.ts` | How to *say* the build stamp and the update check — the display string, the tooltip, the Settings summary, the release link. Never *decides* whether an update exists; `internal/update` does. | ✔ |
 
 ## `store.tsx` — the contract
@@ -37,6 +39,12 @@ Optimistic, deck-shaped state:
 - **Deep runs are watched, not polled.** `startWatcher` opens the SSE stream,
   buffers events in a ref (`getRunEvents`), and drives the notification bell.
   Events live in a ref, not state — re-rendering per event would be unusable.
+- **A notice is the client's whole record of a run**, so `noticeIsActive`
+  (from `notices.ts`) is load-bearing in three places at once: `activeRun`
+  reads it to decide what the card shows, `dismissNotice`/`clearDoneNotices`
+  refuse to drop an active one, and `enrich` refuses to queue a second run for
+  a card that already has one — a pooled run can wait minutes, and without
+  that guard every extra keypress lands another run at the back of the line.
 - **`labelGroupConflicts` gates the label-replace flow**, the same way
   `needsDuplicateOf` gates the duplicate one: it runs against synced metadata
   before the request, so a clash raises its prompt with no round trip and no

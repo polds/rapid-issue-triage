@@ -58,8 +58,11 @@ handleApply / handleRunMacro
 
 ## Deep enrichment endpoints
 
-`POST /api/issues/{id}/enrich/deep` starts a run; the UI then follows
-`GET /api/enrich/runs/{id}/events` (SSE). Scouts reach the outside world only
+`POST /api/issues/{id}/enrich/deep` accepts a run and answers **202** with the
+orchestrator's `Placement` — `{runId, status, position}`, where `status` is
+`running` or `queued` because [`internal/deep`](../deep/CLAUDE.md) pools runs.
+The UI then follows `GET /api/enrich/runs/{id}/events` (SSE), which re-delivers
+the same states as the line moves. Scouts reach the outside world only
 by executing `triage-tool <tool> <args>`, which POSTs back to
 `POST /api/toolbox` with a per-run token. See
 [`internal/deep/CLAUDE.md`](../deep/CLAUDE.md) — that endpoint is the trust
@@ -91,7 +94,11 @@ boundary, and it must stay read-only and token-checked.
 - **Secrets are write-only over HTTP.** `PUT /api/secrets` accepts a value;
   no handler ever returns one. Responses carry `{set, source, hint}`.
 - **`enriching` map guards duplicate concurrent enrichment per issue.** Hold
-  `s.mu` only around the map, never across a Linear or Claude call.
+  `s.mu` only around the map, never across a Linear or Claude call. That guard
+  is the *fast* path only; deep runs are bounded by the orchestrator's pool.
+- **`runUnfinished`, not `status != "running"`, ends the SSE poll.** A pooled
+  run sits at `queued` before it starts, and treating that as terminal closes
+  the stream on a run that has not begun.
 - **`s.updates` is never nil**, disabled or not: a disabled checker still
   answers with the running version, so the UI can show it and simply offer no
   update state. `POST /api/version/check` collapses into an in-flight check

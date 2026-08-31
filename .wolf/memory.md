@@ -429,5 +429,61 @@
 | 17:35 | Verified live with the driver by DELETEing the visible card's row from sqlite behind the deck | .run-sandbox (driver repl) | S and Z both retire the card and advance; toast fits the 420px single line; Prev shows the disabled retired card | ~8k |
 | 17:42 | Regression test + gates | internal/server/issuegone_test.go | ci-go, web-ci (52 tests), quality all green; web/dist rebuilt and staged | ~6k |
 | 17:35 | User reported the Labels picker rendering two stacked panels while filtering | web/src/components/triage/QuickEditRow.tsx, pages/Triage.tsx | Root cause: QuickEditRow is mounted twice for the responsive layout and portalled its Picker past the hiding CSS. Split into QuickEditRow (buttons) + QuickEditPickers (modals, once per page); 2 panels → 1, verified in app | ~13k |
+
+## Session: 2026-08-31 17:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:02
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:02
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:02
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:03
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 18:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 — notification dismissal + enrichment pool
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 18:10 | Read the deep-run path end to end (orchestrator, deep.go handlers, store rows, bell, card) | internal/deep, internal/server/deep.go, web/src/lib/store.tsx | mapped where a "waiting" state has to exist | ~12k |
+| 18:20 | Added the FIFO run pool: `queue`/`active` on Orchestrator, `drain`/`startReadyLocked`/`waitingLocked`/`announce`/`runPooled`, `Placement` return | internal/deep/orchestrator.go | at most `MaxConcurrent` runs execute; rest queue | ~6k |
+| 18:25 | `ai.max_concurrent` (default 2, clamped when 0) | internal/config/config.go, rapid-triage.example.yaml | configurable pool size | ~1k |
+| 18:28 | `queued` run status: `StartEnrichRun` transition, `FailOrphanRuns` covers it, SSE poll uses `runUnfinished` | internal/store/enrichruns.go, internal/server/deep.go | a queued run is never treated as finished | ~2k |
+| 18:35 | Go pool tests (queue past the cap, line advancing, default) | internal/deep/pool_test.go | 3 tests, pass under -race | ~3k |
+| 18:45 | Frontend: `queued` notice status + position, `dismissNotice`, `activeRun`, re-enrich guard | web/src/lib/{store.tsx,triage-context.ts,types.ts,api.ts} | waiting state reaches the UI | ~5k |
+| 18:50 | `QueuedRun` card panel + per-row hover dismiss in the bell | web/src/components/triage/{DeepPanel,IssueCard,NotificationBell}.tsx | both features rendered | ~4k |
+| 18:55 | Extracted `notices.ts` (noticeIsActive/Detail/When) + 14 tests, added to the coverage include | web/src/lib/notices.ts, notices.test.ts, web/vitest.config.ts | pure logic under the 90% floor | ~3k |
+| 19:05 | Verified in the running app: pool pinned to 1, 3 deep runs — 1 running / 2 queued, positions advanced live; dismissed one finished notice | .run-sandbox (driver repl) | both features confirmed end to end | ~8k |
+| 19:10 | Added `hover <sel>` to the driver repl | .claude/skills/run-rapid-issue-triage/driver.mjs | hover-only UI is screenshot-able | ~1k |
+| 19:15 | Docs: deep/server/store/config/web CLAUDE.md, README, example yaml, anatomy scan | 8 docs | map matches the tree | ~5k |
 | 17:50 | Merged `origin/main` (abc325d, the QuickEditRow double-render fix) into the version branch — PR #50 went `dirty` while the work was in flight | .wolf/{anatomy*,buglog.json}, web/dist/* | All 4 conflicts were generated/derived files: dist rebuilt with `make build`, anatomy re-scanned with `openwolf scan`, buglog merged by hand keeping both new entries (main's kept bug-029, ours renumbered bug-030). No source conflicts. | ~6k |
 | 18:02 | Merged `origin/main` again (6a5cb9b, the pruned-card Skip/Snooze fix) — main moved twice during the PR | internal/server/server.go, issuegone_test.go, version_test.go, .wolf/STATUS.md, buglog.json, web/dist/* | **Git auto-merged both sides cleanly but the tree did not compile**: main's new `issuegone_test.go` calls `server.New` with the pre-change 6-arg signature. Fixed the call sites and made `New` default a nil checker to a disabled one, so the "s.updates is never nil" invariant is true by construction rather than by convention. | ~7k |

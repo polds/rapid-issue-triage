@@ -28,12 +28,14 @@ func (s *Server) handleDeepEnrich(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	settings := s.store.GetEnrichSettings()
-	runID, err := s.orch.Start(issue, settings)
+	// The pool may hold the run behind others; the placement says which, and
+	// the same states arrive again over SSE as the line moves.
+	placed, err := s.orch.Start(issue, settings)
 	if err != nil {
 		writeErr(w, 500, err)
 		return
 	}
-	writeJSON(w, 202, map[string]any{"runId": runID})
+	writeJSON(w, 202, placed)
 }
 
 func (s *Server) handleRunGet(w http.ResponseWriter, r *http.Request) {
@@ -85,6 +87,14 @@ func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
 	s.forwardLiveRunEvents(w, fl, r, runID, live, &lastSeq)
 }
 
+// runUnfinished reports whether a run may still produce events. A pooled run
+// sits at "queued" until a slot frees up, which is every bit as unfinished as
+// "running" — treating it as terminal would close the stream on a run that
+// has not started yet.
+func runUnfinished(status string) bool {
+	return status == "running" || status == "queued"
+}
+
 func sendSSE(w http.ResponseWriter, ev store.EnrichEvent) {
 	b, _ := json.Marshal(ev)
 	fmt.Fprintf(w, "data: %s\n\n", b)
@@ -134,7 +144,7 @@ func (s *Server) pollRunEvents(w http.ResponseWriter, fl http.Flusher, r *http.R
 				return
 			}
 			run, err := s.store.GetEnrichRun(runID)
-			if err == nil && run.Status != "running" {
+			if err == nil && !runUnfinished(run.Status) {
 				s.replayRunEvents(w, fl, runID, lastSeq)
 				return
 			}

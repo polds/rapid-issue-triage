@@ -80,7 +80,10 @@ export interface TriageCtx {
   notices: EnrichNotice[];
   markNoticesRead: () => void;
   clearDoneNotices: () => void;
-  activeRunFor: (issueId: string) => string | null;
+  dismissNotice: (runId: string) => void;
+  // The queued-or-running run attached to an issue, so a card can show its
+  // place in line before it starts and the live feed once it does.
+  activeRun: (issueId: string) => EnrichNotice | null;
   getRunEvents: (runId: string) => EnrichEvent[];
   eventsTick: number;
   focusIssue: (issueId: string) => Promise<boolean>;
@@ -95,11 +98,15 @@ export interface LabelPrompt {
   rerun: () => void;
 }
 
+// One background deep run, from the moment it is accepted. "queued" means the
+// server's pool is full and this run is waiting its turn — `position` is its
+// 1-based place in line, kept live by the run's own event stream.
 export interface EnrichNotice {
   runId: string;
   issueId: string;
   identifier: string;
-  status: "running" | "done" | "error";
+  status: "queued" | "running" | "done" | "error";
+  position?: number;
   verdict?: string;
   error?: string;
   at: string;

@@ -17,6 +17,7 @@ Claude call, no tools, no streaming. Settings picks between them
 | `toolbox.go` | `Probe` (what's actually usable on this machine) and `Call` (the read-only tool implementations). |
 | `claude.go` | `claudeStream`: runs `claude -p --output-format stream-json --verbose` and forwards each assistant thought / tool call / tool result to a callback. |
 | `usage.go` | `streamState` + `resultUsage`: the token accounting on the final `result` line, converted to a `store.TokenUsage`. |
+| `pool_test.go` | The run pool: queueing past `MaxConcurrent`, the line advancing as slots free, and the positions both are announced with. |
 
 ## The credential boundary (the point of this package)
 
@@ -48,8 +49,14 @@ scout agent (claude, sandboxed PATH)
 
 ## Run lifecycle
 
-`Start` → row in `enrich_runs` (status `running`) → goroutine:
+`Start` → row in `enrich_runs` (status `queued`) → the pool → goroutine:
 
+0. The pool. `Start` never launches directly: it appends to `queue` and calls
+   `drain`, which starts as many runs as `MaxConcurrent` allows (default 2,
+   `ai.max_concurrent`) and re-announces everyone still waiting. A launched
+   run flips to `running` (`store.StartEnrichRun`); finishing frees the slot
+   and drains again. `Start` returns a `Placement` — `running`, or `queued`
+   with a 1-based place in line.
 1. `Probe(settings)` → `Availability` per source (binary present? key set?
    repo paths exist?).
 2. `enabledScouts` = enabled **and** available. Zero → the run fails fast with
@@ -66,7 +73,22 @@ scout agent (claude, sandboxed PATH)
   late replays from sqlite; live subscribers get the tail. Runs stay in memory
   ~10 minutes after finishing for late SSE attach, then drop.
 - **Orphaned runs are failed at startup.** `FailOrphanRuns` marks runs left
-  `running` by a previous process, or the UI waits on them forever.
+  `running` *or* `queued` by a previous process, or the UI waits on them
+  forever. A queued run is just as orphaned — the pool that would have
+  dispatched it died with the process.
+- **The pool announces, it does not just throttle.** A run held back is a state
+  the user can see: `drain` emits an `orchestrator`/`status`
+  `{state:"queued", position}` event whenever a run's place in line *changes*
+  (`announce` suppresses the no-ops), and that stream is the only thing the
+  card panel and the bell read. A new queue state that the UI must show needs
+  an event, not just a field.
+- **`o.mu` guards `queue`/`active`/`runs` and nothing slow runs under it.**
+  `drain` snapshots what to launch and what to announce, releases the lock,
+  and only then writes to sqlite and emits — `emit` takes the run's *own*
+  mutex and hits the database.
+- **`started_at` is the enqueue time, not the launch time.** It is what orders
+  the waiting line and what the user actually asked for; `StartEnrichRun` only
+  flips the status.
 - **The synthesis prompt is the schema.** `verdict` is one of
   `actionable | likely_obsolete | possibly_done | needs_info | duplicate_suspect`.
   Changing the shape means changing, in the same PR: `synthesisPrompt`,

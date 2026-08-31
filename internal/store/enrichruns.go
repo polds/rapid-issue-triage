@@ -35,6 +35,14 @@ func (s *Store) CreateEnrichRun(r EnrichRun) error {
 	return err
 }
 
+// StartEnrichRun flips a pooled run from "queued" to "running" once a slot
+// frees up. started_at deliberately stays at the enqueue time: that is when
+// the user asked for the run, and it is what orders the waiting line.
+func (s *Store) StartEnrichRun(id string) error {
+	_, err := s.db.Exec(`UPDATE enrich_runs SET status = 'running' WHERE id = ?`, id)
+	return err
+}
+
 func (s *Store) FinishEnrichRun(id, status, reportJSON, errMsg string) error {
 	_, err := s.db.Exec(`UPDATE enrich_runs SET status = ?, report_json = ?, error = ?, finished_at = ? WHERE id = ?`,
 		status, reportJSON, errMsg, now(), id)
@@ -101,10 +109,13 @@ func (s *Store) SaveEnrichmentReport(issueID, reportJSON string) error {
 	return err
 }
 
-// FailOrphanRuns marks running runs from previous processes as failed.
+// FailOrphanRuns marks unfinished runs from previous processes as failed.
+// A queued run is just as orphaned as a running one: the pool that would have
+// dispatched it died with the process.
 func (s *Store) FailOrphanRuns() (int64, error) {
 	res, err := s.db.Exec(`UPDATE enrich_runs SET status = 'error',
-	  error = 'server restarted during run', finished_at = ? WHERE status = 'running'`, now())
+	  error = 'server restarted before the run finished', finished_at = ?
+	  WHERE status IN ('running', 'queued')`, now())
 	if err != nil {
 		return 0, err
 	}

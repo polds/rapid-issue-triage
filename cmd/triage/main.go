@@ -100,7 +100,7 @@ func run(configPath, addrOverride string, noOpen bool) error {
 		}
 		enricher = &ai.Enricher{Command: cmd, Model: cfg.AI.Model, Timeout: cfg.AI.Timeout}
 		toolbox := &deep.Toolbox{Linear: lc, Store: st}
-		orch, err = deep.NewOrchestrator(st, toolbox, cmd, cfg.AI.Model, cfg.AI.Timeout, cfg.Addr)
+		orch, err = deep.NewOrchestrator(st, toolbox, cmd, cfg.AI.Model, cfg.AI.Timeout, cfg.Addr, cfg.AI.MaxConcurrent)
 		if err != nil {
 			log.Printf("deep enrichment disabled: %v", err)
 			orch = nil

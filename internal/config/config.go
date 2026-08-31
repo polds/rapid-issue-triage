@@ -44,6 +44,10 @@ type AIConfig struct {
 	Timeout time.Duration `yaml:"timeout"`
 	// Prefetch enriches up to N upcoming queue items in the background.
 	Prefetch int `yaml:"prefetch"`
+	// MaxConcurrent bounds how many deep runs execute at once; the rest wait
+	// in a FIFO pool. Each run fans out several `claude` subprocesses, so an
+	// unbounded pile of them starves the machine. Defaults to 2.
+	MaxConcurrent int `yaml:"max_concurrent"`
 }
 
 // UpdateConfig controls the background "is there a newer release?" check.
@@ -70,7 +74,7 @@ func Default() Config {
 			"state": map[string]any{"type": map[string]any{"in": []any{"triage", "backlog"}}},
 		},
 		Sync:   SyncConfig{Interval: 10 * time.Minute, PageSize: 50},
-		AI:     AIConfig{Enabled: true, Command: "claude", Timeout: 3 * time.Minute},
+		AI:     AIConfig{Enabled: true, Command: "claude", Timeout: 3 * time.Minute, MaxConcurrent: 2},
 		Update: UpdateConfig{Enabled: true, Interval: 24 * time.Hour, Repo: "polds/rapid-issue-triage"},
 	}
 }
@@ -109,6 +113,11 @@ func Load(path string) (Config, error) {
 	}
 	if cfg.Sync.PageSize <= 0 || cfg.Sync.PageSize > 250 {
 		cfg.Sync.PageSize = 50
+	}
+	// A config that sets ai.max_concurrent: 0 means "use the default", not
+	// "never run anything".
+	if cfg.AI.MaxConcurrent <= 0 {
+		cfg.AI.MaxConcurrent = 2
 	}
 	return cfg, nil
 }
