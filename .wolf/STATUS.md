@@ -2,11 +2,36 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31 (a card the background sync pruned no longer fails Skip/Snooze with "not found"; previously: Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-31 (deep enrichment runs are pooled — 2 at a time, the rest queue with a visible place in line — and a single notification can be dismissed on hover; previously: a card the background sync pruned no longer fails Skip/Snooze with "not found"; previously: Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Deep enrichment runs are pooled, and a single notification can be
+  dismissed.** Two feature requests that share the notification surface.
+  - **Pool.** `Orchestrator.Start` enqueues instead of launching; `drain`
+    starts up to `MaxConcurrent` (default 2, `ai.max_concurrent`, clamped when
+    a config sets 0) and re-announces the place in line of everyone still
+    waiting. New run status `queued` ahead of `running` — `StartEnrichRun` is
+    the transition, `FailOrphanRuns` treats a queued run as orphaned too, and
+    the SSE poll asks `runUnfinished` rather than `status != "running"`.
+    `POST …/enrich/deep` answers a `Placement` (`{runId, status, position}`).
+  - **Waiting state in the UI.** The card renders `QueuedRun` ("#N in line")
+    instead of an empty live feed; the bell shows `queued · #N` /
+    "waiting for a free slot", keeps spinning, and refuses to clear a queued
+    entry. `enrich` will not enqueue a second run for a card that already has
+    one — a pooled run can wait minutes, which is exactly when a user presses
+    `i` again.
+  - **Dismissal.** Hovering a **finished** bell entry reveals an X that drops
+    that one notice and its buffered events. Active runs get no X: the notice
+    is the client's only record of a live run.
+  - Pure notice logic lives in `web/src/lib/notices.ts` (14 tests, inside the
+    90% coverage include); the pool has `internal/deep/pool_test.go`. Verified
+    in the running app with the pool pinned to 1 — 3 runs → 1 running, 2 queued,
+    positions advancing live — and a single dismissal leaving its neighbours.
+  - The run skill's driver gained `hover <sel>` so hover-only UI is
+    screenshot-able.
 
 - **A pruned card no longer fails Skip/Snooze with "Action failed: not found".**
   The deck the browser holds is a snapshot, and the syncer's `PruneStale`
@@ -134,12 +159,19 @@
 
 **Goal:** Restart the long-running `:7333` process so the embedded UI/API pick up Settings work. First release is `v0.1.1` (run 33166540050). `v0.1.0` was abandoned: its tag predates the SBOM fix, and publishing a tag uses that tag's tree.
 
+Carried forward from the pool work: **cancelling a queued run** is the obvious
+next ask and was deliberately left out — it needs a server endpoint that pulls a
+run out of `Orchestrator.queue` and finishes its row as `cancelled` (the status
+already exists in `EnrichRun` on the TS side), plus an X on queued bell entries.
+
 ### Acceptance criteria
 1. Production `triage` on `:7333` serves the new Settings (Browse, keys, Advanced Claude path).
 2. Card view shows the Claude-missing banner when the binary is absent.
 3. CI is green on `main`; the `v0.1.1` dispatch publishes GitHub Release archives with SBOM + provenance. Never hand-create the release in the UI - immutability burns the tag name. (Done 2026-08-28: the unused `v0.1.0` tag and its draft release were deleted, before the tag ruleset went active.)
 
 ### Closed decisions
+- Deep runs are pooled server-side (not in `store.tsx`): the runs are server-owned goroutines that outlive the tab, and a browser-side limiter would be per-tab and would lie after a reload. Fast enrichment is deliberately not pooled.
+- A queue position reaches the browser as an SSE event, never as a field the UI recomputes — one source of truth for the card and the bell.
 - Repo rulesets: "Main" (branch) requires all 11 CI contexts; "Release Tags" (tag, ~ALL) blocks deletion, tag moves, and force pushes. Neither has bypass actors. Adding `creation` to the tag ruleset would break `release.yml` - see cerebrum.
 - Secrets live in sqlite, not rewritten `.env` files.
 - Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.

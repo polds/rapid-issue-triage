@@ -79,11 +79,20 @@ export interface EnrichRun {
   issueId: string;
   issueIdentifier: string;
   mode: string;
-  status: "running" | "done" | "error" | "cancelled";
+  status: "queued" | "running" | "done" | "error" | "cancelled";
   report?: string;
   error?: string;
   startedAt: string;
   finishedAt?: string;
+}
+
+// Where a requested deep run landed. Runs are pooled server-side, so a start
+// may return "queued" with a 1-based place in line rather than "running";
+// the same states arrive again over SSE as the line moves.
+export interface RunPlacement {
+  runId: string;
+  status: "queued" | "running";
+  position?: number;
 }
 
 // The per-event payload the enrichment stream sends. Its shape varies by
@@ -93,6 +102,7 @@ export interface EnrichRun {
 export interface EnrichPayload {
   scouts?: string[];
   state?: string;
+  position?: number;
   text?: string;
   tool?: string;
   args?: string[];

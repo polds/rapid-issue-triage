@@ -295,7 +295,7 @@ async function cmdRepl() {
   await startServer();
   await openBrowser();
   await goto();
-  log('repl ready. commands: goto <hash> | shot <name> | key <K> | click <sel> | text | eval <js> | seed | quit');
+  log('repl ready. commands: goto <hash> | shot <name> | key <K> | click <sel> | hover <sel> | text | eval <js> | seed | quit');
   const rl = createInterface({ input: process.stdin, terminal: false });
   for await (const line of rl) {
     const [cmd, ...rest] = line.trim().split(/\s+/);
@@ -307,6 +307,9 @@ async function cmdRepl() {
         case 'shot': await shot(arg || `shot-${Date.now()}`); break;
         case 'key': await key(arg); log('pressed', arg); break;
         case 'click': await page.click(arg); await sleep(300); log('clicked', arg); break;
+        // Real pointer hover, so a `shot` right after captures hover-only UI
+        // (Tailwind's group-hover affordances) that CSS alone will not show.
+        case 'hover': await page.hover(arg); await sleep(200); log('hovering', arg); break;
         case 'text': console.log(await bodyText()); break;
         case 'title': console.log(await cardTitle()); break;
         case 'eval': console.log(JSON.stringify(await page.evaluate(`(()=>(${arg}))()`))); break;

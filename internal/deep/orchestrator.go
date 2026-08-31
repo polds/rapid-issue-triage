@@ -17,6 +17,10 @@ import (
 
 // Orchestrator fans out scout agents over enabled sources, streams progress
 // events (persisted + broadcast), and synthesizes the final report.
+//
+// Runs are pooled: at most MaxConcurrent execute at once and the rest wait in
+// a FIFO line. One run is already a fanout of `claude` subprocesses, so an
+// unbounded pile of them would starve the machine the user is triaging on.
 type Orchestrator struct {
 	Store   *store.Store
 	Toolbox *Toolbox
@@ -24,9 +28,15 @@ type Orchestrator struct {
 	Model   string
 	Timeout time.Duration
 	Addr    string // this server's listen address, for the toolbox shim
+	// MaxConcurrent bounds simultaneously executing runs (default 2).
+	MaxConcurrent int
 
 	mu   sync.Mutex
 	runs map[string]*run
+	// queue holds runs accepted but not yet executing, oldest first, and
+	// active counts the ones that are. Both are guarded by mu.
+	queue  []*pending
+	active int
 	// shimDir holds the triage-tool shim placed on scout PATHs.
 	shimDir string
 }
@@ -39,12 +49,40 @@ type run struct {
 	subs   map[chan store.EnrichEvent]struct{}
 	cancel context.CancelFunc
 	done   bool
+	// queuePos is the last place-in-line announced for this run, so a
+	// re-drain only emits an event when the position actually moved.
+	queuePos int
 }
 
-func NewOrchestrator(st *store.Store, tb *Toolbox, command, model string, timeout time.Duration, addr string) (*Orchestrator, error) {
+// pending is a run waiting for a pool slot, holding everything execute needs.
+type pending struct {
+	r        *run
+	ctx      context.Context
+	issue    store.IssueRow
+	settings store.EnrichSettings
+}
+
+// waiting pairs a queued run with its 1-based place in line, snapshotted
+// under the lock so the events can be emitted after releasing it.
+type waiting struct {
+	r     *run
+	issue string
+	pos   int
+}
+
+// Placement is where a freshly requested run landed: executing right away, or
+// queued behind others. Position is 1-based and 0 when the run is executing.
+type Placement struct {
+	ID       string `json:"runId"`
+	Status   string `json:"status"`
+	Position int    `json:"position,omitempty"`
+}
+
+func NewOrchestrator(st *store.Store, tb *Toolbox, command, model string, timeout time.Duration, addr string, maxConcurrent int) (*Orchestrator, error) {
 	o := &Orchestrator{
 		Store: st, Toolbox: tb, Command: command, Model: model,
-		Timeout: timeout, Addr: addr, runs: map[string]*run{},
+		Timeout: timeout, Addr: addr, MaxConcurrent: maxConcurrent,
+		runs: map[string]*run{},
 	}
 	// Install the shim once: scouts get this dir prepended to PATH.
 	dir, err := os.MkdirTemp("", "rt-shim-")
@@ -73,6 +111,13 @@ func (o *Orchestrator) timeout() time.Duration {
 		return o.Timeout
 	}
 	return 4 * time.Minute
+}
+
+func (o *Orchestrator) maxConcurrent() int {
+	if o.MaxConcurrent > 0 {
+		return o.MaxConcurrent
+	}
+	return 2
 }
 
 // ValidateToken maps a toolbox token back to its run (auth for shim calls).
@@ -143,24 +188,105 @@ func (o *Orchestrator) LogToolCall(runID, agent, tool string, args []string, res
 	o.emit(r, agent, "toolbox", payload)
 }
 
-// Start launches a deep run for an issue and returns its id.
-func (o *Orchestrator) Start(issue store.IssueRow, settings store.EnrichSettings) (string, error) {
+// Start accepts a deep run for an issue. It executes immediately if the pool
+// has a free slot and otherwise waits its turn; the returned Placement says
+// which happened.
+func (o *Orchestrator) Start(issue store.IssueRow, settings store.EnrichSettings) (Placement, error) {
 	id := "run_" + randHex(8)
-	token := randHex(16)
 	sourcesJSON, _ := json.Marshal(settings.Sources)
 	if err := o.Store.CreateEnrichRun(store.EnrichRun{
 		ID: id, IssueID: issue.ID, IssueIdentifier: issue.Identifier,
-		Mode: "deep", Status: "running", SourcesJSON: string(sourcesJSON),
+		Mode: "deep", Status: "queued", SourcesJSON: string(sourcesJSON),
 	}); err != nil {
-		return "", err
+		return Placement{}, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	r := &run{id: id, token: token, subs: map[chan store.EnrichEvent]struct{}{}, cancel: cancel}
+	r := &run{id: id, token: randHex(16), subs: map[chan store.EnrichEvent]struct{}{}, cancel: cancel}
 	o.mu.Lock()
 	o.runs[id] = r
+	o.queue = append(o.queue, &pending{r: r, ctx: ctx, issue: issue, settings: settings})
 	o.mu.Unlock()
-	go o.execute(ctx, r, issue, settings)
-	return id, nil
+
+	if pos := o.drain(id); pos > 0 {
+		return Placement{ID: id, Status: "queued", Position: pos}, nil
+	}
+	return Placement{ID: id, Status: "running"}, nil
+}
+
+// drain launches as many waiting runs as the pool has room for, then
+// re-announces the place in line of everyone still queued. It returns the
+// 1-based position of runID, or 0 when that run is no longer waiting.
+//
+// Every store write and event emit happens after the lock is released: emit
+// takes the run's own mutex and hits sqlite.
+func (o *Orchestrator) drain(runID string) int {
+	o.mu.Lock()
+	ready := o.startReadyLocked()
+	inLine := o.waitingLocked()
+	o.mu.Unlock()
+
+	for _, p := range ready {
+		if err := o.Store.StartEnrichRun(p.r.id); err != nil {
+			fmt.Printf("deep: mark %s running: %v\n", p.r.id, err)
+		}
+		go o.runPooled(p)
+	}
+	pos := 0
+	for _, w := range inLine {
+		if w.r.id == runID {
+			pos = w.pos
+		}
+		o.announce(w)
+	}
+	return pos
+}
+
+// startReadyLocked pops as many runs off the queue as there are free slots
+// and hands them back for the caller to launch outside the lock.
+func (o *Orchestrator) startReadyLocked() []*pending {
+	var ready []*pending
+	for o.active < o.maxConcurrent() && len(o.queue) > 0 {
+		p := o.queue[0]
+		o.queue = o.queue[1:]
+		o.active++
+		ready = append(ready, p)
+	}
+	return ready
+}
+
+// waitingLocked snapshots the still-queued runs with their 1-based positions.
+func (o *Orchestrator) waitingLocked() []waiting {
+	out := make([]waiting, 0, len(o.queue))
+	for i, p := range o.queue {
+		out = append(out, waiting{r: p.r, issue: p.issue.Identifier, pos: i + 1})
+	}
+	return out
+}
+
+// announce emits a queued status event, but only when the run's place in line
+// actually changed — a drain runs on every start and every completion.
+func (o *Orchestrator) announce(w waiting) {
+	w.r.mu.Lock()
+	moved := w.r.queuePos != w.pos
+	w.r.queuePos = w.pos
+	w.r.mu.Unlock()
+	if !moved {
+		return
+	}
+	o.emit(w.r, "orchestrator", "status", map[string]any{
+		"state": "queued", "issue": w.issue, "position": w.pos,
+	})
+}
+
+// runPooled executes one run and frees its slot, which drains the next.
+func (o *Orchestrator) runPooled(p *pending) {
+	defer func() {
+		o.mu.Lock()
+		o.active--
+		o.mu.Unlock()
+		o.drain("")
+	}()
+	o.execute(p.ctx, p.r, p.issue, p.settings)
 }
 
 type scoutResult struct {

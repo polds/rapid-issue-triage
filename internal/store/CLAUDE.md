@@ -21,7 +21,7 @@ already-fetched values (`internal/syncer` inside its own transaction,
 | `macros.go` | Macro CRUD. |
 | `activity.go` | Append-only action log, undo bookkeeping, and `Report` (the aggregation behind the reports page). |
 | `enrichments.go` | Fast-enrichment cache keyed by issue, stamped with `IssueContentHash`. |
-| `enrichruns.go` | Deep-run rows + their full event stream (`EnrichRun`, `EnrichEvent`). |
+| `enrichruns.go` | Deep-run rows + their full event stream (`EnrichRun`, `EnrichEvent`). Status is `queued` → `running` → `done`/`error`; `StartEnrichRun` is the pool's transition and leaves `started_at` at the enqueue time. |
 | `enrichsettings.go` | `EnrichSettings` (mode, per-source toggles, `claudePath`) — one JSON blob in `meta`. |
 | `secrets.go` | `Secrets` in `meta`, and `Resolve` — the Settings → env → `.env` precedence chain. |
 | `*_test.go` | Unit tests. This package and `internal/config` carry the **70% coverage floor** (`make cover-go`). |

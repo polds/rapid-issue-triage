@@ -6,6 +6,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Clock,
   Download,
   ExternalLink,
   FileSearch,
@@ -36,6 +37,30 @@ const AGENT_LABEL: Record<string, string> = {
 };
 
 type ScoutState = "pending" | "running" | "done" | "error";
+
+// QueuedRun stands in for LiveRun while the server's pool is full: there is
+// nothing streaming yet, so the card shows the place in line instead of an
+// empty feed the user would read as a stalled run.
+export function QueuedRun({ position }: { position?: number }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-surface-2/60">
+      <div className="flex items-center gap-1.5 px-4 py-2.5">
+        <Clock className="size-4 shrink-0 animate-pulse text-muted-foreground" />
+        <span className="shrink-0 whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Deep enrichment
+        </span>
+        <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {position && position > 0 ? `#${position} in line` : "queued"}
+        </span>
+      </div>
+      <p className="border-t border-border px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+        Waiting for a free slot — only a couple of enrichments run at once. It
+        starts on its own and lands in the bell when it is done, so keep
+        triaging.
+      </p>
+    </div>
+  );
+}
 
 export function LiveRun({ events, running }: { events: EnrichEvent[]; running: boolean }) {
   const feedRef = useRef<HTMLDivElement>(null);

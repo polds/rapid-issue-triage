@@ -224,6 +224,34 @@
   shows the modal twice, stacked, each with its own state. Overlays belong to
   the page that owns the shared open-state, not to the duplicated subtree.
 
+- [2026-08-31] **Deep runs are pooled, and the pool is a user-visible state, not
+  just a throttle.** `Orchestrator.Start` no longer launches: it enqueues and
+  calls `drain`, which starts up to `MaxConcurrent` (default 2,
+  `ai.max_concurrent`) and re-announces everyone still waiting. `enrich_runs`
+  therefore has a third status, `queued`, ahead of `running` — anything that
+  tested `status != "running"` for "finished" (the SSE poll, `FailOrphanRuns`)
+  had to learn about it. `started_at` stays the *enqueue* time: it orders the
+  line and is what the user actually asked for.
+- [2026-08-31] **A queue position reaches the browser as an event, not a field.**
+  `announce` emits `orchestrator`/`status` `{state:"queued", position}` only
+  when a run's place actually changes, and the SSE stream is the single thing
+  the card panel and the bell read. The POST's `Placement` response is just the
+  first of those states, so the UI never has two sources of truth to reconcile.
+- [2026-08-31] **In `internal/deep`, `o.mu` protects bookkeeping only.** `drain`
+  snapshots what to launch and what to announce, unlocks, and only then writes
+  to sqlite and emits — `emit` takes the *run's* mutex and hits the database, so
+  doing either under `o.mu` would serialise every run behind one slow write.
+- [2026-08-31] **`noticeIsActive` is the client's whole concurrency rule.** One
+  predicate (queued **or** running) decides what the card renders, what can be
+  dismissed, and whether pressing `i` again enqueues a duplicate. A pooled run
+  can wait minutes, which is exactly the window in which a user presses the key
+  a second time — the guard is not theoretical.
+- [2026-08-31] **The run-skill driver now has `hover <sel>`.** Tailwind
+  `group-hover` affordances are invisible to `eval`/`getComputedStyle` without a
+  real pointer; `page.hover` then `shot` is how you screenshot one. It times out
+  if the selector matches nothing — and notices are client-side state, so a repl
+  restart wipes them.
+
 ## Do-Not-Repeat
 
 - [2026-08-31] Do not answer a missing sqlite row with a bare `writeErr(w, 404,
@@ -390,3 +418,7 @@
   `label_group_conflict`: a 404 body carrying `{error, code}`. The seam is now
   established for both 409 and 404 — a new failure the UI should *act* on gets
   a code, not a special-cased message match.
+
+- [2026-08-31] Bounded deep enrichment **server-side in the orchestrator**, not client-side in `store.tsx`. The runs are server-owned goroutines that outlive the tab, `enrich_runs` is where their status already lives, and a browser-side limiter would be per-tab and would lie after a reload. Scoped to deep runs only: fast enrichment is one synchronous `claude -p` per request, already one-at-a-time per click, and produces no notice to show a "waiting" state on.
+- [2026-08-31] Default pool size 2 (`ai.max_concurrent`), and `Load` clamps a configured 0 back to 2. One deep run is already a fanout of `claude` subprocesses across every enabled source plus a synthesis pass, so 2 is roughly "keep one core free on a laptop being triaged on". Clamping matters because an omitted YAML key leaves the zero value, and 0 would mean enrichment silently never starts.
+- [2026-08-31] Dismissal is offered on **finished notices only**, not on queued or running ones. The notice is the client's only record of a live run — dropping one would orphan the run, blank the card panel, and re-enable the enrich key for an issue already in the queue. Cancelling a queued run is a different feature (it needs a server endpoint to remove it from the pool) and was deliberately left out.

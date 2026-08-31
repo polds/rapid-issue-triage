@@ -16,7 +16,7 @@ import type { Card } from "@/lib/store";
 import { useTriage } from "@/lib/triage-context";
 import { api } from "@/lib/api";
 import type { Comment, Enrichment } from "@/lib/types";
-import { LiveRun, ReportView } from "./DeepPanel";
+import { LiveRun, QueuedRun, ReportView } from "./DeepPanel";
 import { formatReportComment } from "./report-format";
 
 import { Markdown, MarkdownInline } from "@/components/Markdown";
@@ -62,14 +62,15 @@ function ClaudeMissingBanner({ detail }: { detail?: string }) {
 }
 
 function AIPanel({ card }: { card: Card }) {
-  const { enrich, enriching, meta, activeRunFor, getRunEvents, eventsTick, applyOps } = useTriage();
+  const { enrich, enriching, meta, activeRun, getRunEvents, eventsTick, applyOps } = useTriage();
   const [open, setOpen] = useState(true);
   const [logRunId, setLogRunId] = useState<string | null>(null);
   const e = card.issue.enrichment;
 
   // The store owns run watchers; this panel just renders the buffer for the
   // run attached to this card (eventsTick invalidates the memo as it grows).
-  const runId = activeRunFor(card.issue.id);
+  const run = activeRun(card.issue.id);
+  const runId = run?.runId ?? null;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const events = useMemo(() => (runId ? getRunEvents(runId) : []), [runId, getRunEvents, eventsTick]);
 
@@ -84,6 +85,9 @@ function AIPanel({ card }: { card: Card }) {
   const startEnrich = enrich;
   const claudeMissing = Boolean(meta?.claude && !meta.claude.available);
 
+  if (run?.status === "queued") {
+    return <QueuedRun position={run.position} />;
+  }
   if (runId) {
     return <LiveRun events={events} running />;
   }

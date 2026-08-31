@@ -39,3 +39,6 @@ ai:
   model: ""       # optional --model override
   timeout: 3m
   prefetch: 0     # enrich up to N upcoming queue items in the background
+  # How many deep runs may execute at once. One run is already a fanout of
+  # `claude` subprocesses; the rest queue and the UI shows their place in line.
+  max_concurrent: 2

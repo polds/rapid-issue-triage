@@ -15,7 +15,9 @@ gamified report page.
   resolved *by name per team*, so one macro works across teams.
 - **AI enrichment** — shells out to the `claude` CLI (no API key) for a
   summary + relevancy verdict (actionable / likely obsolete / possibly done /
-  needs info / duplicate suspect).
+  needs info / duplicate suspect). Deep runs are pooled: two run at once
+  (`ai.max_concurrent`) and the rest wait their turn, showing their place in
+  line on the card and in the notification bell while you keep triaging.
 - **Reports** — daily throughput, outcome breakdown, streaks, speed stats.
 
 ## Setup

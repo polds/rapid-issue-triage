@@ -42,6 +42,10 @@ Single file, `config.go`: `Config`/`SyncConfig`/`AIConfig`, `Default`, `Load`,
   user-named config path is the whole job. Do not extend the exclusion.
 - Durations are `time.Duration` YAML strings (`10m`, `3m`). A bare number
   parses as nanoseconds and will silently look like a hang.
+- **`Load` clamps `ai.max_concurrent` and `sync.page_size` after unmarshalling.**
+  A YAML file that omits a key leaves the zero value, not the `Default()` one,
+  so anything where 0 is not a sane setting needs a floor there. `0` deep runs
+  at a time would mean enrichment silently never starts.
 
 ## Maintenance
 
