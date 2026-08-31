@@ -6,6 +6,7 @@ import type {
   Enrichment,
   EnrichEvent,
   Issue,
+  LabelGroupConflict,
   Macro,
   Meta,
   Op,
@@ -49,12 +50,16 @@ export interface TriageCtx {
   prev: () => void;
   skip: () => void;
   snooze: () => void;
-  applyMacro: (m: Macro, duplicateOfId?: string) => void;
+  applyMacro: (m: Macro, duplicateOfId?: string, replaceGroupLabels?: boolean) => void;
   // Set when a macro needs the canonical issue before entering a
   // duplicate-type state; TriagePage renders the picker.
   duplicatePrompt: Macro | null;
   cancelDuplicatePrompt: () => void;
-  applyOps: (ops: Op[], description: string) => Promise<void>;
+  // Set when an action would put two labels of one exclusive Linear label group
+  // on the issue; TriagePage renders the replace-or-cancel prompt.
+  labelPrompt: LabelPrompt | null;
+  cancelLabelPrompt: () => void;
+  applyOps: (ops: Op[], description: string, replaceGroupLabels?: boolean) => Promise<void>;
   undo: () => void;
   canUndo: boolean;
   enrich: () => Promise<void>;
@@ -70,6 +75,15 @@ export interface TriageCtx {
   getRunEvents: (runId: string) => EnrichEvent[];
   eventsTick: number;
   focusIssue: (issueId: string) => Promise<boolean>;
+}
+
+// LabelPrompt is one pending label-group clash: what the user asked for, the
+// groups that clash, and the callback that re-runs the action with the
+// pre-existing sibling replaced.
+export interface LabelPrompt {
+  action: string;
+  conflicts: LabelGroupConflict[];
+  rerun: () => void;
 }
 
 export interface EnrichNotice {

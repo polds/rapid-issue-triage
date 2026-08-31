@@ -16,7 +16,7 @@ already-fetched values (`internal/syncer` inside its own transaction,
 | `store.go` | `Open`, connection pragmas, **`schema` (all DDL)**, `migrate`, `SetMeta`/`GetMeta`, `now()`. |
 | `models.go` | View models serialized straight to the frontend: `IssueRow`, `Enrichment`, `Macro`, `MacroStep`, `Activity`, `LabelChip`. |
 | `issues.go` | Issue index + queue: `UpsertIssue`, `PruneStale`, `Queue`, skip/snooze/triage marks, `RestoreIssue`, issue context cache. |
-| `metadata.go` | Replace-all upserts for teams/states/labels/projects/cycles/users + name→ID lookups (`LabelIDByName`, `StateIDByType`, `ActiveCycleID`, `MyUserID`). |
+| `metadata.go` | Replace-all upserts for teams/states/labels/projects/cycles/users + name→ID lookups (`LabelIDByName`, `StateIDByType`, `ActiveCycleID`, `MyUserID`, `LabelGroupsFor`). |
 | `queuefilter.go` | `QueueFilter` → SQL `AND` fragments + bind args. Local view narrowing only. |
 | `macros.go` | Macro CRUD. |
 | `activity.go` | Append-only action log, undo bookkeeping, and `Report` (the aggregation behind the reports page). |

@@ -180,8 +180,39 @@
   a new **job** is not, until someone edits the `Main` ruleset's required
   checks. Prefer the step when the risk belongs to a job that already exists.
 
+- Linear **label groups are mutually exclusive**: a group is an `IssueLabel`
+  with `isGroup: true`, its children carry `parent`, and only one child per
+  group may sit on an issue. Violating it fails the whole `issueUpdate` with
+  `labelIds not exclusive child labels` — no field name, no label names. The
+  same rule applies to project labels. Anything that assembles `labelIds` has
+  to know the parent edge, so `labels.parent_id` is load-bearing, not metadata.
+- The **detect → prompt → re-run with the answer** shape is now used twice in
+  the write path: `duplicateOf` (Linear needs the relation before a
+  duplicate-type state) and `replaceGroupLabels` (a group already holds a
+  sibling). Both pre-flight in the UI against synced metadata and re-check on
+  the server, which stays the authority. A third constraint of this kind should
+  follow the same shape rather than inventing a new one.
+- A pre-flight that mirrors a server rule has to mirror **all** of it. The Go
+  side skips the group check when no label op ran (`labelsChanged`), because
+  the update then carries no `labelIds` at all; the TS port omitted that guard
+  and would have prompted on a `set_state`-only macro over an issue that
+  already violated a group. Its own test caught it — port the guards, not just
+  the happy path.
+
 ## Do-Not-Repeat
 
+- [2026-08-31] Do not let a Linear constraint surface as Linear's own error
+  text. `labelIds not exclusive child labels` reached the user as
+  "Action failed: …" after the card had already swiped away, naming neither the
+  group nor either label, and offering nothing to do about it. A constraint the
+  local index can evaluate should be evaluated locally, *before* the mutation,
+  and turned into a choice. Reserve the raw error for the case the index cannot
+  see (a group created since the last sync) and rewrite it there too.
+- [2026-08-31] Never run `npx tsc` in `web/` without checking `node_modules`
+  exists. With no install, npx silently fetches a *different* TypeScript (6.0.2
+  vs. the pinned ^5.7.0) and reports errors the project does not have — the
+  first one was a `baseUrl` deprecation in `tsconfig.json` that does not fail
+  the real build. Run `npm ci` first, then `npx tsc -b`.
 - [2026-08-28] Never run `pkill -f <pattern>` where the pattern also occurs in
   the command you are typing. `-f` matches full command lines including the
   shell running the Bash tool call, so it kills its own caller: the tool
@@ -292,3 +323,14 @@
 - [2026-08-28] OSV-Scanner is a hard gate despite overlapping govulncheck, because govulncheck filters by reachability and users compile this binary themselves from a tree they can configure differently. It is also the only path by which an npm finding reaches the Security tab — `npm audit` only prints to a console. Deliberate exceptions belong in an `osv-scanner.toml`, not in a narrower `--lockfile` list.
 - [2026-08-28] Trivy scans **the base image off the Dockerfile's `FROM` line**, not a pulled `ghcr.io` tag. It needs no registry auth, works on a PR that has published nothing, is deterministic, and tracks the digest Dependabot bumps — Dependabot moves the pin but cannot say whether today's pin has a CVE. Two passes on one warm DB: everything into SARIF, then a HIGH/CRITICAL `--ignore-unfixed` gate, because an unfixable Debian CVE blocking every merge only teaches people to bypass the hook.
 - [2026-08-28] Both new scanners went in as **steps of the existing `Security` job**, not as new jobs, so no `Main` ruleset edit was needed and the gates are enforced from the first run. The required-check count stays at 14.
+- [2026-08-31] A label-group clash returns **409 with a structured body**
+  (`code`, `conflicts`, `resolvable`), not the 502 every other apply/macro
+  failure gets. 502 means "Linear said no"; this is the user's own action
+  conflicting with a rule, and the UI needs the group and both label names to
+  render a choice rather than a message. `writeActionErr` is the seam — new
+  user-resolvable failures belong there, everything else stays 502.
+- [2026-08-31] "Replace" is offered **only when the action adds exactly one
+  sibling**. Two incoming siblings (a macro listing both) or two pre-existing
+  ones give no basis for picking a winner, so the prompt explains the clash and
+  offers only Cancel. Guessing there would silently drop a label the user asked
+  for — the one outcome worse than the original error.

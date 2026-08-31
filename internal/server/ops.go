@@ -14,6 +14,15 @@ import (
 // Op is one field mutation, shared between ad-hoc edits and macro steps.
 type Op = store.MacroStep
 
+// opOptions carries per-request choices that change how ops resolve, as opposed
+// to what the ops themselves say.
+type opOptions struct {
+	// replaceGroupLabels resolves a Linear label-group clash by dropping the
+	// sibling the issue already carries in favor of the one being added. The
+	// UI sets it only after the user confirms the replacement.
+	replaceGroupLabels bool
+}
+
 // resolveOps turns ops (possibly name-based, from macros) into a single Linear
 // IssueUpdateInput map for the given issue, plus a human-readable trace.
 type resolved struct {
@@ -23,8 +32,8 @@ type resolved struct {
 	duplicateOf string // canonical issue id when entering a duplicate-type state
 }
 
-func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (*resolved, error) {
-	st := &opState{issue: issue, input: map[string]any{}, labelSet: map[string]bool{}}
+func (s *Server) resolveOps(issue store.IssueRow, ops []Op, opts opOptions) (*resolved, error) {
+	st := &opState{issue: issue, input: map[string]any{}, labelSet: map[string]bool{}, added: map[string]bool{}}
 	for _, l := range issue.Labels {
 		st.labelSet[l.ID] = true
 	}
@@ -32,6 +41,9 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (*resolved, error) {
 		if err := s.applyOp(st, op); err != nil {
 			return nil, err
 		}
+	}
+	if err := s.resolveLabelGroups(st, opts); err != nil {
+		return nil, err
 	}
 	if st.labelsChanged {
 		ids := make([]string, 0, len(st.labelSet))
@@ -47,12 +59,15 @@ func (s *Server) resolveOps(issue store.IssueRow, ops []Op) (*resolved, error) {
 }
 
 type opState struct {
-	issue         store.IssueRow
-	input         map[string]any
-	trace         []string
-	comments      []string
-	duplicateOf   string
-	labelSet      map[string]bool
+	issue       store.IssueRow
+	input       map[string]any
+	trace       []string
+	comments    []string
+	duplicateOf string
+	labelSet    map[string]bool
+	// added holds the labels this batch puts on the issue that were not
+	// already there — the ones a label-group clash can blame on this action.
+	added         map[string]bool
 	labelsChanged bool
 }
 
@@ -101,10 +116,14 @@ func (s *Server) applyLabelOp(st *opState, op Op) error {
 	}
 	for _, rf := range refs {
 		if op.Type == "add_label" {
+			if !st.labelSet[rf.id] {
+				st.added[rf.id] = true
+			}
 			st.labelSet[rf.id] = true
 			st.trace = append(st.trace, "add label "+rf.display)
 		} else {
 			delete(st.labelSet, rf.id)
+			delete(st.added, rf.id)
 			st.trace = append(st.trace, "remove label "+rf.display)
 		}
 	}
@@ -237,8 +256,8 @@ func prevSnapshot(issue store.IssueRow) string {
 
 // applyOps resolves and executes ops against Linear, updates the local row,
 // and logs activity. Returns the refreshed issue and the activity id.
-func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, kind, outcome string, durationMS *int64) (store.IssueRow, int64, error) {
-	r, err := s.resolveOps(issue, ops)
+func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, kind, outcome string, durationMS *int64, opts opOptions) (store.IssueRow, int64, error) {
+	r, err := s.resolveOps(issue, ops, opts)
 	if err != nil {
 		return issue, 0, err
 	}
@@ -253,7 +272,7 @@ func (s *Server) applyOps(ctx context.Context, issue store.IssueRow, ops []Op, k
 			for _, rid := range relationIDs {
 				_ = s.linear.DeleteIssueRelation(ctx, rid)
 			}
-			return issue, 0, err
+			return issue, 0, exclusiveLabelHint(err)
 		}
 		row = syncer.ToRow(updated)
 	}

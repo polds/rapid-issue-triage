@@ -25,11 +25,17 @@ const STATES = [
   ['state-canceled', 'Canceled', 'canceled', '#95a2b3', 5],
 ];
 
+// [id, name, color, isGroup, parentId]. "Area" is a Linear label group: its
+// children are mutually exclusive, so an update carrying both is rejected.
+// The fixture needs one so the label-group replace prompt is reachable offline.
 const LABELS = [
-  ['label-bug', 'bug', '#eb5757'],
-  ['label-infra-triaged', 'infra:triaged', '#0f9960'],
-  ['label-needs-info', 'needs-info', '#f2994a'],
-  ['label-perf', 'performance', '#5e6ad2'],
+  ['label-area', 'Area', '#8b5cf6', 1, null],
+  ['label-area-cicd', 'ci-cd', '#f2c94c', 0, 'label-area'],
+  ['label-area-infra', 'infrastructure', '#9aa4b2', 0, 'label-area'],
+  ['label-bug', 'bug', '#eb5757', 0, null],
+  ['label-infra-triaged', 'infra:triaged', '#0f9960', 0, null],
+  ['label-needs-info', 'needs-info', '#f2994a', 0, null],
+  ['label-perf', 'performance', '#5e6ad2', 0, null],
 ];
 
 const chip = (id) => {
@@ -40,7 +46,7 @@ const chip = (id) => {
 const ISSUES = [
   {
     id: 'iss-1', n: 412, title: 'Sync worker wedges on a 429 from the Linear API',
-    priority: 1, labels: ['label-bug'], age: 3,
+    priority: 1, labels: ['label-bug', 'label-area-cicd'], age: 3,
     body: `The background sync stops making progress after Linear returns a 429.\n\n### Repro\n1. Force a rate limit with a tight loop of \`issues\` queries.\n2. Watch \`sync: state=error\` in the top bar — it never recovers.\n\nThe retry uses a fixed 2s backoff and gives up after 3 tries, but never\nreschedules, so the ticker is the only thing that can revive it.`,
   },
   {
@@ -77,6 +83,11 @@ const MACROS = [
     steps: [{ type: 'add_label', labelName: 'needs-info' }] },
   { name: 'Close as obsolete', key: '3', outcome: 'cancelled',
     steps: [{ type: 'set_state', stateType: 'canceled' }] },
+  // Adds a second child of the "Area" group to any issue that already has one,
+  // which is the clash the replace prompt exists to resolve.
+  { name: 'Accept → Infra Backlog', key: '4', outcome: 'accepted',
+    steps: [{ type: 'add_label', labelNames: ['infra:triaged', 'infrastructure'] },
+      { type: 'set_state', stateType: 'unstarted' }] },
 ];
 
 export function seed(dbPath) {
@@ -106,8 +117,9 @@ export function seed(dbPath) {
     'INSERT INTO workflow_states (id, team_id, name, type, color, position) VALUES (?, ?, ?, ?, ?, ?)');
   for (const [id, name, type, color, pos] of STATES) st.run(id, TEAM, name, type, color, pos);
 
-  const lb = db.prepare('INSERT INTO labels (id, team_id, name, color, is_group) VALUES (?, ?, ?, ?, 0)');
-  for (const [id, name, color] of LABELS) lb.run(id, TEAM, name, color);
+  const lb = db.prepare(
+    'INSERT INTO labels (id, team_id, name, color, is_group, parent_id) VALUES (?, ?, ?, ?, ?, ?)');
+  for (const [id, name, color, isGroup, parentId] of LABELS) lb.run(id, TEAM, name, color, isGroup, parentId);
 
   db.prepare('INSERT INTO projects (id, name, state) VALUES (?, ?, ?)').run('proj-rel', 'Reliability', 'started');
   db.prepare('INSERT INTO cycles (id, team_id, number, name, starts_at, ends_at) VALUES (?, ?, ?, ?, ?, ?)')

@@ -1,10 +1,30 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun, LinearSearchHit } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun, LinearSearchHit, LabelGroupConflict } from "./types";
 
-class ApiError extends Error {
-  constructor(message: string, public status: number) {
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    // Set when the server returns a machine-readable failure the UI can act on
+    // rather than just report — today only "label_group_conflict".
+    public code?: string,
+    public conflicts?: LabelGroupConflict[],
+  ) {
     super(message);
   }
+}
+
+// A conflict payload is only trusted once its shape is checked; anything that
+// does not match is dropped so the caller falls back to the plain message.
+function asConflicts(v: unknown): LabelGroupConflict[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out = v.filter(isRecord).map((c) => ({
+    group: asString(c.group),
+    existing: Array.isArray(c.existing) ? c.existing.map(asString) : [],
+    incoming: Array.isArray(c.incoming) ? c.incoming.map(asString) : [],
+    resolvable: c.resolvable === true,
+  }));
+  return out.length ? out : undefined;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -30,7 +50,9 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const body: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = isRecord(body) && typeof body.error === "string" ? body.error : undefined;
-    throw new ApiError(err ?? `HTTP ${res.status}`, res.status);
+    const code = isRecord(body) && typeof body.code === "string" ? body.code : undefined;
+    const conflicts = isRecord(body) ? asConflicts(body.conflicts) : undefined;
+    throw new ApiError(err ?? `HTTP ${res.status}`, res.status, code, conflicts);
   }
   return body as T;
 }
@@ -56,15 +78,15 @@ export const api = {
   resetIndexFilter: () => req<{ ok: boolean }>("/api/filter", { method: "DELETE" }),
   getIssue: (id: string) => req<{ issue: Issue }>(`/api/issues/${id}`),
   context: (id: string) => req<{ comments: Comment[] | null }>(`/api/issues/${id}/context`),
-  apply: (id: string, ops: Op[], outcome: string, durationMs?: number) =>
+  apply: (id: string, ops: Op[], outcome: string, durationMs?: number, replaceGroupLabels?: boolean) =>
     req<{ issue: Issue; activityId: number }>(`/api/issues/${id}/apply`, {
       method: "POST",
-      body: JSON.stringify({ ops, outcome, durationMs }),
+      body: JSON.stringify({ ops, outcome, durationMs, replaceGroupLabels }),
     }),
-  runMacro: (id: string, macroId: number, durationMs?: number, duplicateOfId?: string) =>
+  runMacro: (id: string, macroId: number, durationMs?: number, duplicateOfId?: string, replaceGroupLabels?: boolean) =>
     req<{ issue: Issue; activityId: number; macro: string }>(`/api/issues/${id}/macro/${macroId}`, {
       method: "POST",
-      body: JSON.stringify({ durationMs, duplicateOfId }),
+      body: JSON.stringify({ durationMs, duplicateOfId, replaceGroupLabels }),
     }),
   linearSearch: async (q: string): Promise<LinearSearchHit[]> => {
     const r = await req<unknown>(`/api/linear/search?q=${encodeURIComponent(q)}`);

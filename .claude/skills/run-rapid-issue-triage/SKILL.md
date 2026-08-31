@@ -154,6 +154,14 @@ every `run:` block locally and a clean local run proves less than it looks.
   `fetchWorkspace` first, which fails auth and returns before `PruneStale` can
   delete rows with a stale `sync_gen`. If a real key ever enters the picture,
   the first successful sync will wipe the fixture.
+- **The fixture carries one Linear label group.** `Area` (a group) with
+  children `ci-cd` and `infrastructure`; `iss-1`/ENG-412 already has `ci-cd`,
+  and macro **4** ("Accept → Infra Backlog") adds `infrastructure`. That is the
+  clash the replace prompt exists for, and it is reachable offline because the
+  pre-flight runs before the Linear call: navigate to ENG-412 with
+  `key ArrowRight` (deck order is random) and press `4`. The server side is
+  `POST /api/issues/iss-1/macro/4`, which answers `409 label_group_conflict`;
+  add `{"replaceGroupLabels":true}` and it gets as far as the usual 502.
 - **Skip and snooze work offline; macros and quick edits do not.** `S`/`Z` are
   local sqlite writes. Everything else — macros, label/state/estimate pickers,
   undo — goes through `resolveOps` → `applyOps` → a Linear `issueUpdate`, so it

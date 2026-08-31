@@ -360,7 +360,7 @@ func TestMetadataLookupsAndEnrichRuns(t *testing.T) {
 	if err := st.ReplaceStates(tx, [][]any{{"s1", "t1", "Triage", "triage", "#fff", 0.0}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := st.ReplaceLabels(tx, [][]any{{"l1", "t1", "bug", "#f00", 0}}); err != nil {
+	if err := st.ReplaceLabels(tx, [][]any{{"l1", "t1", "bug", "#f00", 0, nil}}); err != nil {
 		t.Fatal(err)
 	}
 	if err := st.ReplaceProjects(tx, [][]any{{"p1", "Infra", "started"}}); err != nil {
@@ -443,5 +443,48 @@ func TestMustJSONAndErrRow(t *testing.T) {
 	ch := make(chan int)
 	if mustJSON(ch) != "null" {
 		t.Fatalf("bad json: %s", mustJSON(ch))
+	}
+}
+
+func TestLabelGroupsFor(t *testing.T) {
+	st := testStore(t)
+	tx, err := st.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// "Area" is a group; infra and ci-cd are its mutually exclusive children.
+	// "bug" is ungrouped and must never come back from this lookup.
+	err = st.ReplaceLabels(tx, [][]any{
+		{"g1", "t1", "Area", "#000", 1, nil},
+		{"l1", "t1", "infrastructure", "#f00", 0, "g1"},
+		{"l2", "t1", "ci-cd", "#0f0", 0, "g1"},
+		{"l3", "t1", "bug", "#00f", 0, nil},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := st.LabelGroupsFor([]string{"l1", "l2", "l3"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("want the two grouped labels, got %+v", got)
+	}
+	for _, m := range got {
+		if m.GroupID != "g1" || m.GroupName != "Area" {
+			t.Fatalf("group not resolved: %+v", m)
+		}
+	}
+
+	// An ungrouped label alone yields nothing, and so does an empty request.
+	if got, err := st.LabelGroupsFor([]string{"l3"}); err != nil || len(got) != 0 {
+		t.Fatalf("ungrouped: %+v %v", got, err)
+	}
+	if got, err := st.LabelGroupsFor(nil); err != nil || got != nil {
+		t.Fatalf("empty: %+v %v", got, err)
 	}
 }

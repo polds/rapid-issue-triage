@@ -6,6 +6,7 @@ import { ActionBar } from "@/components/triage/ActionBar";
 import { QuickEditRow, type PickerKey } from "@/components/triage/QuickEditRow";
 import { HelpOverlay } from "@/components/triage/HelpOverlay";
 import { Confetti } from "@/components/triage/Confetti";
+import { LabelGroupPrompt } from "@/components/triage/LabelGroupPrompt";
 import { DuplicateOfPicker } from "@/components/triage/DuplicateOfPicker";
 import { Button } from "@/components/ui/button";
 import { Undo2 as UndoIcon } from "lucide-react";
@@ -16,6 +17,7 @@ export function TriagePage() {
     macros, applyMacro, skip, snooze, next, prev, undo, canUndo,
     milestone, sessionTriaged, enrich, sync, refreshSync,
     duplicatePrompt, cancelDuplicatePrompt,
+    labelPrompt, cancelLabelPrompt,
   } = useTriage();
 
   const [expanded, setExpanded] = useState(false);
@@ -166,6 +168,18 @@ export function TriagePage() {
           report={current.issue.enrichment?.report}
           onPick={(canonicalId) => applyMacro(duplicatePrompt, canonicalId)}
           onClose={cancelDuplicatePrompt}
+        />
+      )}
+      {labelPrompt && current && (
+        <LabelGroupPrompt
+          identifier={current.issue.identifier}
+          action={labelPrompt.action}
+          conflicts={labelPrompt.conflicts}
+          onReplace={() => {
+            cancelLabelPrompt();
+            labelPrompt.rerun();
+          }}
+          onClose={cancelLabelPrompt}
         />
       )}
       <HelpOverlay open={help} onClose={() => setHelp(false)} />

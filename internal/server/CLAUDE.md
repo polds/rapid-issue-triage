@@ -16,6 +16,7 @@ packages, not here.
 | `server.go` | `Server` struct, **the route table** (`Handler`), SPA fallback, `writeJSON`/`writeErr`/`decodeBody`/`bgCtx`. |
 | `handlers.go` | Queue, meta, issues, apply/macro/skip/snooze, index-filter CRUD, Linear view + search proxies, macros CRUD, report, sync status, `PrefetchEnrichments`. |
 | `ops.go` | `resolveOps` (name → ID resolution) and `applyOps` (the single Linear mutation), plus `undoActivity`. **The core of the write path.** |
+| `labelgroups.go` | Linear label-group exclusivity: conflict detection, the replace resolution, and the messages both feed. |
 | `deep.go` | Deep-run lifecycle: start, poll, SSE event stream, plain-text log, and the toolbox endpoint the scout shim calls. |
 | `settings.go` | Enrichment settings, secret writes, the live `claude` probe (`ClaudeAvail`), native picker endpoint. |
 | `pickfolder.go` | Native OS folder/file dialog as a subprocess. |
@@ -47,6 +48,12 @@ handleApply / handleRunMacro
 - **A duplicate-type state needs the relation first.** Linear rejects the
   state change otherwise, so `resolveOps` surfaces `duplicateOf` and the UI
   prompts for the canonical issue before applying.
+- **Label groups are mutually exclusive.** `resolveOps` ends with
+  `resolveLabelGroups`, which rejects a label set holding two children of one
+  group rather than letting Linear answer `labelIds not exclusive child
+  labels`. `opOptions.replaceGroupLabels` — set from the request after the user
+  confirms — drops the sibling the issue already carried instead. Same shape as
+  the duplicate flow: detect, prompt, re-run with the answer.
 
 ## Deep enrichment endpoints
 
@@ -69,6 +76,10 @@ boundary, and it must stay read-only and token-checked.
   `claudeStatus`), never cached at startup. Settings can change the path
   without a restart, and the enricher/orchestrator exist even when the binary
   is missing precisely so that works.
+- **`writeActionErr`, not `writeErr`, for apply/macro.** A label-group clash is
+  a 409 with `{code, conflicts, resolvable}` the UI prompts on; everything else
+  stays a 502. A raw clash that slips past (a group created since the last sync)
+  is rewritten by `exclusiveLabelHint` on the way out.
 - **Secrets are write-only over HTTP.** `PUT /api/secrets` accepts a value;
   no handler ever returns one. Responses carry `{set, source, hint}`.
 - **`enriching` map guards duplicate concurrent enrichment per issue.** Hold

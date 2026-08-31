@@ -266,6 +266,9 @@ type applyRequest struct {
 	Ops        []Op   `json:"ops"`
 	Outcome    string `json:"outcome"`
 	DurationMS *int64 `json:"durationMs"`
+	// ReplaceGroupLabels confirms replacing a label the issue already carries
+	// when the action adds a sibling from the same exclusive Linear group.
+	ReplaceGroupLabels bool `json:"replaceGroupLabels"`
 }
 
 func (s *Server) handleApply(w http.ResponseWriter, r *http.Request) {
@@ -283,9 +286,10 @@ func (s *Server) handleApply(w http.ResponseWriter, r *http.Request) {
 	if outcome == "" {
 		outcome = "edited"
 	}
-	row, actID, err := s.applyOps(bgCtx(), issue, req.Ops, "edit", outcome, req.DurationMS)
+	opts := opOptions{replaceGroupLabels: req.ReplaceGroupLabels}
+	row, actID, err := s.applyOps(bgCtx(), issue, req.Ops, "edit", outcome, req.DurationMS, opts)
 	if err != nil {
-		writeErr(w, 502, err)
+		writeActionErr(w, err)
 		return
 	}
 	writeJSON(w, 200, map[string]any{"issue": row, "activityId": actID})
@@ -298,8 +302,9 @@ func (s *Server) handleRunMacro(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		DurationMS    *int64 `json:"durationMs"`
-		DuplicateOfID string `json:"duplicateOfId"`
+		DurationMS         *int64 `json:"durationMs"`
+		DuplicateOfID      string `json:"duplicateOfId"`
+		ReplaceGroupLabels bool   `json:"replaceGroupLabels"`
 	}
 	_ = decodeBody(r, &req)
 	macro, err := s.store.GetMacro(macroID)
@@ -322,9 +327,10 @@ func (s *Server) handleRunMacro(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	row, actID, err := s.applyOps(bgCtx(), issue, steps, "macro", macro.Outcome, req.DurationMS)
+	opts := opOptions{replaceGroupLabels: req.ReplaceGroupLabels}
+	row, actID, err := s.applyOps(bgCtx(), issue, steps, "macro", macro.Outcome, req.DurationMS, opts)
 	if err != nil {
-		writeErr(w, 502, err)
+		writeActionErr(w, err)
 		return
 	}
 	writeJSON(w, 200, map[string]any{"issue": row, "activityId": actID, "macro": macro.Name})

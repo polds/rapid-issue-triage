@@ -44,6 +44,9 @@ cost more than it saves.
 
 - Linear returns HTTP 200 with a populated `errors[]` for most failures. `Do`
   already checks that — do not add a status-only success check.
+- `issueLabels` fetches `parent { id }`. A label with a parent is a child of a
+  mutually exclusive group; `internal/server` needs that edge to catch a clash
+  before the mutation. See [`internal/server/labelgroups.go`](../server/CLAUDE.md).
 - A duplicate relation must exist *before* an issue can enter a
   duplicate-type workflow state. `CreateDuplicateRelation` /
   `DeleteIssueRelation` exist for that ordering; see
