@@ -199,6 +199,24 @@
   already violated a group. Its own test caught it — port the guards, not just
   the happy path.
 
+- **Semgrep's `string-formatted-query` rule is shape-sensitive, and the store
+  already has the shape that passes.** A dynamic `IN (...)` written as
+  `q := "SELECT ... (?" + strings.Repeat(...) + ")"` then `db.Query(q, args...)`
+  is flagged; `issues.go:85` builds the same clause by appending (`q += ...`)
+  to an existing variable and is not. Bind args were never the issue in either.
+  Use `placeholders(n)` from `queuefilter.go` and append — don't add a
+  `nosemgrep`, and don't open-code `strings.Repeat` a third time.
+- **semgrep *can* be run locally here**, contrary to the "not installed" skip.
+  A plain `pip install --user` produces a broken binary: `pysemgrep` imports
+  `jwt` → `cryptography`, which resolves to the system
+  `/usr/lib/python3/dist-packages` copy and dies with a pyo3 PanicException.
+  A clean venv works, but only after deleting the broken `/root/.local/bin`
+  entry point, which shadows it on PATH:
+  `python3 -m venv v && v/bin/pip install semgrep==1.175.0 && rm -f
+  /root/.local/bin/{semgrep,pysemgrep,osemgrep}`, then put `v/bin` on PATH.
+  Worth doing before pushing anything that builds SQL or shells out — `make ci`
+  silently skips the gate otherwise and CI catches it instead.
+
 ## Do-Not-Repeat
 
 - [2026-08-31] Do not let a Linear constraint surface as Linear's own error

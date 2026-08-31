@@ -511,6 +511,26 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-31T16:55:00-07:00"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-08-31T17:20:00-07:00",
+      "error_message": "SAST job failed on PR #46: go.lang.security.audit.database.string-formatted-query at internal/store/metadata.go \u2014 1 finding, 1 blocking",
+      "file": "internal/store/metadata.go",
+      "root_cause": "LabelGroupsFor built its dynamic IN clause as `q := \"SELECT ... IN (?\" + strings.Repeat(\", ?\", n-1) + \")\"` and passed q to db.Query in the same function. Semgrep's rule matches a query variable initialized from a string literal concatenated with an expression and then handed to Query \u2014 the args were always bound, so it is a false positive on injection, but a real style divergence: issues.go:85 does the same dynamic IN clause and is NOT flagged because it appends with `+=` to an existing query variable.",
+      "fix": "Split the literal from the placeholder list (`q := ...IN (` then `q += placeholders(len(ids)) + \")\"`), matching issues.go, and reuse the `placeholders` helper already in queuefilter.go instead of a second open-coded strings.Repeat. Reproduced and verified with the pinned semgrep 1.175.0: 1 blocking finding before, 0 after.",
+      "tags": [
+        "semgrep",
+        "sast",
+        "ci",
+        "sql",
+        "store",
+        "false-positive",
+        "convention"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T17:20:00-07:00"
     }
   ]
 }
