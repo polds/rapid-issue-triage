@@ -1,5 +1,5 @@
 // Thin fetch wrapper over the local Go API.
-import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun, LinearSearchHit, LabelGroupConflict, RunPlacement } from "./types";
+import type { Issue, Meta, Macro, Op, Comment, Report, SyncStatus, Enrichment, ViewFilter, IndexFilterInfo, CustomView, EnrichSettings, EnrichSettingsInfo, EnrichRun, LinearSearchHit, LabelGroupConflict, RunPlacement, VersionInfo } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -140,4 +140,8 @@ export const api = {
   report: () => req<Report>("/api/report"),
   syncStatus: () => req<SyncStatus>("/api/sync/status"),
   syncRefresh: () => req<{ status: string }>("/api/sync/refresh", { method: "POST" }),
+  version: () => req<VersionInfo>("/api/version"),
+  // Runs a check now. The server collapses a concurrent check into the
+  // in-flight one, so this cannot fan out into repeated GitHub requests.
+  checkForUpdate: () => req<VersionInfo>("/api/version/check", { method: "POST" }),
 };

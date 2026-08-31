@@ -2,9 +2,10 @@
 
 Everything the UI runs on that isn't a component. Split so that the pure
 modules can carry a real coverage floor: **`utils`, `colors`, `linear`,
-`linearfilter`, `enrichmode`, `labelgroups`, `notices` are the only files in
-`vitest.config.ts`'s coverage `include`** (90% statements/functions/lines, 85%
-branches). New pure logic belongs here with a test, not inline in a component.
+`linearfilter`, `enrichmode`, `labelgroups`, `notices`, `version` are the only
+files in `vitest.config.ts`'s coverage `include`** (90% statements/functions/
+lines, 85% branches). New pure logic belongs here with a test, not inline in a
+component.
 
 ## Layout
 
@@ -15,13 +16,14 @@ branches). New pure logic belongs here with a test, not inline in a component.
 | `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on (`label_group_conflict` → replace prompt, `issue_gone` → retire the card). **The one place a response is asserted into a type.** | — |
 | `types.ts` | Every wire type, mirroring the Go JSON tags. `EMPTY_FILTER`, `filterIsEmpty`. | — |
 | `theme.tsx` | Light/dark provider, persisted. | — |
-| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `PRIORITY_NAMES`. | ✔ |
+| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`, `PRIORITY_NAMES`. | ✔ |
 | `colors.ts` | Stable hue per team key (hashed → oklch); Linear label hex passthrough with a muted fallback. | ✔ |
 | `linear.ts` | `linearIssueHref` — build an issue URL from an identifier using the current issue's URL as a template. | ✔ |
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |
 | `enrichmode.ts` | Module-level cache of enrichment settings so every card doesn't refetch. | ✔ |
 | `labelgroups.ts` | Pre-flight for Linear's mutually exclusive label groups: which groups a set of ops would put two labels into, and how to say so. | ✔ |
 | `notices.ts` | How an `EnrichNotice` reads: `noticeIsActive` (queued **or** running — the one definition every consumer shares), plus the dropdown's detail and timestamp lines. | ✔ |
+| `version.ts` | How to *say* the build stamp and the update check — the display string, the tooltip, the Settings summary, the release link. Never *decides* whether an update exists; `internal/update` does. | ✔ |
 
 ## `store.tsx` — the contract
 
@@ -53,6 +55,11 @@ Optimistic, deck-shaped state:
 - **`needsDuplicateOf` gates the duplicate flow.** Linear requires the
   relation before a duplicate-type state change, so the provider raises a
   prompt instead of applying.
+- **The version is polled, not pushed.** `internal/update` owns the actual
+  GitHub check on its own daily timer; the provider only re-reads
+  `/api/version` hourly, plus once on mount, plus whenever Settings asks for a
+  check. Never compare versions in the frontend — `update.available` is the
+  server's verdict and the only one.
 - `duration()` times each card from first view, feeding the reports page.
 
 ## Invariants

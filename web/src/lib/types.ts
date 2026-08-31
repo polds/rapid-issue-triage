@@ -172,6 +172,28 @@ export interface SyncStatus {
   reindexing?: boolean;
 }
 
+// Mirrors internal/update.Status. `available` is the server's verdict — the
+// UI never compares versions itself.
+export interface UpdateStatus {
+  enabled: boolean;
+  checking: boolean;
+  latest?: string;
+  available: boolean;
+  releaseUrl?: string;
+  checkedAt?: string;
+  error?: string;
+}
+
+// Mirrors internal/version.Info plus the embedded update block; the Go handler
+// flattens Info into the response, so these are siblings of `update`.
+export interface VersionInfo {
+  version: string;
+  commit?: string;
+  date?: string;
+  dev: boolean;
+  update: UpdateStatus;
+}
+
 export interface ViewFilter {
   teams: string[];
   excludeTeams: string[];
@@ -271,6 +293,37 @@ export interface Report {
   avgMs: number;
   fastestMs: number;
   recent: ActivityItem[];
+  tokens: TokenUsageReport;
+}
+
+/** One summed bucket of AI-enrichment token spend. */
+export interface TokenTotals {
+  calls: number;
+  input: number;
+  output: number;
+  cacheCreation: number;
+  cacheRead: number;
+  /** All four token kinds added together. */
+  total: number;
+  costUsd: number;
+}
+
+/** A totals bucket labelled by what it was grouped on — an agent, or a mode. */
+export interface TokenSlice extends TokenTotals {
+  key: string;
+}
+
+export interface TokenUsageReport {
+  totals: TokenTotals;
+  today: TokenTotals;
+  week: TokenTotals;
+  /** Per-responsibility breakdown, heaviest spender first. */
+  byAgent: TokenSlice[];
+  byMode: TokenSlice[];
+  models: string[];
+  issues: number;
+  /** Oldest recorded call — enrichments predating usage tracking have none. */
+  since?: string;
 }
 
 export interface CustomView {

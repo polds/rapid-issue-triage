@@ -18,7 +18,11 @@ gamified report page.
   needs info / duplicate suspect). Deep runs are pooled: two run at once
   (`ai.max_concurrent`) and the rest wait their turn, showing their place in
   line on the card and in the notification bell while you keep triaging.
-- **Reports** — daily throughput, outcome breakdown, streaks, speed stats.
+- **Reports** — daily throughput, outcome breakdown, streaks, speed stats, and
+  what AI enrichment has spent: total tokens and estimated cost, broken down by
+  responsibility (the fast enricher, each deep-run scout, the synthesis pass).
+  Counts are the `claude` CLI's own accounting, not an estimate, and are
+  recorded from the first enrichment run after upgrading.
 
 ## Setup
 
@@ -70,6 +74,18 @@ Copy `rapid-triage.example.yaml` to `./rapid-triage.yaml` or
 passed through verbatim, so any filter Linear supports defines your queue.
 
 Flags: `-config path`, `-addr host:port`, `-no-open`, `-version`.
+
+The running version is shown beside the wordmark in the top bar and under
+**Settings → About**. Once a day the app asks GitHub whether a newer release
+exists and, if so, the top bar links to it. That check is the only outbound
+request the app makes that is not to Linear or to your local `claude` binary —
+one unauthenticated `GET` of the public releases endpoint, carrying nothing but
+the version in its User-Agent. Turn it off with:
+
+```yaml
+update_check:
+  enabled: false
+```
 
 ## Keyboard map
 

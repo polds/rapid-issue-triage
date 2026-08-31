@@ -14,7 +14,7 @@ import { getEnrichInfo } from "./enrichmode";
 import { labelGroupConflicts } from "./labelgroups";
 import { noticeIsActive } from "./notices";
 import { useToast } from "@/components/ui/use-toast";
-import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type RunPlacement, type SyncStatus, type ViewFilter } from "./types";
+import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type RunPlacement, type SyncStatus, type VersionInfo, type ViewFilter } from "./types";
 import {
   TriageContext,
   type Card,
@@ -38,6 +38,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [metaError, setMetaError] = useState<string | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
+  const [version, setVersion] = useState<VersionInfo | null>(null);
   const [macros, setMacros] = useState<Macro[]>([]);
   const [viewFilter, setViewFilterState] = useState<ViewFilter>(() => {
     try {
@@ -180,6 +181,28 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     }, 5000);
     return () => clearInterval(t);
   }, [loadMeta, fetchMore]);
+
+  // Read the build stamp and the update state. The server owns the actual
+  // check (internal/update, on its own daily timer); this only re-reads the
+  // snapshot, so an hourly poll is plenty and costs one local request.
+  useEffect(() => {
+    const read = () => api.version().then(setVersion).catch(() => {
+      /* server briefly unavailable; keep the last stamp */
+    });
+    void read();
+    const t = setInterval(() => void read(), 60 * 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // "Check for updates" in Settings. The server collapses a concurrent check
+  // into the one already running, so this cannot fan out.
+  const checkForUpdate = useCallback(async () => {
+    try {
+      setVersion(await api.checkForUpdate());
+    } catch (e) {
+      toast(`Update check failed: ${(e as Error).message}`, { tone: "error" });
+    }
+  }, [toast]);
 
   // Buffer refill: keep at least 8 pending cards ahead of the cursor.
   useEffect(() => {
@@ -644,6 +667,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const value = useMemo<TriageCtx>(
     () => ({
       meta, metaError, sync, refreshSync, macros, reloadMacros,
+      version, checkForUpdate,
       viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
@@ -655,7 +679,8 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       labelPrompt, cancelLabelPrompt,
     }),
     [
-      meta, metaError, sync, refreshSync, macros, reloadMacros, viewFilter, setViewFilter,
+      meta, metaError, sync, refreshSync, macros, reloadMacros, version, checkForUpdate,
+      viewFilter, setViewFilter,
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,

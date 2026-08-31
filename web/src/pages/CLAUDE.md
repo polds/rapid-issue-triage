@@ -8,8 +8,8 @@ Pages own layout and page-local state; anything shared lives in
 |---|---|---|
 | `Triage.tsx` | `#/` | The card deck. **Owns the global keyboard map** and renders `IssueCard` + `ActionBar` + `QuickEditRow`. |
 | `Macros.tsx` | `#/macros` | Macro CRUD: name, key binding, outcome, and the ordered op list. |
-| `Reports.tsx` | `#/reports` | Gamified stats: tiles, per-day bar chart, outcome donut, streaks. Charts are hand-rolled SVG — no chart library. |
-| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, and Advanced → Claude binary path. |
+| `Reports.tsx` | `#/reports` | Gamified stats: tiles, per-day bar chart, outcome donut, streaks, plus the AI-enrichment usage panel. Charts are hand-rolled SVG (or plain divs) — no chart library. |
+| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, Advanced → Claude binary path, and About (build stamp + update check). |
 
 ## Triage — the keyboard contract
 
@@ -49,11 +49,23 @@ macros silently stop working on other teams. Op kinds and resolution live in
   filesystem path; the server opens a native dialog. A canceled dialog is not
   an error.
 - Saving invalidates the `enrichmode` cache, or cards keep the old mode.
+- **About renders whatever the server says, and decides nothing.** "Check now"
+  asks `POST /api/version/check` to run the check early; whether an update
+  exists is `update.available` from `internal/update`, never a comparison here.
+  The card hides its controls entirely when the config disabled the check.
 
 ## Reports
 
 Everything is aggregated by SQL in `store.Report`; this page only renders.
 Push new statistics into the query, not into JavaScript.
+
+The **AI enrichment usage** panel reads `report.tokens`, breaking spend down
+by *responsibility* — the `agent` each LLM call was tagged with (`fast`, one
+per deep-run scout, `synthesis`). `AGENT_LABEL` mirrors that closed set and
+falls through to the raw key, so a new scout renders before anyone relabels
+it. Counts are the Claude Code CLI's own accounting, so the panel is empty
+until an enrichment runs — say so rather than rendering zeros. Cost is the
+CLI's list-price figure, which is why the page calls it an equivalent.
 
 ## Maintenance
 

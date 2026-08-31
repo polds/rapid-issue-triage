@@ -394,6 +394,31 @@
 | 17:00 | Seeded an "Area" label group into the offline fixture and drove it | .claude/skills/run-rapid-issue-triage/fixture.mjs | Verified in the real app: prompt renders on ENG-412 + macro 4; API returns 409 then 502 with replaceGroupLabels | ~9k |
 | 17:15 | CI SAST failed on PR #46 (semgrep string-formatted-query, mine) | internal/store/metadata.go | Reproduced locally with pinned semgrep in a venv, fixed to match issues.go's `+=` shape + the existing placeholders() helper; 1 finding → 0 | ~11k |
 
+## Session: 2026-08-31 17:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 17:24
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:10 | Probed the real `claude` CLI to confirm the result envelope carries `usage` + `total_cost_usd` in BOTH --output-format json and stream-json | — | Identical shape in both; token counts are reportable, so no estimation needed | ~4k |
+| 17:15 | Added token_usage table + RecordTokenUsage + TokenUsageReport (SQL aggregation: totals, today/week, byAgent, byMode, byDay, models) | internal/store/tokenusage.go, store.go, activity.go | store coverage 85.8%; Report() now carries a `tokens` key | ~12k |
+| 17:18 | Captured CLI usage in both enrichment paths, tagged by responsibility | internal/ai/{enrich,usage}.go, internal/deep/{claude,usage,orchestrator}.go, internal/server/handlers.go | Enrich returns usage as a 2nd value (populated on error paths too); deep stamps run/issue/agent per scout + synthesis | ~14k |
+| 17:20 | Built the AI-enrichment usage panel: 4 tiles, by-responsibility bars, token-composition bar + legend | web/src/pages/Reports.tsx, lib/{types,utils}.ts | Palette validated with the dataviz validator; light passes fully, dark's only flag is the house-wide lightness band the existing donut shares | ~16k |
+| 17:24 | Verified end-to-end in the running app: seeded fixture rows, then ran a REAL fast enrichment | .run-sandbox | Real row landed: 40,719 tokens / $0.0805, model resolved to claude-sonnet-5 via dominantModel since config sets none | ~10k |
+
+## Session: 2026-08-31 17:10
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:14 | Added `internal/version`: build stamp resolution (ldflags → Go's embedded VCS info) + semver ordering (`Parse`/`Compare`/`IsNewer`) | internal/version/version.go, version_test.go | stdlib-only leaf; a synthesized pseudo-version is treated as `dev`, so a local build is never told to upgrade | ~9k |
+| 17:16 | Added `internal/update`: daily background check against GitHub's public `releases/latest`, cached in memory, `update_check.enabled: false` to switch off | internal/update/update.go, update_test.go | 8 tests incl. a disabled checker that must never make a request; repo string regexp-validated so config cannot steer the URL | ~10k |
+| 17:18 | Wired config (`update_check`), `GET /api/version` + `POST /api/version/check`, and `cmd/triage` (`-version` now prints `version.Resolve`) | internal/config/config.go, internal/server/version.go, server.go, cmd/triage/main.go | endpoints verified live against the running server | ~7k |
+| 17:20 | Frontend: `VersionInfo`/`UpdateStatus` wire types, `api.version`/`checkForUpdate`, the pure `lib/version.ts` formatter (24 tests, added to the vitest coverage include), version state on the triage provider | web/src/lib/{types,api,version,store,triage-context}.ts(x), vitest.config.ts | coverage 99.4% statements on the scoped lib set | ~12k |
+| 17:22 | UI: `VersionBadge` in the top bar (muted string → info-toned release link when an update exists) and a Settings → About card with "Check now" | web/src/components/triage/TopBar.tsx, web/src/pages/Settings.tsx | verified in the real app both ways by pointing `defaultBaseURL` at a local stub returning v9.9.9 then v0.0.1; light + dark screenshots | ~10k |
+| 17:31 | Docs: root CLAUDE.md (outbound-destinations non-negotiable + diagram), internal/, server/, config/, web lib/, triage/, pages/ CLAUDE.md, README Configuration, SECURITY.md "Outbound requests", example yaml | 12 docs | `make ci-go`, `make quality`, `make web-ci`, `make licenses`, `make vuln` all green | ~9k |
 ## Session: 2026-08-31 17:09
 
 | Time | Action | File(s) | Outcome | ~Tokens |
@@ -460,3 +485,5 @@
 | 19:05 | Verified in the running app: pool pinned to 1, 3 deep runs — 1 running / 2 queued, positions advanced live; dismissed one finished notice | .run-sandbox (driver repl) | both features confirmed end to end | ~8k |
 | 19:10 | Added `hover <sel>` to the driver repl | .claude/skills/run-rapid-issue-triage/driver.mjs | hover-only UI is screenshot-able | ~1k |
 | 19:15 | Docs: deep/server/store/config/web CLAUDE.md, README, example yaml, anatomy scan | 8 docs | map matches the tree | ~5k |
+| 17:50 | Merged `origin/main` (abc325d, the QuickEditRow double-render fix) into the version branch — PR #50 went `dirty` while the work was in flight | .wolf/{anatomy*,buglog.json}, web/dist/* | All 4 conflicts were generated/derived files: dist rebuilt with `make build`, anatomy re-scanned with `openwolf scan`, buglog merged by hand keeping both new entries (main's kept bug-029, ours renumbered bug-030). No source conflicts. | ~6k |
+| 18:02 | Merged `origin/main` again (6a5cb9b, the pruned-card Skip/Snooze fix) — main moved twice during the PR | internal/server/server.go, issuegone_test.go, version_test.go, .wolf/STATUS.md, buglog.json, web/dist/* | **Git auto-merged both sides cleanly but the tree did not compile**: main's new `issuegone_test.go` calls `server.New` with the pre-change 6-arg signature. Fixed the call sites and made `New` default a nil checker to a disabled one, so the "s.updates is never nil" invariant is true by construction rather than by convention. | ~7k |

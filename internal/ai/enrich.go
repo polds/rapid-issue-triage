@@ -35,8 +35,11 @@ var allowedVerdicts = map[string]bool{
 }
 
 // Enrich runs Claude Code in print mode over the issue context and parses the
-// structured verdict out of the reply.
-func (e *Enricher) Enrich(ctx context.Context, issue store.IssueRow, comments string) (store.Enrichment, error) {
+// structured verdict out of the reply. The second return is the call's token
+// accounting, tagged as the "fast" responsibility for the reports page; it is
+// meaningful even when the error is non-nil, since the tokens were still
+// spent. Persisting it is the caller's job, as with the enrichment itself.
+func (e *Enricher) Enrich(ctx context.Context, issue store.IssueRow, comments string) (store.Enrichment, store.TokenUsage, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.timeout())
 	defer cancel()
 
@@ -51,23 +54,23 @@ func (e *Enricher) Enrich(ctx context.Context, issue store.IssueRow, comments st
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return store.Enrichment{}, fmt.Errorf("claude run: %w: %s", err, truncate(stderr.String(), 400))
+		return store.Enrichment{}, store.TokenUsage{}, fmt.Errorf("claude run: %w: %s", err, truncate(stderr.String(), 400))
 	}
 
 	// claude -p --output-format json wraps the reply in {"result": "..."}.
-	var envelope struct {
-		Result string `json:"result"`
-		IsErr  bool   `json:"is_error"`
-	}
+	var envelope cliEnvelope
 	if err := json.Unmarshal(stdout.Bytes(), &envelope); err != nil {
-		return store.Enrichment{}, fmt.Errorf("claude output decode: %w: %s", err, truncate(stdout.String(), 400))
+		return store.Enrichment{}, store.TokenUsage{}, fmt.Errorf("claude output decode: %w: %s", err, truncate(stdout.String(), 400))
 	}
+	// The tokens were spent whatever the reply says, so usage is returned on
+	// the failure paths below too — the caller records it either way.
+	usage := envelope.usage(issue.ID, e.Model)
 	if envelope.IsErr {
-		return store.Enrichment{}, fmt.Errorf("claude error: %s", truncate(envelope.Result, 400))
+		return store.Enrichment{}, usage, fmt.Errorf("claude error: %s", truncate(envelope.Result, 400))
 	}
 	res, err := parseResult(envelope.Result)
 	if err != nil {
-		return store.Enrichment{}, err
+		return store.Enrichment{}, usage, err
 	}
 	if !allowedVerdicts[res.Verdict] {
 		res.Verdict = "actionable"
@@ -78,7 +81,7 @@ func (e *Enricher) Enrich(ctx context.Context, issue store.IssueRow, comments st
 	return store.Enrichment{
 		IssueID: issue.ID, Summary: res.Summary, Verdict: res.Verdict,
 		Reasoning: res.Reasoning, Confidence: res.Confidence, Model: e.Model,
-	}, nil
+	}, usage, nil
 }
 
 func (e *Enricher) timeout() time.Duration {

@@ -23,6 +23,7 @@ already-fetched values (`internal/syncer` inside its own transaction,
 | `enrichments.go` | Fast-enrichment cache keyed by issue, stamped with `IssueContentHash`. |
 | `enrichruns.go` | Deep-run rows + their full event stream (`EnrichRun`, `EnrichEvent`). Status is `queued` → `running` → `done`/`error`; `StartEnrichRun` is the pool's transition and leaves `started_at` at the enqueue time. |
 | `enrichsettings.go` | `EnrichSettings` (mode, per-source toggles, `claudePath`) — one JSON blob in `meta`. |
+| `tokenusage.go` | `token_usage` rows + `TokenUsageReport` (the AI-spend half of the reports page). Write-once; nothing reads a row back individually. |
 | `secrets.go` | `Secrets` in `meta`, and `Resolve` — the Settings → env → `.env` precedence chain. |
 | `*_test.go` | Unit tests. This package and `internal/config` carry the **70% coverage floor** (`make cover-go`). |
 
@@ -53,7 +54,13 @@ already-fetched values (`internal/syncer` inside its own transaction,
   is the only accessor that returns a value, and its order is
   **Settings → env → `.env`** (via `config.Lookup`).
 - **`Report` is SQL, not Go.** Streaks, per-day buckets, and outcome
-  breakdowns are aggregated in the query; the frontend only renders.
+  breakdowns are aggregated in the query; the frontend only renders. Its
+  `tokens` key is `TokenUsageReport`, aggregated the same way.
+- **`token_usage` is append-only and never joined.** A row records what one
+  LLM call spent and which agent spent it; it deliberately does not reference
+  `issues`, so `PruneStale` deleting an issue cannot rewrite spend history.
+  `RecordTokenUsage` drops calls that reported nothing rather than storing
+  zero rows, which would inflate the call count.
 - Times are RFC3339 UTC strings (`now()`), not sqlite date types.
 
 ## Gotchas

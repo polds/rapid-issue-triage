@@ -150,6 +150,26 @@ CREATE TABLE IF NOT EXISTS enrich_events (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_enrich_events_run ON enrich_events (run_id, seq);
+
+-- One row per LLM call made by AI enrichment, tagged with the agent that
+-- spent it, so the reports page can aggregate what enrichment costs.
+-- Counts are the Claude Code CLI's own accounting, not an estimate.
+CREATE TABLE IF NOT EXISTS token_usage (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT,                     -- deep run id; empty for fast enrichment
+  issue_id TEXT NOT NULL,
+  mode TEXT NOT NULL,              -- fast | deep
+  agent TEXT NOT NULL,             -- fast | repo | github | linear | datadog | gcloud | synthesis
+  model TEXT,
+  input_tokens INTEGER NOT NULL DEFAULT 0,
+  output_tokens INTEGER NOT NULL DEFAULT 0,
+  cache_creation_tokens INTEGER NOT NULL DEFAULT 0,
+  cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+  cost_usd REAL NOT NULL DEFAULT 0,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_token_usage_created ON token_usage (created_at);
 `
 
 func now() string { return time.Now().UTC().Format(time.RFC3339) }

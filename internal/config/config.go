@@ -24,6 +24,7 @@ type Config struct {
 	Filter map[string]any `yaml:"filter"`
 	Sync   SyncConfig     `yaml:"sync"`
 	AI     AIConfig       `yaml:"ai"`
+	Update UpdateConfig   `yaml:"update_check"`
 }
 
 type SyncConfig struct {
@@ -49,6 +50,18 @@ type AIConfig struct {
 	MaxConcurrent int `yaml:"max_concurrent"`
 }
 
+// UpdateConfig controls the background "is there a newer release?" check.
+// It is the one outbound call this app makes that is not to Linear or to the
+// local claude binary, so it is switchable: `enabled: false` and nothing
+// leaves the machine.
+type UpdateConfig struct {
+	Enabled bool `yaml:"enabled"`
+	// Interval between checks. Floored at an hour.
+	Interval time.Duration `yaml:"interval"`
+	// Repo is the owner/name whose releases are compared against this build.
+	Repo string `yaml:"repo"`
+}
+
 func Default() Config {
 	home, _ := os.UserHomeDir()
 	return Config{
@@ -60,8 +73,9 @@ func Default() Config {
 		Filter: map[string]any{
 			"state": map[string]any{"type": map[string]any{"in": []any{"triage", "backlog"}}},
 		},
-		Sync: SyncConfig{Interval: 10 * time.Minute, PageSize: 50},
-		AI:   AIConfig{Enabled: true, Command: "claude", Timeout: 3 * time.Minute, MaxConcurrent: 2},
+		Sync:   SyncConfig{Interval: 10 * time.Minute, PageSize: 50},
+		AI:     AIConfig{Enabled: true, Command: "claude", Timeout: 3 * time.Minute, MaxConcurrent: 2},
+		Update: UpdateConfig{Enabled: true, Interval: 24 * time.Hour, Repo: "polds/rapid-issue-triage"},
 	}
 }
 

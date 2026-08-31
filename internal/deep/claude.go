@@ -11,11 +11,11 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/polds/rapid-issue-triage/internal/store"
 )
 
-// claudeStream runs `claude -p --output-format stream-json --verbose` and
-// forwards every assistant thought, tool call, and tool result to emit.
-// Returns the final result text.
+// streamOpts configures one scout or synthesis invocation.
 type streamOpts struct {
 	Command      string
 	Model        string
@@ -27,7 +27,12 @@ type streamOpts struct {
 	Timeout      time.Duration
 }
 
-func claudeStream(ctx context.Context, o streamOpts, emit func(kind string, payload any)) (string, error) {
+// claudeStream runs `claude -p --output-format stream-json --verbose` and
+// forwards every assistant thought, tool call, and tool result to emit.
+// Returns the final result text and the CLI's own token accounting for the
+// call. Usage is returned on the error paths too: a scout that errored still
+// spent whatever it spent, and the reports page should say so.
+func claudeStream(ctx context.Context, o streamOpts, emit func(kind string, payload any)) (string, store.TokenUsage, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.Timeout)
 	defer cancel()
 
@@ -41,27 +46,28 @@ func claudeStream(ctx context.Context, o streamOpts, emit func(kind string, payl
 	cmd.Stderr = &stderr
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return "", err
+		return "", store.TokenUsage{}, err
 	}
 	if err := cmd.Start(); err != nil {
-		return "", err
+		return "", store.TokenUsage{}, err
 	}
 
-	final, isError, scanErr := consumeClaudeStream(stdout, emit)
+	st, scanErr := consumeClaudeStream(stdout, emit)
 	waitErr := cmd.Wait()
-	if isError {
-		return "", fmt.Errorf("claude reported error: %s", truncateStr(final, 400))
+	usage := st.usage(o.Model)
+	if st.isError {
+		return "", usage, fmt.Errorf("claude reported error: %s", truncateStr(st.final, 400))
 	}
 	if waitErr != nil {
-		return "", fmt.Errorf("claude exited: %w: %s", waitErr, truncateStr(stderr.String(), 400))
+		return "", usage, fmt.Errorf("claude exited: %w: %s", waitErr, truncateStr(stderr.String(), 400))
 	}
 	if scanErr != nil {
-		return "", scanErr
+		return "", usage, scanErr
 	}
-	if final == "" {
-		return "", fmt.Errorf("claude produced no result")
+	if st.final == "" {
+		return "", usage, fmt.Errorf("claude produced no result")
 	}
-	return final, nil
+	return st.final, usage, nil
 }
 
 func streamArgs(o streamOpts) []string {
@@ -78,16 +84,17 @@ func streamArgs(o streamOpts) []string {
 	return args
 }
 
-func consumeClaudeStream(stdout io.Reader, emit func(kind string, payload any)) (final string, isError bool, err error) {
+func consumeClaudeStream(stdout io.Reader, emit func(kind string, payload any)) (streamState, error) {
 	sc := bufio.NewScanner(stdout)
 	sc.Buffer(make([]byte, 1024*1024), 8*1024*1024)
+	var st streamState
 	for sc.Scan() {
-		final, isError = applyClaudeLine(sc.Bytes(), emit, final, isError)
+		st = applyClaudeLine(sc.Bytes(), emit, st)
 	}
-	return final, isError, sc.Err()
+	return st, sc.Err()
 }
 
-func applyClaudeLine(line []byte, emit func(kind string, payload any), final string, isError bool) (string, bool) {
+func applyClaudeLine(line []byte, emit func(kind string, payload any), st streamState) streamState {
 	var msg struct {
 		Type    string `json:"type"`
 		Subtype string `json:"subtype"`
@@ -96,9 +103,10 @@ func applyClaudeLine(line []byte, emit func(kind string, payload any), final str
 		Message struct {
 			Content []json.RawMessage `json:"content"`
 		} `json:"message"`
+		resultUsage
 	}
 	if err := json.Unmarshal(line, &msg); err != nil {
-		return final, isError
+		return st
 	}
 	switch msg.Type {
 	case "assistant":
@@ -106,9 +114,9 @@ func applyClaudeLine(line []byte, emit func(kind string, payload any), final str
 	case "user":
 		emitToolResults(msg.Message.Content, emit)
 	case "result":
-		return msg.Result, msg.IsError
+		return streamState{final: msg.Result, isError: msg.IsError, acct: msg.resultUsage}
 	}
-	return final, isError
+	return st
 }
 
 func emitAssistantBlocks(content []json.RawMessage, emit func(kind string, payload any)) {

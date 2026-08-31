@@ -42,3 +42,12 @@ ai:
   # How many deep runs may execute at once. One run is already a fanout of
   # `claude` subprocesses; the rest queue and the UI shows their place in line.
   max_concurrent: 2
+
+# Periodic "is there a newer release?" check. This is the only outbound request
+# the app makes that is not to Linear or to your local claude binary: one
+# unauthenticated GET to GitHub's public releases endpoint. Nothing about your
+# workspace is sent. Set enabled: false and nothing leaves the machine.
+update_check:
+  enabled: true
+  interval: 24h   # floored at 1h
+  repo: polds/rapid-issue-triage

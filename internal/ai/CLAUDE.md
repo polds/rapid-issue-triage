@@ -10,8 +10,11 @@ vocabulary and both land in `store.Enrichment`.
 
 ## Layout
 
-Single file, `enrich.go`: `Enricher` (`Command`, `Model`, `Timeout`),
-`Enrich`, `buildPrompt`, `parseResult`, `truncate`.
+`enrich.go`: `Enricher` (`Command`, `Model`, `Timeout`), `Enrich`,
+`buildPrompt`, `parseResult`, `truncate`.
+
+`usage.go`: `cliEnvelope` — the CLI's result envelope, including the `usage`
+object and `total_cost_usd` — and its conversion to a `store.TokenUsage`.
 
 ## Invariants
 
@@ -37,6 +40,13 @@ Single file, `enrich.go`: `Enricher` (`Command`, `Model`, `Timeout`),
 - **Results are cached by content hash**, not by issue id — see
   `store.IssueContentHash`. This package does not manage the cache;
   `internal/server` does.
+- **Token counts are the CLI's, never an estimate.** `Enrich` returns a
+  `store.TokenUsage` beside the enrichment, tagged agent/mode `fast`. It is
+  populated **on the error paths too** — a reply that failed to parse still
+  spent the tokens — so callers record it before checking the error.
+  Persisting it is `internal/server`'s job, like the cache.
+- **`internal/deep` decodes the identical envelope** off `stream-json`. The
+  two are siblings, so each owns its copy; change one and check the other.
 
 ## Gotchas
 
