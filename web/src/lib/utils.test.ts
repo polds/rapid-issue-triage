@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { cn, fmtMs, timeAgo, PRIORITY_NAMES } from "./utils";
+import { cn, fmtMs, fmtTokens, fmtUsd, timeAgo, PRIORITY_NAMES } from "./utils";
 
 describe("cn", () => {
   it("joins conditional classes and drops falsy ones", () => {
@@ -59,6 +59,45 @@ describe("fmtMs", () => {
   it("switches to seconds with one decimal, then to minutes", () => {
     expect(fmtMs(1500)).toBe("1.5s");
     expect(fmtMs(90_000)).toBe("1m 30s");
+  });
+});
+
+describe("fmtTokens", () => {
+  it("renders zero and negatives as a plain zero", () => {
+    expect(fmtTokens(0)).toBe("0");
+    expect(fmtTokens(-10)).toBe("0");
+  });
+
+  it("leaves counts under a thousand exact", () => {
+    expect(fmtTokens(1)).toBe("1");
+    expect(fmtTokens(999)).toBe("999");
+  });
+
+  it("keeps a decimal on small K values and drops it on large ones", () => {
+    expect(fmtTokens(1500)).toBe("1.5K");
+    expect(fmtTokens(29_717)).toBe("30K");
+  });
+
+  it("switches to millions with enough precision to distinguish runs", () => {
+    expect(fmtTokens(1_240_000)).toBe("1.24M");
+    expect(fmtTokens(42_500_000)).toBe("42.5M");
+  });
+});
+
+describe("fmtUsd", () => {
+  it("renders a true zero as $0.00", () => {
+    expect(fmtUsd(0)).toBe("$0.00");
+    expect(fmtUsd(-1)).toBe("$0.00");
+  });
+
+  it("keeps sub-cent costs visible instead of rounding them away", () => {
+    expect(fmtUsd(0.000942)).toBe("$0.0009");
+    expect(fmtUsd(0.0342)).toBe("$0.034");
+  });
+
+  it("uses ordinary currency precision from a dollar up", () => {
+    expect(fmtUsd(1.5)).toBe("$1.50");
+    expect(fmtUsd(12.345)).toBe("$12.35");
   });
 });
 

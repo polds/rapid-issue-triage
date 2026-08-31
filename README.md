@@ -16,7 +16,11 @@ gamified report page.
 - **AI enrichment** — shells out to the `claude` CLI (no API key) for a
   summary + relevancy verdict (actionable / likely obsolete / possibly done /
   needs info / duplicate suspect).
-- **Reports** — daily throughput, outcome breakdown, streaks, speed stats.
+- **Reports** — daily throughput, outcome breakdown, streaks, speed stats, and
+  what AI enrichment has spent: total tokens and estimated cost, broken down by
+  responsibility (the fast enricher, each deep-run scout, the synthesis pass).
+  Counts are the `claude` CLI's own accounting, not an estimate, and are
+  recorded from the first enrichment run after upgrading.
 
 ## Setup
 

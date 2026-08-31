@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:40:48.668Z
-> Files: 138 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:53:20.642Z
+> Files: 142 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -18,7 +18,7 @@
 - `LICENSE` — Project license (~3029 tok)
 - `Makefile` — Make build targets (~4331 tok)
 - `rapid-triage.example.yaml` — Rapid Triage configuration. Copy to ./rapid-triage.yaml or (~467 tok)
-- `README.md` — Project documentation (~3159 tok)
+- `README.md` — Project documentation (~3233 tok)
 - `SECURITY.md` — Security Policy (~627 tok)
 - `webui.go` — embeds the built frontend (web/dist) into the binary. (~84 tok)
 
@@ -51,8 +51,9 @@
 
 ## internal/ai/
 
-- `CLAUDE.md` — Fast enrichment: verdict set, prompt/truncation invariants (~656 tok)
-- `enrich.go` — shells out to the Claude Code CLI (no API key required) to (~1365 tok)
+- `CLAUDE.md` — internal/ai — fast enrichment (one Claude call) (~816 tok)
+- `enrich.go` — shells out to the Claude Code CLI (no API key required) to (~1499 tok)
+- `usage.go` — cliEnvelope (17 fields) (~691 tok)
 
 ## internal/config/
 
@@ -62,11 +63,12 @@
 
 ## internal/deep/
 
-- `claude.go` — streamOpts (56 fields) (~1218 tok)
-- `CLAUDE.md` — Scout fanout, the credential boundary, run lifecycle, report schema (~1317 tok)
-- `orchestrator.go` — Orchestrator (83 fields); methods: ValidateToken, Subscribe, LogToolCall, Start (~2935 tok)
+- `claude.go` — streamOpts (56 fields) (~1336 tok)
+- `CLAUDE.md` — internal/deep — multi-agent deep enrichment (~1460 tok)
+- `orchestrator.go` — Orchestrator (83 fields); methods: ValidateToken, Subscribe, LogToolCall, Start (~3077 tok)
 - `scouts.go` — scoutDef (30 fields) (~2169 tok)
 - `toolbox.go` — implements deep AI enrichment: a fanout of read-only scout (~3261 tok)
+- `usage.go` — streamState (18 fields) (~680 tok)
 
 ## internal/linear/
 
@@ -79,8 +81,8 @@
 
 - `CLAUDE.md` — internal/server — local HTTP API + embedded UI (~1765 tok)
 - `deep.go` — HTTP handlers: sendSSE (~1660 tok)
-- `handlers.go` — applyRequest (80 fields) (~4924 tok)
-- `issuegone_test.go` — TestSkipAndSnoozeOnPrunedIssueReportIssueGone, TestSkipOnLiveIssueStillSucceeds (~845 tok)
+- `handlers.go` — applyRequest (79 fields) (~4983 tok)
+- `issuegone_test.go` — TestSkipAndSnoozeOnPrunedIssueReportIssueGone, TestSkipOnLiveIssueStillSucceeds (~848 tok)
 - `labelgroups_test.go` — TestGroupsWithSiblingsKeepsOnlyClashes, TestClassifyGroupSplitsIncomingFromExisting, TestClassifyGroupTwoIncomingIsNotResolvable, TestClassifyGroup... (~1429 tok)
 - `labelgroups.go` — labelGroupConflict (45 fields); methods: Error (~1691 tok)
 - `ops.go` — opOptions (153 fields) (~3443 tok)
@@ -88,15 +90,15 @@
 - `pickfolder.go` (~1044 tok)
 - `reportcomment_test.go` — TestLinearIssueURL (~160 tok)
 - `reportcomment.go` — deepReport (54 fields) (~1373 tok)
-- `server.go` — exposes the local HTTP API and serves the embedded web UI. (~1849 tok)
+- `server.go` — exposes the local HTTP API and serves the embedded web UI. (~1918 tok)
 - `settings.go` — ClaudeAvail (35 fields) (~990 tok)
-- `version_test.go` — TestHandleVersionShape, TestHandleVersionCheckDisabled (~720 tok)
+- `version_test.go` — TestHandleVersionShape, TestHandleVersionCheckDisabled, TestNilCheckerBecomesDisabled (~964 tok)
 - `version.go` — versionResponse (2 fields) (~358 tok)
 
 ## internal/store/
 
-- `activity.go` (~1434 tok)
-- `CLAUDE.md` — internal/store — sqlite: the only persistence layer (~1145 tok)
+- `activity.go` (~1457 tok)
+- `CLAUDE.md` — internal/store — sqlite: the only persistence layer (~1288 tok)
 - `enrichments.go` — IssueContentHash (~711 tok)
 - `enrichruns.go` — EnrichRun (46 fields); methods: CreateEnrichRun, FinishEnrichRun, GetEnrichRun, LatestRunForIssue (~1188 tok)
 - `enrichsettings.go` — EnrichSettings gates deep enrichment. Every source is read-only by (~396 tok)
@@ -108,7 +110,9 @@
 - `secrets_test.go` — TestSecretsRoundTripAndHint, TestHintMasks (~383 tok)
 - `secrets.go` — Secrets (36 fields); methods: GetSecrets, SetSecret, Resolve, SecretStatus (~890 tok)
 - `store_test.go` — TestMetaRoundTrip, TestQueueFilterEmpty, TestIssueQueueSkipSnoozeTriageAndFilters, TestMacrosCRUD + 5 more (~3703 tok)
-- `store.go` — owns the local sqlite database: the issue index, skip/snooze (~1665 tok)
+- `store.go` — owns the local sqlite database: the issue index, skip/snooze (~1932 tok)
+- `tokenusage_test.go` — TestRecordTokenUsageSkipsEmptyCalls, TestTokenUsageReportTotalsAndBreakdowns, TestReportCarriesTokenUsage (~1012 tok)
+- `tokenusage.go` — TokenUsage (76 fields); methods: Empty, RecordTokenUsage, TokenUsageReport (~2132 tok)
 
 ## internal/syncer/
 
@@ -182,7 +186,7 @@
 ## web/src/lib/
 
 - `api.ts` — Thin fetch wrapper over the local Go API. (~2198 tok)
-- `CLAUDE.md` — web/src/lib/ — state, transport, types, pure helpers (~1371 tok)
+- `CLAUDE.md` — web/src/lib/ — state, transport, types, pure helpers (~1377 tok)
 - `colors.test.ts` — Declares key (~300 tok)
 - `colors.ts` — Teams come from Linear dynamically; give each a stable, readable hue. (~150 tok)
 - `enrichmode.test.ts` — Declares enrichSettings (~618 tok)
@@ -196,9 +200,9 @@
 - `store.tsx` — Global app state: metadata, macro list, the card deck, and every triage (~7348 tok)
 - `theme.tsx` — Ctx — uses useState, useEffect, useCallback, useContext (~334 tok)
 - `triage-context.ts` — The triage context object, its accessor hook, and the deck types they (~985 tok)
-- `types.ts` — Shared types mirroring the Go server's JSON payloads. (~2214 tok)
-- `utils.test.ts` — Declares enabled (~633 tok)
-- `utils.ts` — Exports cn, timeAgo, fmtMs, PRIORITY_NAMES (~282 tok)
+- `types.ts` — One summed bucket of AI-enrichment token spend. (~2442 tok)
+- `utils.test.ts` — Declares enabled (~966 tok)
+- `utils.ts` — Exports cn, timeAgo, fmtMs, fmtTokens + 2 more (~531 tok)
 - `version.test.ts` — Declares info (~1381 tok)
 - `version.ts` — Pure formatting for the build stamp and the update check. The server decides (~869 tok)
 
@@ -208,8 +212,8 @@
 
 ## web/src/pages/
 
-- `CLAUDE.md` — web/src/pages/ — the four hash routes (~882 tok)
+- `CLAUDE.md` — web/src/pages/ — the four hash routes (~1027 tok)
 - `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5158 tok)
-- `Reports.tsx` — Gamified report page: stat tiles, per-day bar chart, outcome donut, (~2998 tok)
+- `Reports.tsx` — One responsibility's share of the spend: a bar scaled to the heaviest. (~5214 tok)
 - `Settings.tsx` — Enrichment settings: fast vs deep mode, per-source toggles with live (~6130 tok)
 - `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2327 tok)

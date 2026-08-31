@@ -218,6 +218,24 @@
   Worth doing before pushing anything that builds SQL or shells out — `make ci`
   silently skips the gate otherwise and CI catches it instead.
 
+### The Claude Code CLI reports its own token usage — never estimate it
+
+Both `claude -p --output-format json` and `--output-format stream-json` end
+with a result object carrying the *same* fields: `usage`
+(`input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
+`cache_read_input_tokens`), `total_cost_usd`, `duration_ms`, and a
+`modelUsage` map keyed by real model id. Anything asking "how many tokens did
+enrichment use" is a *capture* problem, not an estimation problem — probe the
+CLI before writing a token counter.
+
+Two gotchas worth remembering:
+- `modelUsage` contains a cheap housekeeping model (Haiku) alongside the model
+  that actually answered. Pick the **highest-cost** entry to name the model;
+  `dominantModel` in `internal/ai` and `internal/deep` does this, and it
+  matters because `ai.model` / config is usually empty.
+- `total_cost_usd` carries `"costBasis":"list"`. On a Claude subscription no
+  money changes hands per call, so it is a list-price *equivalent* — the
+  reports page says so rather than presenting it as a bill.
 - **`debug.ReadBuildInfo()` is the free half of a version stamp, but
   `Main.Version` lies on a local build.** GoReleaser stamps `main.version` via
   `-ldflags`; a plain `go build` stamps nothing and the toolchain synthesizes a
@@ -400,6 +418,20 @@
   for — the one outcome worse than the original error.
 - [2026-08-31] The update check is server-side, in memory, and unauthenticated. Alternatives considered: persisting the last result in sqlite (rejected — it would mean new DDL in `internal/store` for a value whose staleness costs one HTTP GET per restart), and comparing versions in the frontend (rejected — `update.available` is one verdict from one implementation, `internal/version.IsNewer`, and the UI only decides how to phrase it). The checker is a leaf package holding no credentials and reading no local state, so the one request it makes stays trivially auditable; `update_check.enabled: false` is the kill switch and has a test asserting no request is made.
 - [2026-08-31] `GET /repos/{owner}/{repo}/releases/latest` rather than `/tags` or the GraphQL API: it excludes drafts and prereleases server-side, needs no auth, and returns the `html_url` to link to. 404 (a fork with no releases) is treated as an empty result, not a failure; 403/429 gets its own "rate limit, will retry" message. The configured repo is regexp-validated as `owner/name` so a config value can never steer the request at another host or path.
+
+### 2026-08-31 — Token usage is recorded per *responsibility*, not per run
+
+`token_usage` tags every LLM call with the agent that made it (`fast`, each
+deep scout, `synthesis`) rather than only the run. That tag is the whole point
+of the reports breakdown: "deep enrichment cost $X" is much less useful than
+"the repo scout is 40% of the bill". The table is deliberately **not** joined
+to `issues` — `PruneStale` deleting an issue must not rewrite spend history.
+
+Usage is returned from `Enrich`/`claudeStream` **on the error paths too**: a
+scout that timed out still spent its tokens, and dropping that silently would
+make the panel under-report exactly when spend is worst. `RecordTokenUsage`
+no-ops on an all-zero row, so a call that died before spending anything does
+not inflate the call count.
 
 - [2026-08-31] Skip and snooze **retire** a card the sync pruned; macros and
   quick edits do **not**. Skip/snooze are local bookkeeping on the row itself,

@@ -423,7 +423,10 @@ func (s *Server) handleEnrich(w http.ResponseWriter, r *http.Request) {
 	// Detached context: an enrichment keeps running (and is stored) even if
 	// the client navigates away mid-run.
 	comments := s.commentsText(bgCtx(), id)
-	enr, err := s.enricher.Enrich(bgCtx(), issue, comments)
+	enr, usage, err := s.enricher.Enrich(bgCtx(), issue, comments)
+	// The tokens are spent whether or not the reply parsed, so the reports
+	// page hears about them either way.
+	_ = s.store.RecordTokenUsage(usage)
 	if err != nil {
 		log.Printf("enrich %s: %v", issue.Identifier, err)
 		writeErr(w, 502, err)
@@ -628,7 +631,9 @@ func (s *Server) PrefetchEnrichments(ctx context.Context, n int) {
 			issue, err := s.store.GetIssue(id)
 			if err == nil {
 				comments := s.commentsText(ctx, id)
-				if enr, err := s.enricher.Enrich(ctx, issue, comments); err == nil {
+				enr, usage, err := s.enricher.Enrich(ctx, issue, comments)
+				_ = s.store.RecordTokenUsage(usage)
+				if err == nil {
 					_ = s.store.SaveEnrichment(enr)
 				} else {
 					log.Printf("prefetch enrich %s: %v", issue.Identifier, err)

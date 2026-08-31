@@ -68,6 +68,9 @@ func (s *Store) Report() (map[string]any, error) {
 	if out["recent"], err = s.activityFeed(30); err != nil {
 		return nil, err
 	}
+	if out["tokens"], err = s.TokenUsageReport(); err != nil {
+		return nil, err
+	}
 	return out, nil
 }
 
