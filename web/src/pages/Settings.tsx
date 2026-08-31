@@ -3,6 +3,7 @@
 // spelled out. Claude path, MCP API keys, and a native folder picker live here.
 import { useEffect, useState } from "react";
 import {
+  ArrowUpCircle,
   Check,
   ChevronDown,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
   Loader2,
   Lock,
   Plus,
+  RefreshCw,
   ShieldCheck,
   Trash2,
   TriangleAlert,
@@ -22,6 +24,7 @@ import { useTriage } from "@/lib/triage-context";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
+import { buildDate, displayVersion, hasUpdate, releaseHref, shortCommit, updateSummary } from "@/lib/version";
 import { cn } from "@/lib/utils";
 
 const SOURCE_META: {
@@ -379,7 +382,77 @@ export function SettingsPage() {
           </div>
         </div>
       )}
+      <AboutCard />
     </main>
+  );
+}
+
+// The build stamp, and where the background update check got to. The check
+// itself runs server-side on a timer (internal/update); "Check now" only asks
+// it to run early.
+function AboutCard() {
+  const { version, checkForUpdate } = useTriage();
+  const [checking, setChecking] = useState(false);
+  if (!version) return null;
+
+  const update = version.update;
+  const check = async () => {
+    setChecking(true);
+    try {
+      await checkForUpdate();
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <>
+      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">About</h2>
+      <div
+        className={cn(
+          "mt-3 rounded-xl border p-4",
+          hasUpdate(version) ? "border-info/40 bg-info/[0.04]" : "border-border bg-card",
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-sm font-semibold">Rapid Triage</span>
+          <code className="rounded bg-surface-2 px-2 py-0.5 font-mono text-xs">{displayVersion(version)}</code>
+          {shortCommit(version.commit) && !version.dev && (
+            <span className="font-mono text-[11px] text-muted-foreground">commit {shortCommit(version.commit)}</span>
+          )}
+          {buildDate(version.date) && (
+            <span className="text-[11px] text-muted-foreground">built {buildDate(version.date)}</span>
+          )}
+        </div>
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {hasUpdate(version) && <ArrowUpCircle className="size-3.5 shrink-0 text-info" />}
+          {updateSummary(version)}
+        </p>
+        {update.enabled && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button variant="quiet" size="sm" disabled={checking} onClick={() => void check()}>
+              {checking ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+              Check now
+            </Button>
+            {hasUpdate(version) && (
+              <a
+                href={releaseHref(version)}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-info/40 bg-info/10 px-3 text-xs font-medium text-info transition-colors hover:bg-info/20"
+              >
+                <ArrowUpCircle className="size-3.5" />
+                Release notes for {update.latest}
+              </a>
+            )}
+            <span className="text-[11px] text-muted-foreground">
+              Checks GitHub for a newer release once a day. Nothing but this app's version is sent; turn it off with{" "}
+              <code className="font-mono">update_check.enabled: false</code>.
+            </span>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

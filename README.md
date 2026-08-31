@@ -73,6 +73,18 @@ passed through verbatim, so any filter Linear supports defines your queue.
 
 Flags: `-config path`, `-addr host:port`, `-no-open`, `-version`.
 
+The running version is shown beside the wordmark in the top bar and under
+**Settings → About**. Once a day the app asks GitHub whether a newer release
+exists and, if so, the top bar links to it. That check is the only outbound
+request the app makes that is not to Linear or to your local `claude` binary —
+one unauthenticated `GET` of the public releases endpoint, carrying nothing but
+the version in its User-Agent. Turn it off with:
+
+```yaml
+update_check:
+  enabled: false
+```
+
 ## Keyboard map
 
 | Key | Action |

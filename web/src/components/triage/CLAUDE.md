@@ -17,7 +17,7 @@ and their own local UI state only. The keyboard map itself lives in
 | `DuplicateOfPicker.tsx` | Prompts for the canonical issue. Linear requires the duplicate relation *before* the state change, so this blocks the apply. |
 | `LabelGroupPrompt.tsx` | Replace-or-cancel when an action would add a second label from one exclusive Linear label group. Offers "Replace" only when the action adds exactly one sibling; otherwise it just explains the clash. |
 | `FilterPanel.tsx` | Two distinct things: pick a saved Linear view (its filter becomes the **index** filter and triggers a reindex) vs. narrow the **local** queue view. Don't conflate them. |
-| `TopBar.tsx` | Nav + `SyncPill` (fresh / stale / syncing / reindexing / error). |
+| `TopBar.tsx` | Nav + `SyncPill` (fresh / stale / syncing / reindexing / error) + `VersionBadge` (the running build; becomes a link to the release when the background check finds a newer one). |
 | `NotificationBell.tsx` | Background enrichment tracker; clicking an entry jumps to that issue. |
 | `HelpOverlay.tsx` | The `?` overlay. **Must match the real keyboard map** and the README table. |
 | `ShortcutBar.tsx` | Persistent hint strip. |

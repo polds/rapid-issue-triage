@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
+import { ArrowUpCircle, BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
 import { useTriage } from "@/lib/triage-context";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
 import { FilterPanel } from "./FilterPanel";
 import { NotificationBell } from "./NotificationBell";
+import { buildTooltip, displayVersion, hasUpdate, releaseHref } from "@/lib/version";
 import { cn, timeAgo } from "@/lib/utils";
 
 function SyncPill() {
@@ -49,6 +50,33 @@ function SyncPill() {
   );
 }
 
+// The running build, beside the wordmark. It is a muted string until the
+// background check finds a newer release, at which point it becomes the one
+// call to action: a link straight to that release.
+function VersionBadge() {
+  const { version } = useTriage();
+  if (!version) return null;
+  const tip = buildTooltip(version);
+  if (hasUpdate(version))
+    return (
+      <a
+        href={releaseHref(version)}
+        target="_blank"
+        rel="noreferrer noopener"
+        title={`${tip} — open the release notes`}
+        className="inline-flex items-center gap-1 rounded-full border border-info/40 bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info transition-colors hover:bg-info/20"
+      >
+        <ArrowUpCircle className="size-3" />
+        {version.update.latest}
+      </a>
+    );
+  return (
+    <span title={tip} className="hidden font-mono text-[11px] text-muted-foreground lg:inline">
+      {displayVersion(version)}
+    </span>
+  );
+}
+
 export function TopBar({ page, navigate }: { page: string; navigate: (p: string) => void }) {
   const { meta, viewFilter, setViewFilter, remaining } = useTriage();
   const [panel, setPanel] = useState(false);
@@ -78,6 +106,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
           </span>
           <span className="font-display text-sm font-extrabold tracking-tight">Rapid Triage</span>
         </button>
+        <VersionBadge />
 
         <Select
           value={quickTeam}

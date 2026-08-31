@@ -162,6 +162,28 @@ export interface SyncStatus {
   reindexing?: boolean;
 }
 
+// Mirrors internal/update.Status. `available` is the server's verdict — the
+// UI never compares versions itself.
+export interface UpdateStatus {
+  enabled: boolean;
+  checking: boolean;
+  latest?: string;
+  available: boolean;
+  releaseUrl?: string;
+  checkedAt?: string;
+  error?: string;
+}
+
+// Mirrors internal/version.Info plus the embedded update block; the Go handler
+// flattens Info into the response, so these are siblings of `update`.
+export interface VersionInfo {
+  version: string;
+  commit?: string;
+  date?: string;
+  dev: boolean;
+  update: UpdateStatus;
+}
+
 export interface ViewFilter {
   teams: string[];
   excludeTeams: string[];

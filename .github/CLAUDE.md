@@ -228,6 +228,14 @@ archives and the provenance attest.
 - **No `tag_name_pattern`** (or any metadata-restriction rule) — this is a
   user-owned repo and those 422. Semver enforcement lives in `release.yml`'s
   own regex guard plus the `v*.*.*` trigger glob.
+- **`-X main.<symbol>` fails silently.** The linker ignores an `-X` for a
+  symbol that does not exist, so renaming the Go variable and not the
+  `.goreleaser.yaml` ldflags line ships a release stamped `dev` — and nothing
+  in CI catches it, because the binary builds and runs fine. The three
+  `builds[].ldflags` lines set `main.buildVersion`, `main.commit`, and
+  `main.date` (consumed by `internal/version.Resolve`). Rename either side and
+  you must rename both; verify with
+  `go build -ldflags "-X main.buildVersion=v9.9.9" ./cmd/triage && ./triage -version`.
 - Don't put `dist/*.spdx.json` in `release.extra_files`: SBOMs are already
   first-class GoReleaser artifacts, and the glob double-queues them into a
   `422 already_exists`. `checksum.extra_files` is the right home.

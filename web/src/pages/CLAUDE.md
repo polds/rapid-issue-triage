@@ -9,7 +9,7 @@ Pages own layout and page-local state; anything shared lives in
 | `Triage.tsx` | `#/` | The card deck. **Owns the global keyboard map** and renders `IssueCard` + `ActionBar` + `QuickEditRow`. |
 | `Macros.tsx` | `#/macros` | Macro CRUD: name, key binding, outcome, and the ordered op list. |
 | `Reports.tsx` | `#/reports` | Gamified stats: tiles, per-day bar chart, outcome donut, streaks, plus the AI-enrichment usage panel. Charts are hand-rolled SVG (or plain divs) — no chart library. |
-| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, and Advanced → Claude binary path. |
+| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, Advanced → Claude binary path, and About (build stamp + update check). |
 
 ## Triage — the keyboard contract
 
@@ -49,6 +49,10 @@ macros silently stop working on other teams. Op kinds and resolution live in
   filesystem path; the server opens a native dialog. A canceled dialog is not
   an error.
 - Saving invalidates the `enrichmode` cache, or cards keep the old mode.
+- **About renders whatever the server says, and decides nothing.** "Check now"
+  asks `POST /api/version/check` to run the check early; whether an update
+  exists is `update.available` from `internal/update`, never a comparison here.
+  The card hides its controls entirely when the config disabled the check.
 
 ## Reports
 

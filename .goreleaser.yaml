@@ -32,7 +32,7 @@ builds:
       - -trimpath
       - -buildvcs=false
     ldflags:
-      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+      - -s -w -buildid= -X main.buildVersion={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
     mod_timestamp: "{{ .CommitTimestamp }}"
 
   - id: windows
@@ -50,7 +50,7 @@ builds:
       - -trimpath
       - -buildvcs=false
     ldflags:
-      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+      - -s -w -buildid= -X main.buildVersion={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
     mod_timestamp: "{{ .CommitTimestamp }}"
 
   - id: linux-extra
@@ -73,7 +73,7 @@ builds:
       - -trimpath
       - -buildvcs=false
     ldflags:
-      - -s -w -buildid= -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+      - -s -w -buildid= -X main.buildVersion={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
     mod_timestamp: "{{ .CommitTimestamp }}"
 
 universal_binaries:

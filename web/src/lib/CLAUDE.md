@@ -2,8 +2,8 @@
 
 Everything the UI runs on that isn't a component. Split so that the pure
 modules can carry a real coverage floor: **`utils`, `colors`, `linear`,
-`linearfilter`, `enrichmode` are the only files in `vitest.config.ts`'s
-coverage `include`** (90% statements/functions/lines, 85% branches). New pure
+`linearfilter`, `enrichmode`, `labelgroups`, `version` are the only files in
+`vitest.config.ts`'s coverage `include`** (90% statements/functions/lines, 85% branches). New pure
 logic belongs here with a test, not inline in a component.
 
 ## Layout
@@ -21,6 +21,7 @@ logic belongs here with a test, not inline in a component.
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |
 | `enrichmode.ts` | Module-level cache of enrichment settings so every card doesn't refetch. | ✔ |
 | `labelgroups.ts` | Pre-flight for Linear's mutually exclusive label groups: which groups a set of ops would put two labels into, and how to say so. | ✔ |
+| `version.ts` | How to *say* the build stamp and the update check — the display string, the tooltip, the Settings summary, the release link. Never *decides* whether an update exists; `internal/update` does. | ✔ |
 
 ## `store.tsx` — the contract
 
@@ -46,6 +47,11 @@ Optimistic, deck-shaped state:
 - **`needsDuplicateOf` gates the duplicate flow.** Linear requires the
   relation before a duplicate-type state change, so the provider raises a
   prompt instead of applying.
+- **The version is polled, not pushed.** `internal/update` owns the actual
+  GitHub check on its own daily timer; the provider only re-reads
+  `/api/version` hourly, plus once on mount, plus whenever Settings asks for a
+  check. Never compare versions in the frontend — `update.available` is the
+  server's verdict and the only one.
 - `duration()` times each card from first view, feeding the reports page.
 
 ## Invariants

@@ -41,7 +41,7 @@ func goneServer(t *testing.T) (*Server, string) {
 	if _, err := st.PruneStale(2); err != nil {
 		t.Fatal(err)
 	}
-	return New(st, nil, nil, nil, nil, ""), row.ID
+	return New(st, nil, nil, nil, nil, "", nil), row.ID
 }
 
 func postIssue(t *testing.T, h http.HandlerFunc, id string) *httptest.ResponseRecorder {
@@ -103,7 +103,7 @@ func TestSkipOnLiveIssueStillSucceeds(t *testing.T) {
 	if err := tx.Commit(); err != nil {
 		t.Fatal(err)
 	}
-	w := postIssue(t, New(st, nil, nil, nil, nil, "").handleSkip, "i1")
+	w := postIssue(t, New(st, nil, nil, nil, nil, "", nil).handleSkip, "i1")
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d body = %s, want 200", w.Code, w.Body.String())
 	}

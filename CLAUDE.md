@@ -87,8 +87,9 @@ internal/server ────────────── internal/syncer      
    ├──────────────────────── internal/store (sqlite)    the ONLY source the UI reads
    │                                ↑
    ├── internal/ai      fast: one claude -p call
-   └── internal/deep    deep: scouts → `triage tool` shim → POST /api/toolbox
-                                                              ↑ the only path to a credential
+   ├── internal/deep    deep: scouts → `triage tool` shim → POST /api/toolbox
+   │                                                          ↑ the only path to a credential
+   └── internal/update  daily GET api.github.com/…/releases/latest  (switchable)
 web/ (embedded SPA) ── fetch /api/* ── internal/server
 ```
 
@@ -108,6 +109,12 @@ never to *broken*.
   shim that POSTs to `/api/toolbox`; the server holds the keys, executes a
   read-only implementation, and logs the call. Every toolbox verb must stay
   read-only.
+- **Three outbound destinations, and no more:** the Linear API, the local
+  `claude` binary, and — unless `update_check.enabled: false` — one
+  unauthenticated GET a day to GitHub's public releases endpoint. That check
+  sends no workspace data and no request body, and its failure is status text,
+  never an error. Anything that would add a fourth needs a reason in the PR and
+  a line in `SECURITY.md`.
 - **Loopback only.** `/api/toolbox` and `/api/pick` spawn subprocesses; that
   is acceptable solely because the listener is `127.0.0.1`. Do not bind
   elsewhere without revisiting both. The one exception is the released
@@ -200,6 +207,7 @@ file **in the same PR**.
 | a keyboard shortcut | `pages/Triage.tsx`, `HelpOverlay.tsx`, `README.md` |
 | the report/verdict schema | `internal/deep`, `internal/ai`, `reportcomment.go`, `report-format.ts` |
 | a CI job name | the `Main` ruleset's required checks (same PR, or not at all) |
+| add a config key | `internal/config` struct + `Default()` + `rapid-triage.example.yaml` + the README's Configuration section |
 | add a dependency | nothing — but `make licenses` and `make osv` must still pass, and `licenses` will not for a copyleft one |
 | a pinned scanner version | the `Makefile` only; CI reads it back with `make -s print-<VAR>` |
 
