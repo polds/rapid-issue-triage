@@ -1,9 +1,6 @@
 package store
 
-import (
-	"database/sql"
-	"strings"
-)
+import "database/sql"
 
 // Replace-all upserts for workspace metadata. Each runs in the caller's sync
 // transaction; tables are small so wholesale replace keeps things simple.
@@ -134,7 +131,8 @@ func (s *Store) LabelGroupsFor(ids []string) ([]LabelGroupMember, error) {
 	}
 	q := `SELECT l.id, l.name, g.id, g.name FROM labels l
 	  JOIN labels g ON g.id = l.parent_id
-	  WHERE l.id IN (?` + strings.Repeat(", ?", len(ids)-1) + `)`
+	  WHERE l.id IN (`
+	q += placeholders(len(ids)) + `)`
 	rows, err := s.db.Query(q, args...)
 	if err != nil {
 		return nil, err
