@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Inbox, Loader2, Undo2 } from "lucide-react";
 import { useTriage } from "@/lib/triage-context";
 import { IssueCard } from "@/components/triage/IssueCard";
 import { ActionBar } from "@/components/triage/ActionBar";
-import { QuickEditRow, type PickerKey } from "@/components/triage/QuickEditRow";
+import { QuickEditRow, QuickEditPickers, type PickerKey } from "@/components/triage/QuickEditRow";
 import { HelpOverlay } from "@/components/triage/HelpOverlay";
 import { Confetti } from "@/components/triage/Confetti";
 import { LabelGroupPrompt } from "@/components/triage/LabelGroupPrompt";
@@ -103,7 +103,7 @@ export function TriagePage() {
             {/* Narrow screens: actions below the card, as before. */}
             <div className="mt-6 space-y-4 xl:hidden">
               <ActionBar />
-              <QuickEditRow open={picker} setOpen={setPicker} />
+              <QuickEditRow setOpen={setPicker} />
               <div className="flex justify-center">
                 <Button variant="ghost" size="sm" onClick={undo} disabled={!canUndo}>
                   <Undo2 /> Undo last action
@@ -118,7 +118,7 @@ export function TriagePage() {
                 <ActionBar vertical />
               </div>
               <div className="rounded-lg border border-border bg-card p-3">
-                <QuickEditRow open={picker} setOpen={setPicker} vertical />
+                <QuickEditRow setOpen={setPicker} vertical />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -170,6 +170,9 @@ export function TriagePage() {
           onClose={cancelDuplicatePrompt}
         />
       )}
+      {/* Rendered once for the page: the row above is duplicated per breakpoint,
+          but these portal to document.body and would stack. */}
+      <QuickEditPickers open={picker} setOpen={setPicker} />
       {labelPrompt && current && (
         <LabelGroupPrompt
           identifier={current.issue.identifier}
