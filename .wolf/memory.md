@@ -393,3 +393,13 @@
 | 16:52 | Mirrored the rule as a UI pre-flight + prompt | web/src/lib/labelgroups.ts, store.tsx, components/triage/LabelGroupPrompt.tsx | Replace/Cancel prompt fires before the request — no round trip, no card swipe to undo | ~16k |
 | 17:00 | Seeded an "Area" label group into the offline fixture and drove it | .claude/skills/run-rapid-issue-triage/fixture.mjs | Verified in the real app: prompt renders on ENG-412 + macro 4; API returns 409 then 502 with replaceGroupLabels | ~9k |
 | 17:15 | CI SAST failed on PR #46 (semgrep string-formatted-query, mine) | internal/store/metadata.go | Reproduced locally with pinned semgrep in a venv, fixed to match issues.go's `+=` shape + the existing placeholders() helper; 1 finding → 0 | ~11k |
+
+## Session: 2026-08-31 17:09
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:20 | Traced "Action failed: not found" on Skip/Snooze to the syncer's PruneStale racing the in-browser deck | internal/store/issues.go, internal/syncer/syncer.go, internal/server/handlers.go | Root cause: the deck is a snapshot; PruneStale DELETEs any issue that left the index filter, and skip/snooze 404 on the vanished row | ~12k |
+| 17:24 | Made a pruned row a distinguishable outcome, not a bare error | internal/store/store.go, internal/server/server.go, handlers.go, deep.go | store.ErrNotFound exported; new writeIssueErr → 404 {code:"issue_gone"} + explanation, real faults now 500; all 6 GetIssue-by-path sites wired | ~10k |
+| 17:28 | Retired gone cards in the UI instead of rolling them back | web/src/lib/store.tsx, triage-context.ts, api.ts | New "gone" CardStatus + retireGoneCard: card dims with a LEFT THE INDEX badge, deck advances, informational toast — no "Action failed" | ~9k |
+| 17:35 | Verified live with the driver by DELETEing the visible card's row from sqlite behind the deck | .run-sandbox (driver repl) | S and Z both retire the card and advance; toast fits the 420px single line; Prev shows the disabled retired card | ~8k |
+| 17:42 | Regression test + gates | internal/server/issuegone_test.go | ci-go, web-ci (52 tests), quality all green; web/dist rebuilt and staged | ~6k |

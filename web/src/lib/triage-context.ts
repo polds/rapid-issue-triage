@@ -14,7 +14,10 @@ import type {
   ViewFilter,
 } from "./types";
 
-export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged";
+// "gone" is the one status no action produces: the background sync pruned the
+// issue out of the index while its card still sat in the deck, so the card is
+// retired unplayed.
+export type CardStatus = "pending" | "skipped" | "snoozed" | "triaged" | "gone";
 export type Swipe = "left" | "right" | "down" | null;
 
 export interface Card {

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T16:49:48.652Z
-> Files: 129 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:27:31.182Z
+> Files: 130 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -77,9 +77,10 @@
 
 ## internal/server/
 
-- `CLAUDE.md` — internal/server — local HTTP API + embedded UI (~1515 tok)
+- `CLAUDE.md` — internal/server — local HTTP API + embedded UI (~1641 tok)
 - `deep.go` — HTTP handlers: sendSSE (~1660 tok)
 - `handlers.go` — applyRequest (80 fields) (~4924 tok)
+- `issuegone_test.go` — TestSkipAndSnoozeOnPrunedIssueReportIssueGone, TestSkipOnLiveIssueStillSucceeds (~845 tok)
 - `labelgroups_test.go` — TestGroupsWithSiblingsKeepsOnlyClashes, TestClassifyGroupSplitsIncomingFromExisting, TestClassifyGroupTwoIncomingIsNotResolvable, TestClassifyGroup... (~1429 tok)
 - `labelgroups.go` — labelGroupConflict (45 fields); methods: Error (~1691 tok)
 - `ops.go` — opOptions (153 fields) (~3443 tok)
@@ -87,25 +88,25 @@
 - `pickfolder.go` (~1044 tok)
 - `reportcomment_test.go` — TestLinearIssueURL (~160 tok)
 - `reportcomment.go` — deepReport (54 fields) (~1373 tok)
-- `server.go` — exposes the local HTTP API and serves the embedded web UI. (~1463 tok)
+- `server.go` — exposes the local HTTP API and serves the embedded web UI. (~1766 tok)
 - `settings.go` — ClaudeAvail (35 fields) (~990 tok)
 
 ## internal/store/
 
 - `activity.go` (~1434 tok)
-- `CLAUDE.md` — internal/store — sqlite: the only persistence layer (~1113 tok)
+- `CLAUDE.md` — internal/store — sqlite: the only persistence layer (~1145 tok)
 - `enrichments.go` — IssueContentHash (~711 tok)
 - `enrichruns.go` — EnrichRun (46 fields); methods: CreateEnrichRun, FinishEnrichRun, GetEnrichRun, LatestRunForIssue (~1188 tok)
 - `enrichsettings.go` — EnrichSettings gates deep enrichment. Every source is read-only by (~396 tok)
 - `issues.go` — Declares issueCols (~2245 tok)
 - `macros.go` (~488 tok)
-- `metadata.go` — LabelGroupMember (64 fields); methods: ReplaceTeams, ReplaceStates, ReplaceLabels, ReplaceProjects (~1804 tok)
+- `metadata.go` — Replace-all upserts for workspace metadata. Each runs in the caller's sync (~1797 tok)
 - `models.go` — View models served to the frontend. (~1097 tok)
 - `queuefilter.go` — QueueFilter (19 fields); methods: Empty (~646 tok)
 - `secrets_test.go` — TestSecretsRoundTripAndHint, TestHintMasks (~383 tok)
 - `secrets.go` — Secrets (36 fields); methods: GetSecrets, SetSecret, Resolve, SecretStatus (~890 tok)
 - `store_test.go` — TestMetaRoundTrip, TestQueueFilterEmpty, TestIssueQueueSkipSnoozeTriageAndFilters, TestMacrosCRUD + 5 more (~3703 tok)
-- `store.go` — owns the local sqlite database: the issue index, skip/snooze (~1585 tok)
+- `store.go` — owns the local sqlite database: the issue index, skip/snooze (~1665 tok)
 
 ## internal/syncer/
 
@@ -168,8 +169,8 @@
 
 ## web/src/lib/
 
-- `api.ts` — Thin fetch wrapper over the local Go API. (~2084 tok)
-- `CLAUDE.md` — web/src/lib/ — state, transport, types, pure helpers (~1209 tok)
+- `api.ts` — Thin fetch wrapper over the local Go API. (~2114 tok)
+- `CLAUDE.md` — web/src/lib/ — state, transport, types, pure helpers (~1228 tok)
 - `colors.test.ts` — Declares key (~300 tok)
 - `colors.ts` — Teams come from Linear dynamically; give each a stable, readable hue. (~150 tok)
 - `enrichmode.test.ts` — Declares enrichSettings (~618 tok)
@@ -180,9 +181,9 @@
 - `linear.ts` — linearIssueHref: identifier + template URL -> Linear issue URL (~129 tok)
 - `linearfilter.test.ts` — Mirrors what linear.app puts in ?filter=: base64url, padding stripped. (~571 tok)
 - `linearfilter.ts` — decodeLinearFilterURL: base64url ?filter= -> IssueFilter JSON (~246 tok)
-- `store.tsx` — Global app state: metadata, macro list, the card deck, and every triage (~6722 tok)
+- `store.tsx` — Global app state: metadata, macro list, the card deck, and every triage (~7058 tok)
 - `theme.tsx` — Ctx — uses useState, useEffect, useCallback, useContext (~334 tok)
-- `triage-context.ts` — The triage context object, its accessor hook, and the deck types they (~873 tok)
+- `triage-context.ts` — The triage context object, its accessor hook, and the deck types they (~927 tok)
 - `types.ts` — Shared types mirroring the Go server's JSON payloads. (~2050 tok)
 - `utils.test.ts` — Declares enabled (~633 tok)
 - `utils.ts` — Exports cn, timeAgo, fmtMs, PRIORITY_NAMES (~282 tok)
