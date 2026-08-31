@@ -217,6 +217,25 @@
   Worth doing before pushing anything that builds SQL or shells out — `make ci`
   silently skips the gate otherwise and CI catches it instead.
 
+### The Claude Code CLI reports its own token usage — never estimate it
+
+Both `claude -p --output-format json` and `--output-format stream-json` end
+with a result object carrying the *same* fields: `usage`
+(`input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
+`cache_read_input_tokens`), `total_cost_usd`, `duration_ms`, and a
+`modelUsage` map keyed by real model id. Anything asking "how many tokens did
+enrichment use" is a *capture* problem, not an estimation problem — probe the
+CLI before writing a token counter.
+
+Two gotchas worth remembering:
+- `modelUsage` contains a cheap housekeeping model (Haiku) alongside the model
+  that actually answered. Pick the **highest-cost** entry to name the model;
+  `dominantModel` in `internal/ai` and `internal/deep` does this, and it
+  matters because `ai.model` / config is usually empty.
+- `total_cost_usd` carries `"costBasis":"list"`. On a Claude subscription no
+  money changes hands per call, so it is a list-price *equivalent* — the
+  reports page says so rather than presenting it as a bill.
+
 ## Do-Not-Repeat
 
 - [2026-08-31] Do not let a Linear constraint surface as Linear's own error
@@ -352,3 +371,18 @@
   ones give no basis for picking a winner, so the prompt explains the clash and
   offers only Cancel. Guessing there would silently drop a label the user asked
   for — the one outcome worse than the original error.
+
+### 2026-08-31 — Token usage is recorded per *responsibility*, not per run
+
+`token_usage` tags every LLM call with the agent that made it (`fast`, each
+deep scout, `synthesis`) rather than only the run. That tag is the whole point
+of the reports breakdown: "deep enrichment cost $X" is much less useful than
+"the repo scout is 40% of the bill". The table is deliberately **not** joined
+to `issues` — `PruneStale` deleting an issue must not rewrite spend history.
+
+Usage is returned from `Enrich`/`claudeStream` **on the error paths too**: a
+scout that timed out still spent its tokens, and dropping that silently would
+make the panel under-report exactly when spend is worst. `RecordTokenUsage`
+no-ops on an all-zero row, so a call that died before spending anything does
+not inflate the call count.
+

@@ -15,7 +15,7 @@ logic belongs here with a test, not inline in a component.
 | `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on. **The one place a response is asserted into a type.** | — |
 | `types.ts` | Every wire type, mirroring the Go JSON tags. `EMPTY_FILTER`, `filterIsEmpty`. | — |
 | `theme.tsx` | Light/dark provider, persisted. | — |
-| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `PRIORITY_NAMES`. | ✔ |
+| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`, `PRIORITY_NAMES`. | ✔ |
 | `colors.ts` | Stable hue per team key (hashed → oklch); Linear label hex passthrough with a muted fallback. | ✔ |
 | `linear.ts` | `linearIssueHref` — build an issue URL from an identifier using the current issue's URL as a template. | ✔ |
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |

@@ -16,6 +16,7 @@ Claude call, no tools, no streaming. Settings picks between them
 | `scouts.go` | One prompt per source + `issueContext` + the synthesis prompt (**which defines the report JSON schema**). |
 | `toolbox.go` | `Probe` (what's actually usable on this machine) and `Call` (the read-only tool implementations). |
 | `claude.go` | `claudeStream`: runs `claude -p --output-format stream-json --verbose` and forwards each assistant thought / tool call / tool result to a callback. |
+| `usage.go` | `streamState` + `resultUsage`: the token accounting on the final `result` line, converted to a `store.TokenUsage`. |
 
 ## The credential boundary (the point of this package)
 
@@ -72,6 +73,12 @@ scout agent (claude, sandboxed PATH)
   `store.Enrichment`, `DeepReport` in `web/src/lib/types.ts`,
   `web/src/components/triage/report-format.ts`, and
   `internal/server/reportcomment.go`. Nothing checks these agree.
+- **Every call's token usage is recorded, per agent.** `claudeStream` returns
+  a `store.TokenUsage` that `recordUsage` stamps with the run, issue, and
+  scout name before storing — that agent tag is what the reports page breaks
+  spend down by. Usage comes back on the error paths too, since a scout that
+  failed still spent tokens. `internal/ai` decodes the identical envelope off
+  `--output-format json`; change one and check the other.
 - **Tool payloads are capped** (`capRaw`, `truncateStr`, `truncateJSON`)
   before they are logged. A scout that dumps a 5 MB log must not bloat the
   database or the SSE stream.

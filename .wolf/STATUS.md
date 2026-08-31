@@ -2,11 +2,41 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31 (Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-08-31 (AI-enrichment token usage captured from the Claude Code CLI and reported per responsibility on the reports page; previously: Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Reports page now shows what AI enrichment costs, broken down by
+  responsibility.** Both enrichment paths shell out to the Claude Code CLI,
+  whose result envelope already carries real `usage` + `total_cost_usd` — in
+  *both* `--output-format json` and `stream-json`, verified by probing the
+  binary. So this captures actual counts; nothing is estimated.
+  - New `token_usage` table (append-only, never joined to `issues`) +
+    `RecordTokenUsage` / `TokenUsageReport` in `internal/store/tokenusage.go`.
+    All aggregation is SQL, per the store's standing rule; `Report()` gained a
+    `tokens` key.
+  - `ai.Enrich` returns a `store.TokenUsage` as its second value and
+    `deep.claudeStream` likewise; both are populated **on the error paths**,
+    since a failed call still spent tokens. The orchestrator's `recordUsage`
+    stamps run/issue/agent per scout and for synthesis; `internal/server`
+    records the fast path at both its call sites.
+  - `internal/ai/usage.go` and `internal/deep/usage.go` each own a decode of
+    the identical CLI envelope (siblings, so no shared package). `dominantModel`
+    names the costliest model in `modelUsage`, because config usually sets none
+    and the CLI bills a cheap housekeeping model alongside the real one.
+  - Reports page: 4 tiles (total tokens, est. cost, calls, avg/issue), a
+    by-responsibility bar list, and a token-composition bar (input / cached
+    input / output) with a labeled legend. Palette run through the dataviz
+    validator — light passes; dark's only flag is the lightness band the
+    project's existing donut shares, so the house tokens were kept rather than
+    repainted for one panel.
+  - Verified in the running app: seeded fixture rows for layout, then ran a
+    **real** enrichment through the live CLI — 40,719 tokens / $0.0805 recorded,
+    model resolved to `claude-sonnet-5`. Empty state, light and dark all shot.
+  - **Historic enrichments have no rows**, so the panel starts empty and fills
+    from the first run after upgrade; the UI says this rather than showing zeros.
 
 - **Linear label-group clashes are now a prompt, not an error.** A macro adding
   a label from an exclusive group (`Area`) to an issue that already carried a

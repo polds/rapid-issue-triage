@@ -236,9 +236,10 @@ func (o *Orchestrator) execute(ctx context.Context, r *run, issue store.IssueRow
 					opts.Dir = scratch
 				}
 			}
-			final, err := claudeStream(ctx, opts, func(kind string, payload any) {
+			final, usage, err := claudeStream(ctx, opts, func(kind string, payload any) {
 				o.emit(r, sc.Name, kind, payload)
 			})
+			o.recordUsage(usage, r.id, issue.ID, sc.Name)
 			res := scoutResult{Name: sc.Name, Elapsed: time.Since(start).Round(time.Second).String()}
 			if err != nil {
 				res.Status = "error"
@@ -259,11 +260,12 @@ func (o *Orchestrator) execute(ctx context.Context, r *run, issue store.IssueRow
 	resultsJSON, _ := json.MarshalIndent(results, "", " ")
 	prompt := synthesisPrompt(issueCtx, string(resultsJSON))
 	o.emit(r, "synthesis", "prompt", map[string]any{"prompt": prompt})
-	final, err := claudeStream(ctx, streamOpts{
+	final, usage, err := claudeStream(ctx, streamOpts{
 		Command: o.Command, Model: o.Model, Prompt: prompt, Timeout: o.timeout(),
 	}, func(kind string, payload any) {
 		o.emit(r, "synthesis", kind, payload)
 	})
+	o.recordUsage(usage, r.id, issue.ID, "synthesis")
 	if err != nil {
 		o.finish(r, issue, "", err)
 		return
@@ -276,6 +278,14 @@ func (o *Orchestrator) execute(ctx context.Context, r *run, issue store.IssueRow
 	// Stamp source statuses into the report for stable rendering.
 	report = stampSources(report, results)
 	o.finish(r, issue, string(report), nil)
+}
+
+// recordUsage stamps a call's accounting with the run, issue, and the agent
+// that spent it, then stores it. Best-effort, like every other write on this
+// path: losing a usage row must never fail a run.
+func (o *Orchestrator) recordUsage(u store.TokenUsage, runID, issueID, agent string) {
+	u.RunID, u.IssueID, u.Agent = runID, issueID, agent
+	_ = o.Store.RecordTokenUsage(u)
 }
 
 func (o *Orchestrator) finish(r *run, issue store.IssueRow, reportJSON string, err error) {

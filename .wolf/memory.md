@@ -393,3 +393,19 @@
 | 16:52 | Mirrored the rule as a UI pre-flight + prompt | web/src/lib/labelgroups.ts, store.tsx, components/triage/LabelGroupPrompt.tsx | Replace/Cancel prompt fires before the request — no round trip, no card swipe to undo | ~16k |
 | 17:00 | Seeded an "Area" label group into the offline fixture and drove it | .claude/skills/run-rapid-issue-triage/fixture.mjs | Verified in the real app: prompt renders on ENG-412 + macro 4; API returns 409 then 502 with replaceGroupLabels | ~9k |
 | 17:15 | CI SAST failed on PR #46 (semgrep string-formatted-query, mine) | internal/store/metadata.go | Reproduced locally with pinned semgrep in a venv, fixed to match issues.go's `+=` shape + the existing placeholders() helper; 1 finding → 0 | ~11k |
+
+## Session: 2026-08-31 17:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-31 17:24
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:10 | Probed the real `claude` CLI to confirm the result envelope carries `usage` + `total_cost_usd` in BOTH --output-format json and stream-json | — | Identical shape in both; token counts are reportable, so no estimation needed | ~4k |
+| 17:15 | Added token_usage table + RecordTokenUsage + TokenUsageReport (SQL aggregation: totals, today/week, byAgent, byMode, byDay, models) | internal/store/tokenusage.go, store.go, activity.go | store coverage 85.8%; Report() now carries a `tokens` key | ~12k |
+| 17:18 | Captured CLI usage in both enrichment paths, tagged by responsibility | internal/ai/{enrich,usage}.go, internal/deep/{claude,usage,orchestrator}.go, internal/server/handlers.go | Enrich returns usage as a 2nd value (populated on error paths too); deep stamps run/issue/agent per scout + synthesis | ~14k |
+| 17:20 | Built the AI-enrichment usage panel: 4 tiles, by-responsibility bars, token-composition bar + legend | web/src/pages/Reports.tsx, lib/{types,utils}.ts | Palette validated with the dataviz validator; light passes fully, dark's only flag is the house-wide lightness band the existing donut shares | ~16k |
+| 17:24 | Verified end-to-end in the running app: seeded fixture rows, then ran a REAL fast enrichment | .run-sandbox | Real row landed: 40,719 tokens / $0.0805, model resolved to claude-sonnet-5 via dominantModel since config sets none | ~10k |
+
