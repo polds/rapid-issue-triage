@@ -409,3 +409,4 @@
 | 17:20 | Built the AI-enrichment usage panel: 4 tiles, by-responsibility bars, token-composition bar + legend | web/src/pages/Reports.tsx, lib/{types,utils}.ts | Palette validated with the dataviz validator; light passes fully, dark's only flag is the house-wide lightness band the existing donut shares | ~16k |
 | 17:24 | Verified end-to-end in the running app: seeded fixture rows, then ran a REAL fast enrichment | .run-sandbox | Real row landed: 40,719 tokens / $0.0805, model resolved to claude-sonnet-5 via dominantModel since config sets none | ~10k |
 
+| 17:35 | User reported the Labels picker rendering two stacked panels while filtering | web/src/components/triage/QuickEditRow.tsx, pages/Triage.tsx | Root cause: QuickEditRow is mounted twice for the responsive layout and portalled its Picker past the hiding CSS. Split into QuickEditRow (buttons) + QuickEditPickers (modals, once per page); 2 panels → 1, verified in app | ~13k |

@@ -235,9 +235,21 @@ Two gotchas worth remembering:
 - `total_cost_usd` carries `"costBasis":"list"`. On a Claude subscription no
   money changes hands per call, so it is a list-price *equivalent* — the
   reports page says so rather than presenting it as a bill.
+- **A `createPortal` child ignores its ancestors' CSS.** Responsive layouts
+  here duplicate components and hide one copy with `xl:hidden` / `hidden
+  xl:flex`. That hides in-flow markup only — a portalled modal renders to
+  `document.body` and escapes it, so a duplicated component that renders one
+  shows the modal twice, stacked, each with its own state. Overlays belong to
+  the page that owns the shared open-state, not to the duplicated subtree.
 
 ## Do-Not-Repeat
 
+- [2026-08-31] Do not render a portalled overlay from a component the layout
+  mounts more than once. `QuickEditRow` is mounted twice by `TriagePage` for the
+  two breakpoints, so the Labels picker portalled two panels to `document.body`
+  and only one of them tracked what the user typed — the other sat behind it
+  showing the full list. The responsive `xl:` classes could not hide it because
+  the portal is not their descendant. Split the buttons from the modals.
 - [2026-08-31] Do not let a Linear constraint surface as Linear's own error
   text. `labelIds not exclusive child labels` reached the user as
   "Action failed: …" after the card had already swiped away, naming neither the

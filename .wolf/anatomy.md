@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:25:50.075Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T17:31:53.635Z
 > Files: 133 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -108,8 +108,8 @@
 - `secrets.go` — Secrets (36 fields); methods: GetSecrets, SetSecret, Resolve, SecretStatus (~890 tok)
 - `store_test.go` — TestMetaRoundTrip, TestQueueFilterEmpty, TestIssueQueueSkipSnoozeTriageAndFilters, TestMacrosCRUD + 5 more (~3703 tok)
 - `store.go` — owns the local sqlite database: the issue index, skip/snooze (~1852 tok)
-- `tokenusage_test.go` — TestRecordTokenUsageSkipsEmptyCalls, TestTokenUsageReportTotalsAndBreakdowns, TestTokenUsageByDayFillsGaps, TestReportCarriesTokenUsage (~1260 tok)
-- `tokenusage.go` — TokenUsage (93 fields); methods: Empty, RecordTokenUsage, TokenUsageReport (~2541 tok)
+- `tokenusage_test.go` — TestRecordTokenUsageSkipsEmptyCalls, TestTokenUsageReportTotalsAndBreakdowns, TestReportCarriesTokenUsage (~1012 tok)
+- `tokenusage.go` — TokenUsage (76 fields); methods: Empty, RecordTokenUsage, TokenUsageReport (~2132 tok)
 
 ## internal/syncer/
 
@@ -146,7 +146,7 @@
 ## web/src/components/triage/
 
 - `ActionBar.tsx` — OUTCOME_VARIANT (~621 tok)
-- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1072 tok)
+- `CLAUDE.md` — web/src/components/triage/ — the triage screen (~1229 tok)
 - `Confetti.tsx` — TONES — renders chart — uses useState, useCallback, useEffect (~726 tok)
 - `DeepPanel.tsx` — Deep enrichment UI: live per-scout progress + Claude-Code-style thinking (~5250 tok)
 - `DuplicateOfPicker.tsx` — "Duplicate of…" picker: Linear requires a duplicate relation before an (~1688 tok)
@@ -155,7 +155,7 @@
 - `IssueCard.tsx` — VERDICT_META — uses useState, useMemo, useEffect (~4631 tok)
 - `LabelGroupPrompt.tsx` — Linear label groups hold one label per issue. When a macro or a quick edit (~1181 tok)
 - `NotificationBell.tsx` — Bell dropdown tracking background enrichments. Clicking an entry jumps (~1445 tok)
-- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2074 tok)
+- `QuickEditRow.tsx` — Quick edit: fast keyboard pickers that apply single-field ops to the (~2269 tok)
 - `report-format.ts` — VERDICT_META + deep report -> Linear markdown (not a component) (~776 tok)
 - `ShortcutBar.tsx` — ITEMS (~335 tok)
 - `TopBar.tsx` — SyncPill — renders chart — uses useState (~1542 tok)
@@ -187,7 +187,7 @@
 - `store.tsx` — Global app state: metadata, macro list, the card deck, and every triage (~6722 tok)
 - `theme.tsx` — Ctx — uses useState, useEffect, useCallback, useContext (~334 tok)
 - `triage-context.ts` — The triage context object, its accessor hook, and the deck types they (~873 tok)
-- `types.ts` — One summed bucket of AI-enrichment token spend. (~2295 tok)
+- `types.ts` — One summed bucket of AI-enrichment token spend. (~2278 tok)
 - `utils.test.ts` — Declares enabled (~966 tok)
 - `utils.ts` — Exports cn, timeAgo, fmtMs, fmtTokens + 2 more (~531 tok)
 
@@ -201,4 +201,4 @@
 - `Macros.tsx` — Macro management: user-defined one-key action sequences. (~5158 tok)
 - `Reports.tsx` — One responsibility's share of the spend: a bar scaled to the heaviest. (~5214 tok)
 - `Settings.tsx` — Enrichment settings: fast vs deep mode, per-source toggles with live (~5276 tok)
-- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2271 tok)
+- `Triage.tsx` — TriagePage — uses useState, useCallback, useEffect (~2327 tok)
