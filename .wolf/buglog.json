@@ -598,6 +598,25 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-31T17:20:00-07:00"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-09-01T17:38:16.356928+00:00",
+      "error_message": "Reports page: Outcome breakdown legend misaligned - the '37 \u00b7 26%' value wrapped onto two lines and counts/percents did not line up down the list",
+      "file": "web/src/pages/Reports.tsx",
+      "root_cause": "The donut legend rendered count and share as one ml-auto string ('{value} \u00b7 {pct}%'), so in the narrow lg:grid-cols-[1.6fr_1fr] card the pair wrapped mid-string and every row's numbers started at a different x.",
+      "fix": "Split the pair into two fixed-min-width, right-aligned tabular-nums columns (min-w-7 count, min-w-8 percent), gave the label min-w-0 flex-1 truncate and the dot shrink-0, and shrank the donut from size-44/gap-5 to size-40/gap-4 to free legend width.",
+      "tags": [
+        "ui",
+        "reports",
+        "layout",
+        "tailwind",
+        "donut",
+        "alignment"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-01T17:38:16.356928+00:00"
     }
   ]
 }

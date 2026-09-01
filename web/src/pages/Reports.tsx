@@ -110,8 +110,8 @@ function Donut({ counts }: { counts: Record<string, number> }) {
   });
 
   return (
-    <div className="flex items-center gap-5">
-      <svg viewBox="0 0 176 176" className="size-44 shrink-0" role="img" aria-label="Outcome breakdown">
+    <div className="flex items-center gap-4">
+      <svg viewBox="0 0 176 176" className="size-40 shrink-0" role="img" aria-label="Outcome breakdown">
         {arcs.map((a) => (
           <path
             key={a.key}
@@ -133,7 +133,10 @@ function Donut({ counts }: { counts: Record<string, number> }) {
           actions
         </text>
       </svg>
-      <div className="grid flex-1 gap-1.5">
+      {/* Count and share are separate right-aligned columns rather than one
+          "12 · 8%" string: the string wraps mid-pair when the card is narrow,
+          and equal-width columns let the numbers be read down the list. */}
+      <div className="grid min-w-0 flex-1 gap-1.5">
         {entries.map((e) => (
           <div
             key={e.key}
@@ -141,10 +144,11 @@ function Donut({ counts }: { counts: Record<string, number> }) {
             onMouseEnter={() => setHover(e.key)}
             onMouseLeave={() => setHover(null)}
           >
-            <span className="size-2.5 rounded-full" style={{ background: e.color }} />
-            <span className="text-muted-foreground">{e.label}</span>
-            <span className="ml-auto font-mono tabular-nums">
-              {e.value} · {Math.round((e.value / total) * 100)}%
+            <span className="size-2.5 shrink-0 rounded-full" style={{ background: e.color }} />
+            <span className="min-w-0 flex-1 truncate text-muted-foreground">{e.label}</span>
+            <span className="min-w-7 shrink-0 text-right font-mono tabular-nums">{e.value}</span>
+            <span className="min-w-8 shrink-0 text-right font-mono tabular-nums text-muted-foreground">
+              {Math.round((e.value / total) * 100)}%
             </span>
           </div>
         ))}

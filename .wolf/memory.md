@@ -487,3 +487,9 @@
 | 19:15 | Docs: deep/server/store/config/web CLAUDE.md, README, example yaml, anatomy scan | 8 docs | map matches the tree | ~5k |
 | 17:50 | Merged `origin/main` (abc325d, the QuickEditRow double-render fix) into the version branch — PR #50 went `dirty` while the work was in flight | .wolf/{anatomy*,buglog.json}, web/dist/* | All 4 conflicts were generated/derived files: dist rebuilt with `make build`, anatomy re-scanned with `openwolf scan`, buglog merged by hand keeping both new entries (main's kept bug-029, ours renumbered bug-030). No source conflicts. | ~6k |
 | 18:02 | Merged `origin/main` again (6a5cb9b, the pruned-card Skip/Snooze fix) — main moved twice during the PR | internal/server/server.go, issuegone_test.go, version_test.go, .wolf/STATUS.md, buglog.json, web/dist/* | **Git auto-merged both sides cleanly but the tree did not compile**: main's new `issuegone_test.go` calls `server.New` with the pre-change 6-arg signature. Fixed the call sites and made `New` default a nil checker to a disabled one, so the "s.updates is never nil" invariant is true by construction rather than by convention. | ~7k |
+
+## Session: 2026-09-01 17:32
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:38 | fix Outcome breakdown legend alignment (donut legend columns) | web/src/pages/Reports.tsx, web/dist | verified via playwright screenshot at 1280 and 1024 | ~25k |
