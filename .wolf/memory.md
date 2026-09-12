@@ -493,3 +493,9 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 17:38 | fix Outcome breakdown legend alignment (donut legend columns) | web/src/pages/Reports.tsx, web/dist | verified via playwright screenshot at 1280 and 1024 | ~25k |
+
+## Session: 2026-09-12 09:56
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:08 | Linear-style custom theme: six-hex string persisted in sqlite (`ui_theme`), GET/PUT /api/theme, pure `linearstyle.ts` derives every token, Settings → Appearance card, top bar takes the sidebar pair via new `--chrome` tokens | internal/store/uitheme.go, internal/server/theme.go, web/src/lib/linearstyle.ts, theme.tsx, theme-context.ts, pages/Settings.tsx, styles.css, TopBar.tsx, docs | go test + vitest (coverage 99%) + eslint green; verified in the real app via driver.mjs with the example theme and Nord | ~60k |

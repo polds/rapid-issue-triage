@@ -76,6 +76,14 @@ passed through verbatim, so any filter Linear supports defines your queue.
 Flags: `-config path`, `-addr host:port`, `-no-open`, `-version`.
 
 The running version is shown beside the wordmark in the top bar and under
+**Settings → Appearance** takes a Linear custom theme: paste the six-color
+string from Linear's Preferences → Theme → Custom (or copy one from
+[linear.style](https://linear.style)) and the whole UI is recolored from it —
+base, text, sidebar, sidebar text, accent, accent text. It is stored with the
+app's data, so it follows you across browsers; light or dark follows the base
+color. *Reset to default* returns to the built-in palette and the light/dark
+toggle.
+
 **Settings → About**. Once a day the app asks GitHub whether a newer release
 exists and, if so, the top bar links to it. That check is the only outbound
 request the app makes that is not to Linear or to your local `claude` binary —

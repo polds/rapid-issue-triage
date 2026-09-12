@@ -20,6 +20,7 @@ packages, not here.
 | `deep.go` | Deep-run lifecycle: start, poll, SSE event stream, plain-text log, and the toolbox endpoint the scout shim calls. |
 | `settings.go` | Enrichment settings, secret writes, the live `claude` probe (`ClaudeAvail`), native picker endpoint. |
 | `version.go` | `GET /api/version` + `POST /api/version/check`: the build stamp plus the update checker's snapshot. Reads state, never blocks on the network. |
+| `theme.go` | `GET`/`PUT /api/theme`: the persisted Linear-style theme string (`store.UITheme`). The server validates the shape (six hex colors) and stores it; the browser derives the tokens. |
 | `pickfolder.go` | Native OS folder/file dialog as a subprocess. |
 | `reportcomment.go` | Deep report → Linear-flavored markdown (`post_ai_report`). |
 | `*_test.go` | Unit tests for the pure helpers (`canceled`, `linearIssueURL`). |

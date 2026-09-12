@@ -345,3 +345,10 @@ export interface LinearSearchHit {
   updatedAt: string;
   url: string;
 }
+
+// GET/PUT /api/theme — the persisted appearance override. `linear` is a Linear
+// custom-theme string (six comma-separated hex colors: base, text, sidebar,
+// sidebar text, accent, accent text), or "" for the built-in palette.
+export interface UITheme {
+  linear: string;
+}

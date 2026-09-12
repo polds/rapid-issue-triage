@@ -2,8 +2,8 @@
 
 Everything the UI runs on that isn't a component. Split so that the pure
 modules can carry a real coverage floor: **`utils`, `colors`, `linear`,
-`linearfilter`, `enrichmode`, `labelgroups`, `notices`, `version` are the only
-files in `vitest.config.ts`'s coverage `include`** (90% statements/functions/
+`linearfilter`, `enrichmode`, `labelgroups`, `notices`, `version`, `linearstyle`
+are the only files in `vitest.config.ts`'s coverage `include`** (90% statements/functions/
 lines, 85% branches). New pure logic belongs here with a test, not inline in a
 component.
 
@@ -15,7 +15,9 @@ component.
 | `triage-context.ts` | The context object, `useTriage`, and the deck types (`Card`, `CardStatus`, `Swipe`, `EnrichNotice`). Split out so `store.tsx` exports only components. | — |
 | `api.ts` | Thin `fetch` wrapper over the Go API. `ApiError` carries the server's `{error}` message, plus `code`/`conflicts` for the failures the UI acts on (`label_group_conflict` → replace prompt, `issue_gone` → retire the card). **The one place a response is asserted into a type.** | — |
 | `types.ts` | Every wire type, mirroring the Go JSON tags. `EMPTY_FILTER`, `filterIsEmpty`. | — |
-| `theme.tsx` | Light/dark provider, persisted. | — |
+| `theme.tsx` | `ThemeProvider` + `ThemeToggle`. Light/dark lives in localStorage; the Linear-style custom theme is fetched from `/api/theme` (localStorage is only a first-paint cache) and applied as inline custom properties on `<html>`, which also decides the `dark` class from the base color. | — |
+| `theme-context.ts` | The theme context object and `useTheme`, split out so `theme.tsx` exports only components. | — |
+| `linearstyle.ts` | Linear custom-theme strings → design tokens: `parseLinearTheme` (six hex slots: base, text, sidebar, sidebar text, accent, accent text), `themeVars` (every `--token` the stylesheet reads, derived with `color-mix`), `isDarkTheme` (WCAG luminance of the base), swatch labels. | ✔ |
 | `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`, `PRIORITY_NAMES`. | ✔ |
 | `colors.ts` | Stable hue per team key (hashed → oklch); Linear label hex passthrough with a muted fallback. | ✔ |
 | `linear.ts` | `linearIssueHref` — build an issue URL from an identifier using the current issue's URL as a template. | ✔ |

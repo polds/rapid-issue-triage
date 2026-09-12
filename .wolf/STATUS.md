@@ -2,11 +2,20 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31 (deep enrichment runs are pooled — 2 at a time, the rest queue with a visible place in line — and a single notification can be dismissed on hover; AI-enrichment token usage captured from the Claude Code CLI and reported per responsibility on the reports page; version display in the top bar + Settings → About, with a daily background update check; a card the background sync pruned no longer fails Skip/Snooze with "not found"; Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-09-12 (Linear-style custom theme: paste linear.style's six-hex string in Settings → Appearance, persisted in sqlite, whole UI recolored; previously 2026-08-31: deep enrichment runs are pooled — 2 at a time, the rest queue with a visible place in line — and a single notification can be dismissed on hover; AI-enrichment token usage captured from the Claude Code CLI and reported per responsibility on the reports page; version display in the top bar + Settings → About, with a daily background update check; a card the background sync pruned no longer fails Skip/Snooze with "not found"; Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Linear-style custom theme (2026-09-12).** Settings → Appearance takes the
+  six-color string Linear/linear.style use (base, text, sidebar, sidebar text,
+  accent, accent text), `PUT /api/theme` validates and stores it in
+  `meta.ui_theme`, and `web/src/lib/linearstyle.ts` derives every design token
+  from it (`color-mix` neutrals, accent → primary/ring, sidebar pair → the new
+  `--chrome` tokens on the top bar, light/dark from the base luminance).
+  localStorage is only a first-paint cache. Verified in the real app with the
+  example theme and Nord. Branch `claude/linear-styling-settings-oh6azj`.
 
 - **Deep enrichment runs are pooled, and a single notification can be
   dismissed.** Two feature requests that share the notification surface.
