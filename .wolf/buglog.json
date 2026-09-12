@@ -40,7 +40,7 @@
       "timestamp": "2026-08-28T11:00:00-07:00",
       "error_message": "Could not push tag v0.1.0: 'error: RPC failed; HTTP 403' on git-receive-pack for refs/tags/*",
       "file": ".github/workflows/release.yml",
-      "root_cause": "A Claude Code remote session's git credentials permit branch pushes (claude/*) but refuse refs/tags/*. Separately, the obvious workaround \u2014 creating the release in the GitHub Releases UI \u2014 is unsafe with immutable releases enabled: it publishes instantly, so GoReleaser cannot attach assets and the tag name is permanently burnt.",
+      "root_cause": "A Claude Code remote session's git credentials permit branch pushes (claude/*) but refuse refs/tags/*. Separately, the obvious workaround — creating the release in the GitHub Releases UI — is unsafe with immutable releases enabled: it publishes instantly, so GoReleaser cannot attach assets and the tag name is permanently burnt.",
       "fix": "Added a create_tag checkbox to the Release workflow's workflow_dispatch so the job mints the tag and releases it in one run. Added replace_existing_draft so a mid-upload failure can be retried, and tightened tag validation to a real semver regex since a bad tag would otherwise be pushed before GoReleaser rejects it.",
       "tags": [
         "ci",
@@ -494,7 +494,7 @@
     {
       "id": "bug-027",
       "timestamp": "2026-08-31T16:55:00-07:00",
-      "error_message": "Action failed: linear: labelIds not exclusive child labels \u2014 running a macro that adds a label from Linear's \"Area\" group onto an issue that already carries a sibling of that group",
+      "error_message": "Action failed: linear: labelIds not exclusive child labels — running a macro that adds a label from Linear's \"Area\" group onto an issue that already carries a sibling of that group",
       "file": "internal/server/labelgroups.go",
       "root_cause": "Linear label groups are mutually exclusive (only one child per group per issue), but nothing indexed the parent edge: internal/linear did not request IssueLabel.parent, the labels table had no parent_id, and resolveOps built labelIds with no exclusivity check. The clash only surfaced as Linear's own opaque rejection, after the card had already swiped away.",
       "fix": "Sync parent { id } into labels.parent_id (additive migration) and add store.LabelGroupsFor. resolveOps now ends in resolveLabelGroups, which returns a structured *labelGroupError naming the group and both sides; handlers answer 409 {code, conflicts, resolvable} via writeActionErr. opOptions.replaceGroupLabels drops the pre-existing sibling once the user confirms. The UI pre-flights the same rule in web/src/lib/labelgroups.ts and raises LabelGroupPrompt (Replace / Cancel) before the request, and exclusiveLabelHint rewrites Linear's wording for a group created since the last sync.",
@@ -515,9 +515,9 @@
     {
       "id": "bug-028",
       "timestamp": "2026-08-31T17:20:00-07:00",
-      "error_message": "SAST job failed on PR #46: go.lang.security.audit.database.string-formatted-query at internal/store/metadata.go \u2014 1 finding, 1 blocking",
+      "error_message": "SAST job failed on PR #46: go.lang.security.audit.database.string-formatted-query at internal/store/metadata.go — 1 finding, 1 blocking",
       "file": "internal/store/metadata.go",
-      "root_cause": "LabelGroupsFor built its dynamic IN clause as `q := \"SELECT ... IN (?\" + strings.Repeat(\", ?\", n-1) + \")\"` and passed q to db.Query in the same function. Semgrep's rule matches a query variable initialized from a string literal concatenated with an expression and then handed to Query \u2014 the args were always bound, so it is a false positive on injection, but a real style divergence: issues.go:85 does the same dynamic IN clause and is NOT flagged because it appends with `+=` to an existing query variable.",
+      "root_cause": "LabelGroupsFor built its dynamic IN clause as `q := \"SELECT ... IN (?\" + strings.Repeat(\", ?\", n-1) + \")\"` and passed q to db.Query in the same function. Semgrep's rule matches a query variable initialized from a string literal concatenated with an expression and then handed to Query — the args were always bound, so it is a false positive on injection, but a real style divergence: issues.go:85 does the same dynamic IN clause and is NOT flagged because it appends with `+=` to an existing query variable.",
       "fix": "Split the literal from the placeholder list (`q := ...IN (` then `q += placeholders(len(ids)) + \")\"`), matching issues.go, and reuse the `placeholders` helper already in queuefilter.go instead of a second open-coded strings.Repeat. Reproduced and verified with the pinned semgrep 1.175.0: 1 blocking finding before, 0 after.",
       "tags": [
         "semgrep",
@@ -535,10 +535,10 @@
     {
       "id": "bug-029",
       "timestamp": "2026-08-31T17:40:00-07:00",
-      "error_message": "Filtering the Labels picker showed two stacked picker panels \u2014 the typed/filtered list on top and the full unfiltered list behind it, each with its own \"Enter toggles \u00b7 Esc closes\" footer",
+      "error_message": "Filtering the Labels picker showed two stacked picker panels — the typed/filtered list on top and the full unfiltered list behind it, each with its own \"Enter toggles · Esc closes\" footer",
       "file": "web/src/components/triage/QuickEditRow.tsx",
-      "root_cause": "TriagePage mounts QuickEditRow twice for the responsive layout \u2014 once under the card (xl:hidden) and once in the wide rail (hidden xl:flex) \u2014 and both shared the same `picker` state. QuickEditRow rendered the <Picker> itself, and Picker uses createPortal(..., document.body), which escapes the wrapper doing the responsive hiding. So both instances portalled a panel to body regardless of viewport width, each with independent query/cursor state; the last-mounted one took focus, leaving the other rendered unfiltered behind it.",
-      "fix": "Split the component: QuickEditRow now renders only the buttons (safe to duplicate \u2014 they are in-flow and CSS-hidden), and a new QuickEditPickers holds the Picker + DuplicateOfPicker and is rendered exactly once by TriagePage off the same shared `open` state. Verified in the running app: 2 panels before, 1 after. Invariant recorded in web/src/components/triage/CLAUDE.md.",
+      "root_cause": "TriagePage mounts QuickEditRow twice for the responsive layout — once under the card (xl:hidden) and once in the wide rail (hidden xl:flex) — and both shared the same `picker` state. QuickEditRow rendered the <Picker> itself, and Picker uses createPortal(..., document.body), which escapes the wrapper doing the responsive hiding. So both instances portalled a panel to body regardless of viewport width, each with independent query/cursor state; the last-mounted one took focus, leaving the other rendered unfiltered behind it.",
+      "fix": "Split the component: QuickEditRow now renders only the buttons (safe to duplicate — they are in-flow and CSS-hidden), and a new QuickEditPickers holds the Picker + DuplicateOfPicker and is rendered exactly once by TriagePage off the same shared `open` state. Verified in the running app: 2 panels before, 1 after. Invariant recorded in web/src/components/triage/CLAUDE.md.",
       "tags": [
         "ui",
         "react",
@@ -556,7 +556,7 @@
     {
       "id": "bug-030",
       "timestamp": "2026-08-31T00:00:00Z",
-      "error_message": "Action failed: not found \u2014 occasional error on Skip or Snooze",
+      "error_message": "Action failed: not found — occasional error on Skip or Snooze",
       "file": "internal/server/handlers.go, internal/server/server.go, internal/store/store.go, web/src/lib/store.tsx",
       "root_cause": "The deck the browser holds is a snapshot; the background syncer's PruneStale(gen) DELETEs every issue whose sync_gen fell behind, i.e. any issue that left the index filter (triaged, closed or reassigned in Linear since the batch was fetched). Skip and snooze then POST against a row that is gone: handleSkip/handleSnooze call store.GetIssue, errRow turns sql.ErrNoRows into the bare error \"not found\", and the handler answered writeErr(w, 404, err). The UI's swipeAway rolled the card back and toasted \"Action failed: <message>\", stranding the user on a card no keystroke could clear. Occasional because it needs a sync tick to land between the queue fetch and the keypress.",
       "fix": "store.ErrNotFound is now an exported sentinel (same message, errors.Is-able). New server helper writeIssueErr answers a pruned row with 404 {code:\"issue_gone\"} plus an explanation, and anything that is not ErrNotFound with a 500 (it used to 404 those too); all six GetIssue(r.PathValue(\"id\")) sites use it. The UI adds a \"gone\" CardStatus and retireGoneCard: on code issue_gone skip/snooze mark the card gone (\"LEFT THE INDEX\" badge, actions disabled), advance the deck, and show a plain informational toast instead of an error. Verified live via the driver by DELETEing the visible card's row from sqlite behind the deck's back.",
@@ -586,8 +586,8 @@
       "timestamp": "2026-08-31T17:20:00-07:00",
       "error_message": "`./triage -version` on a locally built binary printed `triage v0.0.0-20260831170347-5fc31f49c73e+dirty`, and the update check treated that build as a release (so any real tag looked like an available upgrade)",
       "file": "internal/version/version.go",
-      "root_cause": "Resolve fell back to debug.ReadBuildInfo().Main.Version when -ldflags stamped nothing. For a `go build` inside a checkout the toolchain synthesizes a pseudo-version (vX.Y.Z-<14-digit timestamp>-<12 hex>), which parses as a perfectly valid v0.0.0 prerelease \u2014 so Dev was false and IsNewer said yes to every published tag.",
-      "fix": "Added a pseudoVersion regexp (`[-.]<14 digits>-<12 hex>` with optional build metadata) and reject a Main.Version matching it, keeping \"dev\" and taking only vcs.revision/vcs.time. A dev build is now never offered an update. Note the second form: `v1.2.4-0.<timestamp>-<hash>` separates with a dot, not a dash \u2014 anchoring on `-` alone missed it.",
+      "root_cause": "Resolve fell back to debug.ReadBuildInfo().Main.Version when -ldflags stamped nothing. For a `go build` inside a checkout the toolchain synthesizes a pseudo-version (vX.Y.Z-<14-digit timestamp>-<12 hex>), which parses as a perfectly valid v0.0.0 prerelease — so Dev was false and IsNewer said yes to every published tag.",
+      "fix": "Added a pseudoVersion regexp (`[-.]<14 digits>-<12 hex>` with optional build metadata) and reject a Main.Version matching it, keeping \"dev\" and taking only vcs.revision/vcs.time. A dev build is now never offered an update. Note the second form: `v1.2.4-0.<timestamp>-<hash>` separates with a dot, not a dash — anchoring on `-` alone missed it.",
       "tags": [
         "version",
         "update-check",
@@ -602,9 +602,9 @@
     {
       "id": "bug-032",
       "timestamp": "2026-09-01T17:38:16.356928+00:00",
-      "error_message": "Reports page: Outcome breakdown legend misaligned - the '37 \u00b7 26%' value wrapped onto two lines and counts/percents did not line up down the list",
+      "error_message": "Reports page: Outcome breakdown legend misaligned - the '37 · 26%' value wrapped onto two lines and counts/percents did not line up down the list",
       "file": "web/src/pages/Reports.tsx",
-      "root_cause": "The donut legend rendered count and share as one ml-auto string ('{value} \u00b7 {pct}%'), so in the narrow lg:grid-cols-[1.6fr_1fr] card the pair wrapped mid-string and every row's numbers started at a different x.",
+      "root_cause": "The donut legend rendered count and share as one ml-auto string ('{value} · {pct}%'), so in the narrow lg:grid-cols-[1.6fr_1fr] card the pair wrapped mid-string and every row's numbers started at a different x.",
       "fix": "Split the pair into two fixed-min-width, right-aligned tabular-nums columns (min-w-7 count, min-w-8 percent), gave the label min-w-0 flex-1 truncate and the dot shrink-0, and shrank the donut from size-44/gap-5 to size-40/gap-4 to free legend width.",
       "tags": [
         "ui",
@@ -617,6 +617,24 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-01T17:38:16.356928+00:00"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-09-12T10:11:37Z",
+      "error_message": "CI 'Web lint, test, build' failed on PR #64: web/dist does not match a build of web/src (index-BDAeXuMM.css/index-TebQGuUa.js vs CI's index-ncrw9c9X.css/index-H9F5y4Q4.js)",
+      "file": "web/dist/",
+      "root_cause": "The dist build was run in the background while docs were still being edited. Tailwind v4's automatic content scan reads every non-ignored file (the directory CLAUDE.md files included), so mentioning `bg-chrome` in web/src/components/triage/CLAUDE.md after the scan produced a CSS bundle 182 bytes different from a quiescent-tree build, and the JS chunk hash changed with it. Nothing in web/src differed.",
+      "fix": "Rebuilt from the settled tree; the second and third builds were byte-identical to CI's. Rule: run `npm run build` as the LAST step before commit, never concurrently with edits, and confirm the hash is stable with one more build.",
+      "tags": [
+        "web-dist",
+        "tailwind",
+        "ci",
+        "web-dist-check",
+        "reproducibility"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-12T10:11:37Z"
     }
   ]
 }

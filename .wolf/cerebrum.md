@@ -313,6 +313,14 @@ Two gotchas worth remembering:
 
 ## Do-Not-Repeat
 
+- [2026-09-12] Do not run `npm run build` (the `web/dist` rebuild) in the
+  background while still editing anything in the repo, docs included.
+  Tailwind v4 scans every non-ignored file for class candidates, so a
+  `bg-chrome` mentioned in a CLAUDE.md after the scan started changed the CSS
+  bundle and the JS chunk hash, and `web-dist-check` failed on PR #64 with no
+  `web/src` difference at all. Build last, from a quiescent tree, and build
+  once more to confirm the hash is stable before committing.
+
 - [2026-08-31] Do not answer a missing sqlite row with a bare `writeErr(w, 404,
   err)`. The syncer's `PruneStale` deletes every issue that leaves the index
   filter, and the browser's deck is a snapshot — so "row not found" is usually
