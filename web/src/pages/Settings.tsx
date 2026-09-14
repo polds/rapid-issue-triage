@@ -1,6 +1,7 @@
-// Enrichment settings: fast vs deep mode, per-source toggles with live
+// Settings: fast vs deep enrichment mode, per-source toggles with live
 // availability probes, time-impact estimates, and the read-only guarantee
-// spelled out. Claude path, MCP API keys, and a native folder picker live here.
+// spelled out. Claude path, MCP API keys, and a native folder picker live here,
+// then Appearance (a Linear-style six-color theme) and About.
 import { useEffect, useState } from "react";
 import {
   ArrowUpCircle,
@@ -11,6 +12,7 @@ import {
   KeyRound,
   Loader2,
   Lock,
+  Palette,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -21,6 +23,8 @@ import {
 import { api } from "@/lib/api";
 import { invalidateEnrichInfo } from "@/lib/enrichmode";
 import { useTriage } from "@/lib/triage-context";
+import { useTheme } from "@/lib/theme-context";
+import { LINEAR_THEME_EXAMPLE, formatLinearTheme, parseLinearTheme, themeSwatches } from "@/lib/linearstyle";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
@@ -139,8 +143,11 @@ export function SettingsPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
-      <h1 className="font-display text-2xl font-bold tracking-tight">Enrichment settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <h1 className="font-display text-2xl font-bold tracking-tight">Settings</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Enrichment, appearance, and this build.</p>
+
+      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enrichment</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
         How “Enrich with AI” investigates an issue before rendering its verdict.
       </p>
 
@@ -382,8 +389,118 @@ export function SettingsPage() {
           </div>
         </div>
       )}
+      <AppearanceCard />
       <AboutCard />
     </main>
+  );
+}
+
+// A Linear custom theme: the same six comma-separated hex colors Linear's
+// Preferences → Theme → Custom accepts and linear.style hands out. The string
+// is persisted in sqlite (so it follows the user across browsers) and every
+// design token is derived from it in lib/linearstyle.ts.
+function AppearanceCard() {
+  const { toast } = useToast();
+  const { custom, setCustom } = useTheme();
+  const current = custom ? formatLinearTheme(custom) : "";
+  const [draft, setDraft] = useState(current);
+  const [saving, setSaving] = useState(false);
+
+  const parsed = parseLinearTheme(draft);
+  const invalid = draft.trim() !== "" && !parsed;
+  const dirty = (parsed ? formatLinearTheme(parsed) : "") !== current;
+  const preview = parsed ?? custom;
+
+  // `raw` is already canonical: callers pass formatLinearTheme(parsed) or "".
+  const apply = async (raw: string) => {
+    setSaving(true);
+    try {
+      await setCustom(raw);
+      setDraft(raw);
+      toast(raw ? "Theme applied" : "Theme reset");
+    } catch (e) {
+      toast(`Theme: ${(e as Error).message}`, { tone: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Appearance</h2>
+      <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Palette className="size-4 text-muted-foreground" />
+          Linear theme
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Paste the six-color string Linear uses for custom themes — the same one you would drop into
+          Linear's Preferences → Theme → Custom, or copy from{" "}
+          <a
+            href="https://linear.style"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="font-medium text-foreground underline decoration-border underline-offset-2 hover:decoration-foreground"
+          >
+            linear.style
+          </a>
+          . Slots, in order: base, text, sidebar, sidebar text, accent, accent text. Saved with this app's
+          data, so it follows you across browsers; light or dark is decided by the base color.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={LINEAR_THEME_EXAMPLE}
+            spellCheck={false}
+            aria-label="Linear theme colors"
+            aria-invalid={invalid || undefined}
+            className={cn(
+              "h-8 min-w-0 flex-1 rounded-md border bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring",
+              invalid ? "border-destructive/60" : "border-input",
+            )}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && parsed && dirty) void apply(formatLinearTheme(parsed));
+            }}
+          />
+          <Button
+            variant="quiet"
+            size="sm"
+            disabled={saving || !parsed || !dirty}
+            onClick={() => parsed && void apply(formatLinearTheme(parsed))}
+          >
+            {saving ? <Loader2 className="animate-spin" /> : <Check />}
+            Apply
+          </Button>
+          {custom && (
+            <Button variant="ghost" size="sm" disabled={saving} onClick={() => void apply("")}>
+              Reset to default
+            </Button>
+          )}
+        </div>
+        {invalid && (
+          <p className="mt-2 text-[11px] text-destructive">
+            Expected six comma-separated hex colors, e.g. {LINEAR_THEME_EXAMPLE}
+          </p>
+        )}
+        {preview && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {themeSwatches(preview).map((sw) => (
+              <div key={sw.label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span
+                  className="inline-block size-4 rounded-full border border-border"
+                  style={{ backgroundColor: sw.hex }}
+                  aria-hidden
+                />
+                <span>{sw.label}</span>
+                <code className="font-mono">{sw.hex}</code>
+              </div>
+            ))}
+            {parsed && dirty && <span className="text-[11px] italic text-muted-foreground">preview · not applied yet</span>}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

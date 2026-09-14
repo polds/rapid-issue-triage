@@ -51,6 +51,8 @@
   --color-info-foreground: var(--info-foreground);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-chrome: var(--chrome);
+  --color-chrome-foreground: var(--chrome-foreground);
 
   --color-prio-urgent: var(--prio-urgent);
   --color-prio-high: var(--prio-high);
@@ -75,6 +77,10 @@
   --foreground: oklch(0.19 0.02 260);
   --surface: oklch(1 0 0);
   --surface-2: oklch(0.965 0.005 255);
+  /* The top bar. Defaults to the page; a Linear-style custom theme routes its
+     sidebar pair here (theme.tsx sets --chrome / --chrome-foreground inline). */
+  --chrome: var(--background);
+  --chrome-foreground: var(--foreground);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.19 0.02 260);
   --popover: oklch(1 0 0);

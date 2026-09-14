@@ -25,6 +25,7 @@ already-fetched values (`internal/syncer` inside its own transaction,
 | `enrichsettings.go` | `EnrichSettings` (mode, per-source toggles, `claudePath`) — one JSON blob in `meta`. |
 | `tokenusage.go` | `token_usage` rows + `TokenUsageReport` (the AI-spend half of the reports page). Write-once; nothing reads a row back individually. |
 | `secrets.go` | `Secrets` in `meta`, and `Resolve` — the Settings → env → `.env` precedence chain. |
+| `uitheme.go` | `UITheme` — the user's Linear custom-theme string, one `meta` row. `NormalizeLinearTheme` is the only validator: six hex colors in Linear's slot order (base, text, sidebar, sidebar text, accent, accent text) or an error naming the slot; a corrupt row reads back as unset, never as a stylesheet. |
 | `*_test.go` | Unit tests. This package and `internal/config` carry the **70% coverage floor** (`make cover-go`). |
 
 ## Invariants

@@ -9,7 +9,7 @@ Pages own layout and page-local state; anything shared lives in
 | `Triage.tsx` | `#/` | The card deck. **Owns the global keyboard map** and renders `IssueCard` + `ActionBar` + `QuickEditRow`. |
 | `Macros.tsx` | `#/macros` | Macro CRUD: name, key binding, outcome, and the ordered op list. |
 | `Reports.tsx` | `#/reports` | Gamified stats: tiles, per-day bar chart, outcome donut, streaks, plus the AI-enrichment usage panel. Charts are hand-rolled SVG (or plain divs) — no chart library. |
-| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, Advanced → Claude binary path, and About (build stamp + update check). |
+| `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, Advanced → Claude binary path, Appearance (a Linear-style six-color theme), and About (build stamp + update check). |
 
 ## Triage — the keyboard contract
 
@@ -49,6 +49,13 @@ macros silently stop working on other teams. Op kinds and resolution live in
   filesystem path; the server opens a native dialog. A canceled dialog is not
   an error.
 - Saving invalidates the `enrichmode` cache, or cards keep the old mode.
+- **Appearance takes Linear's theme string verbatim.** Six comma-separated hex
+  colors in Linear's own slot order (base, text, sidebar, sidebar text, accent,
+  accent text) — what linear.style copies and Linear's Preferences → Theme →
+  Custom accepts. The card parses locally for the swatch preview and the
+  disabled state, but the write is `PUT /api/theme` through `useTheme().setCustom`,
+  so the value lands in sqlite and follows the user across browsers. Do not
+  invent a second format or a per-token editor; the point is paste-and-go.
 - **About renders whatever the server says, and decides nothing.** "Check now"
   asks `POST /api/version/check` to run the check early; whether an update
   exists is `update.available` from `internal/update`, never a comparison here.

@@ -290,7 +290,36 @@ Two gotchas worth remembering:
   if the selector matches nothing — and notices are client-side state, so a repl
   restart wipes them.
 
+- **Linear custom-theme strings** (what linear.style copies and Linear's
+  Preferences → Theme → Custom pastes) are six comma-separated hex colors in a
+  fixed slot order: **base background, base text, sidebar background, sidebar
+  text, accent, accent text**. Confirmed against linear.style's bundle (Nord =
+  `#2E3440,#ECEFF4,#3B4252,#ECEFF4,#88C0D0,#2E3440`). The site decides
+  light/dark from slot 0's luminance alone; the app does the same
+  (`isDarkTheme`). The sidebar slot can be saturated (Sage's is a mid green),
+  so it is mixed toward the base for muted/secondary/accent surfaces and used
+  at full strength only for the top bar (`--chrome`).
+- **Custom properties set inline on `<html>` beat the `.dark` block.** That is
+  how `theme.tsx` overrides the stylesheet's tokens without touching CSS: the
+  `.dark` class is still toggled (from the base color) so the semantic status
+  colors pick the right variant, and the inline neutrals win over both blocks.
+  Clearing the override is `removeProperty` for every name in
+  `THEME_VAR_NAMES`, so a new token must be added there (it is derived from
+  `themeVars`, so it already is).
+- The theme string is persisted server-side (`meta.ui_theme`, `/api/theme`)
+  and only cached in localStorage for a flash-free first paint; the GET on
+  mount reconciles. The server validates with `NormalizeLinearTheme` so the
+  only thing that can reach a stylesheet is `#RRGGBB` × 6.
+
 ## Do-Not-Repeat
+
+- [2026-09-12] Do not run `npm run build` (the `web/dist` rebuild) in the
+  background while still editing anything in the repo, docs included.
+  Tailwind v4 scans every non-ignored file for class candidates, so a
+  `bg-chrome` mentioned in a CLAUDE.md after the scan started changed the CSS
+  bundle and the JS chunk hash, and `web-dist-check` failed on PR #64 with no
+  `web/src` difference at all. Build last, from a quiescent tree, and build
+  once more to confirm the hash is stable before committing.
 
 - [2026-08-31] Do not answer a missing sqlite row with a bare `writeErr(w, 404,
   err)`. The syncer's `PruneStale` deletes every issue that leaves the index
@@ -389,6 +418,14 @@ Two gotchas worth remembering:
 - [2026-08-28] A worktree-isolated agent must verify its cwd before its first edit. One fan-out agent edited the shared checkout's `web/eslint.config.js` instead of its own worktree, putting an unrelated rule into the main tree. The scratchpad directory is shared across agents too, not per-agent; two agents writing `commit-msg.txt` overwrote each other.
 
 ## Decision Log
+
+- [2026-09-12] **Appearance = Linear's own theme string, not a per-token
+  editor.** The user wanted linear.style paste-and-go parity, so the UI takes
+  the identical six-hex string and derives every token from it in
+  `linearstyle.ts`. Persisted in sqlite (follows the user across browsers),
+  unlike the light/dark toggle which stays per-browser in localStorage. While a
+  custom theme is active the toggle is replaced by a palette icon linking to
+  Settings, because light/dark is decided by the base color.
 
 - [2026-08-27] Persist Settings secrets in sqlite rather than writing `.env`, so the UI is the source of truth and we don't rewrite dotenv files the user may edit by hand.
 - [2026-08-27] golangci-lint is `default: all` with a curated disable list. **gocyclo min-complexity is 15** (tests excluded). Split functions rather than raising the cap.

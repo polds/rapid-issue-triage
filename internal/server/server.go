@@ -89,6 +89,8 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("POST /api/sync/refresh", s.handleSyncRefresh)
 	mux.HandleFunc("GET /api/version", s.handleVersion)
 	mux.HandleFunc("POST /api/version/check", s.handleVersionCheck)
+	mux.HandleFunc("GET /api/theme", s.handleGetTheme)
+	mux.HandleFunc("PUT /api/theme", s.handlePutTheme)
 	mux.Handle("/", spaHandler(ui))
 	return mux
 }

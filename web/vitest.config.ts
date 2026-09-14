@@ -23,6 +23,7 @@ export default defineConfig({
         "src/lib/labelgroups.ts",
         "src/lib/notices.ts",
         "src/lib/version.ts",
+        "src/lib/linearstyle.ts",
       ],
       thresholds: { statements: 90, branches: 85, functions: 90, lines: 90 },
     },

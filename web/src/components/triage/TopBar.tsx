@@ -98,7 +98,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
   );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-chrome/80 text-chrome-foreground backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-5">
         <button onClick={() => navigate("triage")} className="flex cursor-pointer items-center gap-2 pr-1">
           <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
