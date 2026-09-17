@@ -141,7 +141,6 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
         >
           <SearchIcon className="size-3.5" />
           <span className="hidden xl:inline">Go to</span>
-          <kbd className="kbd ml-0.5 hidden h-4 xl:inline">G</kbd>
         </button>
 
         <span className="hidden shrink-0 whitespace-nowrap rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted-foreground sm:inline">

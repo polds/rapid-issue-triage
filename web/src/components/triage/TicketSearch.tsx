@@ -12,12 +12,9 @@ import { createPortal } from "react-dom";
 import { Loader2, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { useTriage } from "@/lib/triage-context";
+import { parseLinearIssueIdentifier } from "@/lib/linear";
 import type { LinearSearchHit } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-// A bare identifier (CORE-123) is pulled directly on Enter even with no search
-// hits, so you can jump to a ticket the title search wouldn't surface.
-const IDENTIFIER_RE = /^[A-Za-z]+-\d+$/;
 
 export function TicketSearch({ onClose }: { onClose: () => void }) {
   const { pullIssue } = useTriage();
@@ -32,17 +29,24 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
   useEffect(() => inputRef.current?.focus(), []);
 
   // The event that changes the query drives the spinner and the cleared list,
-  // leaving the effect below as purely the debounced call out to Linear.
+  // leaving the effect below as purely the debounced call out to Linear. A
+  // direct identifier/URL is pulled on Enter, not searched, so it never spins.
   const changeQuery = (v: string) => {
     setQuery(v);
     setCursor(0);
-    if (v.trim()) setLoading(true);
-    else setHits([]);
+    setHits([]);
+    setLoading(v.trim() !== "" && !parseLinearIssueIdentifier(v));
   };
+
+  const trimmed = query.trim();
+  // A bare identifier (ENG-123) or a pasted linear.app issue URL resolves to a
+  // ticket we can pull straight away — no title search needed.
+  const directId = parseLinearIssueIdentifier(trimmed);
 
   useEffect(() => {
     const q = query.trim();
-    if (!q) return;
+    // A resolvable identifier/URL is pulled directly, so don't waste a search.
+    if (!q || parseLinearIssueIdentifier(q)) return;
     const mySeq = ++seq.current;
     const t = setTimeout(() => {
       void api
@@ -66,9 +70,6 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
     if (id) onClose(); // failures raise their own toast; keep the palette open
   };
 
-  const trimmed = query.trim();
-  const canPullRaw = IDENTIFIER_RE.test(trimmed);
-
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -82,9 +83,9 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
       setCursor((c) => Math.max(c - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const h = hits[cursor];
-      if (h) void pull(h.id);
-      else if (canPullRaw) void pull(trimmed);
+      // A resolved identifier/URL wins over any stale hit list.
+      if (directId) void pull(directId);
+      else if (hits[cursor]) void pull(hits[cursor].id);
     }
   };
 
@@ -107,28 +108,33 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
         <div className="max-h-72 min-h-[4.5rem] overflow-y-auto p-1.5">
           {!trimmed && (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-              Type an issue identifier (like <span className="font-mono text-foreground">CORE-123</span>) or part of a
-              title to search.
+              Type an issue identifier (like <span className="font-mono text-foreground">ENG-123</span>), paste a Linear
+              issue link, or search by title.
             </p>
           )}
-          {trimmed && (loading || pulling) && (
+          {directId && (
+            <button
+              onClick={() => void pull(directId)}
+              disabled={pulling}
+              className="flex w-full cursor-pointer items-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-left text-sm text-accent-foreground disabled:opacity-60"
+            >
+              {pulling ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : <Search className="size-3.5 shrink-0" />}
+              <span className="min-w-0 flex-1">
+                Pull <span className="font-mono font-semibold">{directId}</span>
+              </span>
+              <kbd className="kbd h-5 shrink-0">Enter</kbd>
+            </button>
+          )}
+          {!directId && trimmed && (loading || pulling) && (
             <p className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin" /> {pulling ? "Pulling ticket…" : "Searching Linear…"}
             </p>
           )}
-          {!loading && !pulling && trimmed && hits.length === 0 && (
-            <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-              {canPullRaw ? (
-                <>
-                  No title match. Press <kbd className="kbd h-5">Enter</kbd> to pull{" "}
-                  <span className="font-mono text-foreground">{trimmed.toUpperCase()}</span> directly.
-                </>
-              ) : (
-                "No match in Linear."
-              )}
-            </div>
+          {!directId && !loading && !pulling && trimmed && hits.length === 0 && (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No match in Linear.</p>
           )}
-          {!loading &&
+          {!directId &&
+            !loading &&
             hits.map((h, i) => (
               <button
                 key={h.id}

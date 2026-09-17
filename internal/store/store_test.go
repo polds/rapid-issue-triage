@@ -354,17 +354,17 @@ func TestPutPulledIssue(t *testing.T) {
 	st := testStore(t)
 
 	// A brand-new pulled ticket reports created=true and is queryable.
-	created, err := st.PutPulledIssue(sampleIssue("p1", "CORE-9", "t", 0))
+	created, err := st.PutPulledIssue(sampleIssue("p1", "ENG-9", "t", 0))
 	if err != nil || !created {
 		t.Fatalf("PutPulledIssue new: created=%v err=%v", created, err)
 	}
 	got, err := st.GetIssue("p1")
-	if err != nil || got.Identifier != "CORE-9" {
+	if err != nil || got.Identifier != "ENG-9" {
 		t.Fatalf("GetIssue pulled: %+v %v", got, err)
 	}
 
 	// Pulling the same ticket again is an upsert, not a duplicate: created=false.
-	created, err = st.PutPulledIssue(sampleIssue("p1", "CORE-9", "t", 0))
+	created, err = st.PutPulledIssue(sampleIssue("p1", "ENG-9", "t", 0))
 	if err != nil || created {
 		t.Fatalf("PutPulledIssue existing: created=%v err=%v", created, err)
 	}
