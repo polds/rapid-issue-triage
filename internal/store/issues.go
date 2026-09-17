@@ -44,6 +44,17 @@ func (s *Store) PruneStale(gen int64) (int64, error) {
 	return res.RowsAffected()
 }
 
+// PurgeIssues drops the entire local issue index, including local triage
+// bookkeeping (skip_count, snoozed_until, triaged_at). A subsequent sync
+// rebuilds it from Linear. Returns the number of rows removed.
+func (s *Store) PurgeIssues() (int64, error) {
+	res, err := s.db.Exec(`DELETE FROM issues`)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 const issueCols = `id, identifier, title, description, team_id, state_id, assignee_id,
   project_id, cycle_id, creator_name, priority, estimate, url, created_at, updated_at,
   labels_json, skip_count, COALESCE(snoozed_until, ''), COALESCE(triaged_at, '')`

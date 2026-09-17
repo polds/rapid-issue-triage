@@ -315,6 +315,41 @@ func TestEnrichSettingsAndEnrichmentHash(t *testing.T) {
 	}
 }
 
+func TestPurgeIssuesAndEnrichments(t *testing.T) {
+	st := testStore(t)
+	mustIssue(t, st, sampleIssue("i1", "CORE-1", "t", 0), 1)
+	mustIssue(t, st, sampleIssue("i2", "CORE-2", "t", 0), 1)
+	if err := st.SaveEnrichment(Enrichment{IssueID: "i1", Summary: "s", Verdict: "actionable"}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Purging enrichments drops the cache but leaves the issue index intact.
+	n, err := st.PurgeEnrichments()
+	if err != nil || n != 1 {
+		t.Fatalf("PurgeEnrichments: n=%d err=%v", n, err)
+	}
+	if e, err := st.GetEnrichment("i1"); err != nil || e != nil {
+		t.Fatalf("enrichment survived purge: %+v %v", e, err)
+	}
+	if cnt, err := st.QueueCount(QueueFilter{}); err != nil || cnt != 2 {
+		t.Fatalf("issues touched by enrichment purge: cnt=%d err=%v", cnt, err)
+	}
+
+	// Purging issues clears the whole index.
+	n, err = st.PurgeIssues()
+	if err != nil || n != 2 {
+		t.Fatalf("PurgeIssues: n=%d err=%v", n, err)
+	}
+	if cnt, err := st.QueueCount(QueueFilter{}); err != nil || cnt != 0 {
+		t.Fatalf("issues survived purge: cnt=%d err=%v", cnt, err)
+	}
+
+	// Purging an already-empty store is a no-op, not an error.
+	if n, err := st.PurgeIssues(); err != nil || n != 0 {
+		t.Fatalf("empty PurgeIssues: n=%d err=%v", n, err)
+	}
+}
+
 func TestActivityReportAndUndo(t *testing.T) {
 	st := testStore(t)
 	ms := int64(1200)

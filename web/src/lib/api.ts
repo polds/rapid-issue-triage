@@ -140,6 +140,11 @@ export const api = {
   report: () => req<Report>("/api/report"),
   syncStatus: () => req<SyncStatus>("/api/sync/status"),
   syncRefresh: () => req<{ status: string }>("/api/sync/refresh", { method: "POST" }),
+  // Destructive maintenance. purgeIndex drops the local issue index and kicks a
+  // resync; purgeEnrichments drops cached AI summaries (deep-run history and
+  // token spend are kept).
+  purgeIndex: () => req<{ ok: boolean; purged: number; reindexing: boolean }>("/api/index/purge", { method: "POST" }),
+  purgeEnrichments: () => req<{ ok: boolean; purged: number }>("/api/enrich/purge", { method: "POST" }),
   version: () => req<VersionInfo>("/api/version"),
   theme: () => req<UITheme>("/api/theme"),
   putTheme: (t: UITheme) => req<UITheme>("/api/theme", { method: "PUT", body: JSON.stringify(t) }),

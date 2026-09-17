@@ -664,6 +664,12 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Reload the visible deck from the index (reset = drop current cards). Used
+  // after a maintenance purge, where the deck's cached cards/summaries are stale.
+  const refreshDeck = useCallback(() => {
+    void fetchMore(true);
+  }, [fetchMore]);
+
   const value = useMemo<TriageCtx>(
     () => ({
       meta, metaError, sync, refreshSync, macros, reloadMacros,
@@ -672,7 +678,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy,
       sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
-      reloadMeta: loadMeta,
+      reloadMeta: loadMeta, refreshDeck,
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,
       activeRun, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
@@ -687,6 +693,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       activeRun, getRunEvents, eventsTick, focusIssue,
       duplicatePrompt, cancelDuplicatePrompt,
       labelPrompt, cancelLabelPrompt,
+      refreshDeck,
     ],
   );
 

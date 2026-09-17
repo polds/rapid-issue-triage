@@ -68,3 +68,15 @@ func (s *Store) AttachEnrichments(rows []IssueRow) error {
 	}
 	return nil
 }
+
+// PurgeEnrichments drops every cached fast-enrichment summary. Deep-run rows
+// (enrich_runs / enrich_events) and token-usage spend history are left intact:
+// they are an audit trail, not a cache, and are never joined to issues. A card
+// re-enriches on demand after this. Returns the number of rows removed.
+func (s *Store) PurgeEnrichments() (int64, error) {
+	res, err := s.db.Exec(`DELETE FROM enrichments`)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}

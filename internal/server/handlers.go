@@ -185,6 +185,31 @@ func (s *Server) handleDeleteFilter(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{"ok": true, "reindexing": true})
 }
 
+// handlePurgeIndex drops the entire local issue index and kicks a fresh sync
+// to rebuild it from Linear under the active filter. Destructive: local
+// skip/snooze/triage bookkeeping is lost. The queue is empty until the resync
+// lands, which the UI reflects via the reindexing pill.
+func (s *Server) handlePurgeIndex(w http.ResponseWriter, r *http.Request) {
+	n, err := s.store.PurgeIssues()
+	if err != nil {
+		writeErr(w, 500, err)
+		return
+	}
+	s.syncer.Kick()
+	writeJSON(w, 200, map[string]any{"ok": true, "purged": n, "reindexing": true})
+}
+
+// handlePurgeEnrichments drops every cached fast-enrichment summary. Cards
+// re-enrich on demand; deep-run history and token-usage spend records are kept.
+func (s *Server) handlePurgeEnrichments(w http.ResponseWriter, r *http.Request) {
+	n, err := s.store.PurgeEnrichments()
+	if err != nil {
+		writeErr(w, 500, err)
+		return
+	}
+	writeJSON(w, 200, map[string]any{"ok": true, "purged": n})
+}
+
 // pushRecentSyncFilter records a filter in the recent list (dedup, cap 10).
 func (s *Server) pushRecentSyncFilter(raw string) {
 	var recent []map[string]any

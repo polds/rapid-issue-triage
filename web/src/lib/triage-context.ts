@@ -74,6 +74,9 @@ export interface TriageCtx {
   enrich: () => Promise<void>;
   enriching: boolean;
   reloadMeta: () => Promise<void>;
+  // Reset the visible deck from the index — used after a maintenance purge
+  // invalidates the cached cards/summaries.
+  refreshDeck: () => void;
   setIssueEnrichment: (issueId: string, e: Enrichment) => void;
   // Background deep-run tracking: notices feed the bell dropdown and toasts;
   // event buffers feed the live panel; focusIssue jumps back to a card.
