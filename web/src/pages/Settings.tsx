@@ -1,7 +1,11 @@
-// Settings: fast vs deep enrichment mode, per-source toggles with live
-// availability probes, time-impact estimates, and the read-only guarantee
-// spelled out. Claude path, MCP API keys, and a native folder picker live here,
-// then Appearance (a Linear-style six-color theme) and About.
+// Settings, laid out as a sidebar with one page per section. The shell owns
+// the nav + active-section switch (deep-linked via #/settings/<id>, see
+// settings-nav.ts); each section is a self-contained component:
+//   - EnrichmentSection: fast/deep mode, per-source toggles with live
+//     availability probes, secret keys, and the Advanced Claude-binary path.
+//   - AppearanceCard: the Linear-style six-color theme.
+//   - MaintenanceCard: force re-index + the two destructive purges.
+//   - AboutCard: the build stamp and update check.
 import { useEffect, useState } from "react";
 import {
   ArrowUpCircle,
@@ -31,6 +35,7 @@ import { Dialog } from "@/components/ui/dialog";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
 import { buildDate, displayVersion, hasUpdate, releaseHref, shortCommit, updateSummary } from "@/lib/version";
 import { cn } from "@/lib/utils";
+import { SETTINGS_SECTIONS, settingsHref, useSettingsSection } from "./settings-nav";
 
 const SOURCE_META: {
   key: SourceKey;
@@ -45,7 +50,56 @@ const SOURCE_META: {
   { key: "gcloud", name: "Google Cloud", what: "Runs gcloud restricted to list/describe/get-iam-policy read verbs to inspect referenced infrastructure. Uses your local gcloud login.", estimate: "+30–90s" },
 ];
 
+// The shell: a left rail that deep-links each section, and the active page. The
+// section is read from the hash so a direct #/settings/appearance link lands
+// here already on the right page.
 export function SettingsPage() {
+  const section = useSettingsSection();
+  const active = SETTINGS_SECTIONS.find((s) => s.id === section) ?? SETTINGS_SECTIONS[0];
+
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">
+      <h1 className="font-display text-2xl font-bold tracking-tight">Settings</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Enrichment, appearance, data, and this build.</p>
+
+      <div className="mt-8 grid gap-8 md:grid-cols-[200px_minmax(0,1fr)]">
+        <nav aria-label="Settings sections" className="flex flex-row flex-wrap gap-1 md:flex-col md:gap-0.5">
+          {SETTINGS_SECTIONS.map((s) => (
+            <a
+              key={s.id}
+              href={settingsHref(s.id)}
+              aria-current={s.id === section ? "page" : undefined}
+              className={cn(
+                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                s.id === section
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+              )}
+            >
+              {s.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold tracking-tight">{active.label}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{active.blurb}</p>
+          <div className="mt-6">
+            {section === "enrichment" && <EnrichmentSection />}
+            {section === "appearance" && <AppearanceCard />}
+            {section === "data" && <MaintenanceCard />}
+            {section === "about" && <AboutCard />}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+// Enrichment: fast/deep mode, the read-only guarantee, per-source scout toggles
+// with live availability probes and secret keys, and the Advanced Claude-binary
+// override. Holds all the enrichment settings state for the section.
+function EnrichmentSection() {
   const { toast } = useToast();
   const { reloadMeta } = useTriage();
   const [info, setInfo] = useState<EnrichSettingsInfo | null>(null);
@@ -69,9 +123,9 @@ export function SettingsPage() {
 
   if (!info)
     return (
-      <main className="mx-auto flex max-w-3xl justify-center px-5 py-20">
+      <div className="flex justify-center py-16">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
-      </main>
+      </div>
     );
 
   const s = info.settings;
@@ -143,17 +197,9 @@ export function SettingsPage() {
   const claudeMissing = claude && !claude.available;
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
-      <h1 className="font-display text-2xl font-bold tracking-tight">Settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Enrichment, appearance, and this build.</p>
-
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enrichment</h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        How “Enrich with AI” investigates an issue before rendering its verdict.
-      </p>
-
+    <>
       {claudeMissing && (
-        <div className="mt-6 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
           <TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning-foreground dark:text-warning" />
           <div className="min-w-0 text-sm">
             <p className="font-semibold text-warning-foreground dark:text-warning">Claude Code CLI not found</p>
@@ -165,7 +211,7 @@ export function SettingsPage() {
         </div>
       )}
 
-      <div className="mt-6 flex items-center gap-3 rounded-xl border border-success/30 bg-success/5 p-4">
+      <div className={cn("flex items-center gap-3 rounded-xl border border-success/30 bg-success/5 p-4", claudeMissing && "mt-6")}>
         <ShieldCheck className="size-5 shrink-0 text-success" />
         <p className="text-xs leading-relaxed text-muted-foreground">
           <strong className="text-foreground">Everything below is read-only by construction.</strong>{" "}
@@ -201,9 +247,9 @@ export function SettingsPage() {
         ))}
       </div>
 
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      <h3 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         Deep-mode sources
-      </h2>
+      </h3>
       <p className="mt-1 text-xs text-muted-foreground">
         Each enabled source adds a parallel scout. Estimated impact is per run; scouts run
         concurrently, so total ≈ slowest scout + ~15–30s synthesis.
@@ -390,10 +436,7 @@ export function SettingsPage() {
           </div>
         </div>
       )}
-      <AppearanceCard />
-      <MaintenanceCard />
-      <AboutCard />
-    </main>
+    </>
   );
 }
 
@@ -428,81 +471,78 @@ function AppearanceCard() {
   };
 
   return (
-    <>
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Appearance</h2>
-      <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2 text-sm font-semibold">
-          <Palette className="size-4 text-muted-foreground" />
-          Linear theme
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Paste the six-color string Linear uses for custom themes — the same one you would drop into
-          Linear's Preferences → Theme → Custom, or copy from{" "}
-          <a
-            href="https://linear.style"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-foreground underline decoration-border underline-offset-2 hover:decoration-foreground"
-          >
-            linear.style
-          </a>
-          . Slots, in order: base, text, sidebar, sidebar text, accent, accent text. Saved with this app's
-          data, so it follows you across browsers; light or dark is decided by the base color.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={LINEAR_THEME_EXAMPLE}
-            spellCheck={false}
-            aria-label="Linear theme colors"
-            aria-invalid={invalid || undefined}
-            className={cn(
-              "h-8 min-w-0 flex-1 rounded-md border bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring",
-              invalid ? "border-destructive/60" : "border-input",
-            )}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && parsed && dirty) void apply(formatLinearTheme(parsed));
-            }}
-          />
-          <Button
-            variant="quiet"
-            size="sm"
-            disabled={saving || !parsed || !dirty}
-            onClick={() => parsed && void apply(formatLinearTheme(parsed))}
-          >
-            {saving ? <Loader2 className="animate-spin" /> : <Check />}
-            Apply
-          </Button>
-          {custom && (
-            <Button variant="ghost" size="sm" disabled={saving} onClick={() => void apply("")}>
-              Reset to default
-            </Button>
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold">
+        <Palette className="size-4 text-muted-foreground" />
+        Linear theme
+      </div>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        Paste the six-color string Linear uses for custom themes — the same one you would drop into
+        Linear's Preferences → Theme → Custom, or copy from{" "}
+        <a
+          href="https://linear.style"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="font-medium text-foreground underline decoration-border underline-offset-2 hover:decoration-foreground"
+        >
+          linear.style
+        </a>
+        . Slots, in order: base, text, sidebar, sidebar text, accent, accent text. Saved with this app's
+        data, so it follows you across browsers; light or dark is decided by the base color.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={LINEAR_THEME_EXAMPLE}
+          spellCheck={false}
+          aria-label="Linear theme colors"
+          aria-invalid={invalid || undefined}
+          className={cn(
+            "h-8 min-w-0 flex-1 rounded-md border bg-surface px-2.5 font-mono text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            invalid ? "border-destructive/60" : "border-input",
           )}
-        </div>
-        {invalid && (
-          <p className="mt-2 text-[11px] text-destructive">
-            Expected six comma-separated hex colors, e.g. {LINEAR_THEME_EXAMPLE}
-          </p>
-        )}
-        {preview && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {themeSwatches(preview).map((sw) => (
-              <div key={sw.label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span
-                  className="inline-block size-4 rounded-full border border-border"
-                  style={{ backgroundColor: sw.hex }}
-                  aria-hidden
-                />
-                <span>{sw.label}</span>
-                <code className="font-mono">{sw.hex}</code>
-              </div>
-            ))}
-            {parsed && dirty && <span className="text-[11px] italic text-muted-foreground">preview · not applied yet</span>}
-          </div>
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && parsed && dirty) void apply(formatLinearTheme(parsed));
+          }}
+        />
+        <Button
+          variant="quiet"
+          size="sm"
+          disabled={saving || !parsed || !dirty}
+          onClick={() => parsed && void apply(formatLinearTheme(parsed))}
+        >
+          {saving ? <Loader2 className="animate-spin" /> : <Check />}
+          Apply
+        </Button>
+        {custom && (
+          <Button variant="ghost" size="sm" disabled={saving} onClick={() => void apply("")}>
+            Reset to default
+          </Button>
         )}
       </div>
-    </>
+      {invalid && (
+        <p className="mt-2 text-[11px] text-destructive">
+          Expected six comma-separated hex colors, e.g. {LINEAR_THEME_EXAMPLE}
+        </p>
+      )}
+      {preview && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {themeSwatches(preview).map((sw) => (
+            <div key={sw.label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span
+                className="inline-block size-4 rounded-full border border-border"
+                style={{ backgroundColor: sw.hex }}
+                aria-hidden
+              />
+              <span>{sw.label}</span>
+              <code className="font-mono">{sw.hex}</code>
+            </div>
+          ))}
+          {parsed && dirty && <span className="text-[11px] italic text-muted-foreground">preview · not applied yet</span>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -560,15 +600,7 @@ function MaintenanceCard() {
 
   return (
     <>
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        Data &amp; re-indexing
-      </h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        The queue is served from a local index synced from Linear. Force a fresh sync, or clear
-        local state to rebuild from scratch.
-      </p>
-
-      <div className="mt-3 grid gap-3">
+      <div className="grid gap-3">
         <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
           <RefreshCw className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">
@@ -671,53 +703,50 @@ function AboutCard() {
   };
 
   return (
-    <>
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">About</h2>
-      <div
-        className={cn(
-          "mt-3 rounded-xl border p-4",
-          hasUpdate(version) ? "border-info/40 bg-info/[0.04]" : "border-border bg-card",
+    <div
+      className={cn(
+        "rounded-xl border p-4",
+        hasUpdate(version) ? "border-info/40 bg-info/[0.04]" : "border-border bg-card",
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="text-sm font-semibold">Rapid Triage</span>
+        <code className="rounded bg-surface-2 px-2 py-0.5 font-mono text-xs">{displayVersion(version)}</code>
+        {shortCommit(version.commit) && !version.dev && (
+          <span className="font-mono text-[11px] text-muted-foreground">commit {shortCommit(version.commit)}</span>
         )}
-      >
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-sm font-semibold">Rapid Triage</span>
-          <code className="rounded bg-surface-2 px-2 py-0.5 font-mono text-xs">{displayVersion(version)}</code>
-          {shortCommit(version.commit) && !version.dev && (
-            <span className="font-mono text-[11px] text-muted-foreground">commit {shortCommit(version.commit)}</span>
-          )}
-          {buildDate(version.date) && (
-            <span className="text-[11px] text-muted-foreground">built {buildDate(version.date)}</span>
-          )}
-        </div>
-        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-          {hasUpdate(version) && <ArrowUpCircle className="size-3.5 shrink-0 text-info" />}
-          {updateSummary(version)}
-        </p>
-        {update.enabled && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button variant="quiet" size="sm" disabled={checking} onClick={() => void check()}>
-              {checking ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-              Check now
-            </Button>
-            {hasUpdate(version) && (
-              <a
-                href={releaseHref(version)}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-info/40 bg-info/10 px-3 text-xs font-medium text-info transition-colors hover:bg-info/20"
-              >
-                <ArrowUpCircle className="size-3.5" />
-                Release notes for {update.latest}
-              </a>
-            )}
-            <span className="text-[11px] text-muted-foreground">
-              Checks GitHub for a newer release once a day. Nothing but this app's version is sent; turn it off with{" "}
-              <code className="font-mono">update_check.enabled: false</code>.
-            </span>
-          </div>
+        {buildDate(version.date) && (
+          <span className="text-[11px] text-muted-foreground">built {buildDate(version.date)}</span>
         )}
       </div>
-    </>
+      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+        {hasUpdate(version) && <ArrowUpCircle className="size-3.5 shrink-0 text-info" />}
+        {updateSummary(version)}
+      </p>
+      {update.enabled && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button variant="quiet" size="sm" disabled={checking} onClick={() => void check()}>
+            {checking ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+            Check now
+          </Button>
+          {hasUpdate(version) && (
+            <a
+              href={releaseHref(version)}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-info/40 bg-info/10 px-3 text-xs font-medium text-info transition-colors hover:bg-info/20"
+            >
+              <ArrowUpCircle className="size-3.5" />
+              Release notes for {update.latest}
+            </a>
+          )}
+          <span className="text-[11px] text-muted-foreground">
+            Checks GitHub for a newer release once a day. Nothing but this app's version is sent; turn it off with{" "}
+            <code className="font-mono">update_check.enabled: false</code>.
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
 
