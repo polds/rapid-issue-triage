@@ -17,12 +17,15 @@ function ViewsColumn({ onClose }: { onClose: () => void }) {
   const [views, setViews] = useState<CustomView[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [applying, setApplying] = useState<string | null>(null);
+  const [info, setInfo] = useState<IndexFilterInfo | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     api
       .views()
       .then((r) => setViews(r.views ?? []))
       .catch((e) => setError((e as Error).message));
+    api.getIndexFilter().then(setInfo).catch(() => {});
   }, []);
 
   const applyView = async (v: CustomView) => {
@@ -35,6 +38,19 @@ function ViewsColumn({ onClose }: { onClose: () => void }) {
       toast((e as Error).message, { tone: "error" });
     } finally {
       setApplying(null);
+    }
+  };
+
+  const resetToDefault = async () => {
+    setResetting(true);
+    try {
+      await api.resetIndexFilter();
+      toast("Reverted to the config default — reindexing");
+      onClose();
+    } catch (e) {
+      toast((e as Error).message, { tone: "error" });
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -74,6 +90,13 @@ function ViewsColumn({ onClose }: { onClose: () => void }) {
           </button>
         ))}
       </div>
+      {info?.overridden && (
+        <div className="mt-2 flex justify-end">
+          <Button variant="ghost" size="sm" onClick={resetToDefault} disabled={resetting}>
+            {resetting ? <Loader2 className="animate-spin" /> : <RotateCcw />} Reset to default
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
