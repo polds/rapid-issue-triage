@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const issueFields = `
@@ -12,6 +13,10 @@ const issueFields = `
   creator { name displayName }
   labels(first: 50) { nodes { id name color } }
 `
+
+// ErrIssueNotFound is returned by IssueByID when Linear has no issue for the
+// given id/identifier, so a handler can answer 404 instead of a 502.
+var ErrIssueNotFound = errors.New("linear: issue not found")
 
 func (c *Client) Viewer(ctx context.Context) (User, error) {
 	var out struct {
@@ -189,6 +194,31 @@ func (c *Client) IssueComments(ctx context.Context, issueID string) ([]Comment, 
 	}`
 	err := c.Do(ctx, q, map[string]any{"id": issueID}, &out)
 	return out.Issue.Comments.Nodes, err
+}
+
+// IssueByID fetches one full issue by its UUID or identifier (Linear's
+// `issue(id:)` accepts either). Returns ErrIssueNotFound when Linear has no
+// such issue, so callers can answer 404 rather than 502. The projection is the
+// shared issueFields fragment, so the result maps into store.IssueRow exactly
+// like a synced issue.
+func (c *Client) IssueByID(ctx context.Context, id string) (Issue, error) {
+	var out struct {
+		Issue *Issue `json:"issue"`
+	}
+	q := `query ($id: String!) { issue(id: $id) {` + issueFields + `} }`
+	if err := c.Do(ctx, q, map[string]any{"id": id}, &out); err != nil {
+		// Linear answers an unknown id/identifier with a GraphQL error
+		// ("Entity not found: Issue"), not a null issue, so map that one case
+		// to the sentinel and let anything else stay a real (502) failure.
+		if strings.Contains(err.Error(), "Entity not found") {
+			return Issue{}, ErrIssueNotFound
+		}
+		return Issue{}, err
+	}
+	if out.Issue == nil {
+		return Issue{}, ErrIssueNotFound
+	}
+	return *out.Issue, nil
 }
 
 // UpdateIssue applies input (a partial IssueUpdateInput as a map; nil values

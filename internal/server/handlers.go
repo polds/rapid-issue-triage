@@ -14,6 +14,7 @@ import (
 
 	"github.com/polds/rapid-issue-triage/internal/linear"
 	"github.com/polds/rapid-issue-triage/internal/store"
+	"github.com/polds/rapid-issue-triage/internal/syncer"
 )
 
 // errStopProbe short-circuits filter validation after the first page.
@@ -248,6 +249,52 @@ func (s *Server) handleLinearSearch(w http.ResponseWriter, r *http.Request) {
 // handleGetIssue returns one issue row with its enrichment attached.
 func (s *Server) handleGetIssue(w http.ResponseWriter, r *http.Request) {
 	issue, err := s.store.GetIssue(r.PathValue("id"))
+	if err != nil {
+		writeIssueErr(w, err)
+		return
+	}
+	if e, err := s.store.GetEnrichment(issue.ID); err == nil {
+		issue.Enrichment = e
+	}
+	writeJSON(w, 200, map[string]any{"issue": issue})
+}
+
+// handlePullIssue fetches one issue live from Linear by id/identifier, upserts
+// it into the local index (outside the filter sync so it survives pruning), and
+// returns the full row — the "skip the queue" flow that loads an arbitrary
+// ticket into the deck. The ticket may already be triaged/closed; that is fine,
+// it's the point. Every downstream triage action then reads it from the store
+// exactly like a synced issue.
+func (s *Server) handlePullIssue(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ID string `json:"id"`
+	}
+	if err := decodeBody(r, &req); err != nil {
+		writeErr(w, 400, err)
+		return
+	}
+	id := strings.TrimSpace(req.ID)
+	if id == "" {
+		writeErr(w, 400, fmt.Errorf("id (a Linear issue identifier or UUID) is required"))
+		return
+	}
+	is, err := s.linear.IssueByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, linear.ErrIssueNotFound) {
+			writeJSON(w, http.StatusNotFound, map[string]any{
+				"error": fmt.Sprintf("no Linear issue found for %q", id),
+				"code":  "issue_gone",
+			})
+			return
+		}
+		writeErr(w, 502, err)
+		return
+	}
+	if _, err := s.store.PutPulledIssue(syncer.ToRow(is)); err != nil {
+		writeErr(w, 500, err)
+		return
+	}
+	issue, err := s.store.GetIssue(is.ID)
 	if err != nil {
 		writeIssueErr(w, err)
 		return

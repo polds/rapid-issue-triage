@@ -55,6 +55,36 @@ func (s *Store) PurgeIssues() (int64, error) {
 	return res.RowsAffected()
 }
 
+// pulledGen is the sync generation stamped on issues pulled in by identifier
+// search rather than the filter sync. It is deliberately far above any real
+// generation so PruneStale (which deletes sync_gen < currentGen) never removes
+// a pulled ticket that doesn't match the active index filter. A later sync that
+// *does* cover the ticket upserts over it with the real gen, folding it back
+// into the normal lifecycle.
+const pulledGen = int64(1) << 62
+
+// PutPulledIssue upserts one issue fetched on demand from Linear (the ticket
+// search / "skip the queue" flow), outside the filter sync. It reuses
+// UpsertIssue's conflict logic — so local skip/snooze survive and triaged_at is
+// cleared — but stamps pulledGen so the next PruneStale keeps it even when the
+// ticket falls outside the active index filter. Returns whether the row was new.
+func (s *Store) PutPulledIssue(r IssueRow) (bool, error) {
+	var existed int
+	_ = s.db.QueryRow(`SELECT 1 FROM issues WHERE id = ?`, r.ID).Scan(&existed)
+	tx, err := s.db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	if err := s.UpsertIssue(tx, pulledGen, r); err != nil {
+		return false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return existed == 0, nil
+}
+
 const issueCols = `id, identifier, title, description, team_id, state_id, assignee_id,
   project_id, cycle_id, creator_name, priority, estimate, url, created_at, updated_at,
   labels_json, skip_count, COALESCE(snoozed_until, ''), COALESCE(triaged_at, '')`

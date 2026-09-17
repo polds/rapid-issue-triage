@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpCircle, BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
+import { ArrowUpCircle, BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Search as SearchIcon, Settings, TriangleAlert, Zap } from "lucide-react";
 import { useTriage } from "@/lib/triage-context";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
@@ -131,6 +131,16 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
         >
           <FilterIcon className="size-3.5" />
           Views
+        </button>
+
+        <button
+          onClick={() => window.dispatchEvent(new Event("rt:open-ticket-search"))}
+          title="Go to any Linear issue (G)"
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <SearchIcon className="size-3.5" />
+          Go to
+          <kbd className="kbd ml-0.5 hidden h-4 lg:inline">G</kbd>
         </button>
 
         <span className="hidden rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted-foreground sm:inline">

@@ -90,6 +90,10 @@ export interface TriageCtx {
   getRunEvents: (runId: string) => EnrichEvent[];
   eventsTick: number;
   focusIssue: (issueId: string) => Promise<boolean>;
+  // Load an arbitrary Linear ticket into the deck by id/identifier (the ticket
+  // search that skips the queue), inserting it at the cursor and selecting it.
+  // Resolves to the loaded issue id, or null on failure.
+  pullIssue: (idOrIdentifier: string) => Promise<string | null>;
 }
 
 // LabelPrompt is one pending label-group clash: what the user asked for, the
