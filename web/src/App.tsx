@@ -10,7 +10,11 @@ import { SettingsPage } from "@/pages/Settings";
 
 function pageFromHash(): string {
   const h = window.location.hash.replace(/^#\/?/, "");
-  return h === "macros" || h === "reports" || h === "settings" ? h : "triage";
+  if (h === "macros" || h === "reports") return h;
+  // Settings has sub-pages under #/settings/<section>; they all render the
+  // SettingsPage shell, which reads the section from the hash itself.
+  if (h === "settings" || h.startsWith("settings/")) return "settings";
+  return "triage";
 }
 
 export default function App() {
