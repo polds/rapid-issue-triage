@@ -84,6 +84,8 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/filter", s.handleGetFilter)
 	mux.HandleFunc("PUT /api/filter", s.handlePutFilter)
 	mux.HandleFunc("DELETE /api/filter", s.handleDeleteFilter)
+	mux.HandleFunc("POST /api/index/purge", s.handlePurgeIndex)
+	mux.HandleFunc("POST /api/enrich/purge", s.handlePurgeEnrichments)
 	mux.HandleFunc("GET /api/report", s.handleReport)
 	mux.HandleFunc("GET /api/sync/status", s.handleSyncStatus)
 	mux.HandleFunc("POST /api/sync/refresh", s.handleSyncRefresh)

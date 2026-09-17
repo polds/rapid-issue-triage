@@ -27,6 +27,7 @@ import { useTheme } from "@/lib/theme-context";
 import { LINEAR_THEME_EXAMPLE, formatLinearTheme, parseLinearTheme, themeSwatches } from "@/lib/linearstyle";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import type { EnrichSettings, EnrichSettingsInfo, SecretField, SourceKey } from "@/lib/types";
 import { buildDate, displayVersion, hasUpdate, releaseHref, shortCommit, updateSummary } from "@/lib/version";
 import { cn } from "@/lib/utils";
@@ -390,6 +391,7 @@ export function SettingsPage() {
         </div>
       )}
       <AppearanceCard />
+      <MaintenanceCard />
       <AboutCard />
     </main>
   );
@@ -500,6 +502,152 @@ function AppearanceCard() {
           </div>
         )}
       </div>
+    </>
+  );
+}
+
+// Destructive re-index / cache maintenance. A force re-index just kicks the
+// syncer (non-destructive); the two purges wipe local state and are gated
+// behind a typed-free confirm dialog. All three are server round-trips —
+// PurgeIssues/PurgeEnrichments in internal/store, kicked resync in the syncer.
+function MaintenanceCard() {
+  const { toast } = useToast();
+  const { reloadMeta, refreshDeck } = useTriage();
+  const [busy, setBusy] = useState<null | "reindex" | "index" | "enrich">(null);
+  const [confirm, setConfirm] = useState<null | "index" | "enrich">(null);
+
+  const forceReindex = async () => {
+    setBusy("reindex");
+    try {
+      await api.syncRefresh();
+      toast("Re-index started — pulling fresh from Linear");
+      void reloadMeta();
+    } catch (e) {
+      toast((e as Error).message, { tone: "error" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const purgeIndex = async () => {
+    setBusy("index");
+    try {
+      const r = await api.purgeIndex();
+      toast(`Purged ${r.purged} indexed issue${r.purged === 1 ? "" : "s"} — reindexing from Linear`);
+      void reloadMeta();
+      void refreshDeck();
+    } catch (e) {
+      toast((e as Error).message, { tone: "error" });
+    } finally {
+      setBusy(null);
+      setConfirm(null);
+    }
+  };
+
+  const purgeEnrichments = async () => {
+    setBusy("enrich");
+    try {
+      const r = await api.purgeEnrichments();
+      toast(`Purged ${r.purged} AI summar${r.purged === 1 ? "y" : "ies"}`);
+      void refreshDeck();
+    } catch (e) {
+      toast((e as Error).message, { tone: "error" });
+    } finally {
+      setBusy(null);
+      setConfirm(null);
+    }
+  };
+
+  return (
+    <>
+      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Data &amp; re-indexing
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        The queue is served from a local index synced from Linear. Force a fresh sync, or clear
+        local state to rebuild from scratch.
+      </p>
+
+      <div className="mt-3 grid gap-3">
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+          <RefreshCw className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Force re-index</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Re-pulls every issue matching the active filter from Linear now, instead of waiting for
+              the next scheduled sync. Non-destructive — nothing local is lost.
+            </p>
+          </div>
+          <Button variant="quiet" size="sm" disabled={busy !== null} onClick={forceReindex}>
+            {busy === "reindex" ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+            Re-index
+          </Button>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/[0.03] p-4">
+          <Trash2 className="mt-0.5 size-5 shrink-0 text-destructive" />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Purge indexed issues</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Deletes the entire local issue index, including skip counts, snoozes, and triaged marks,
+              then rebuilds it from Linear. The queue is empty until the resync finishes.
+            </p>
+          </div>
+          <Button variant="cancel" size="sm" disabled={busy !== null} onClick={() => setConfirm("index")}>
+            <Trash2 /> Purge
+          </Button>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/[0.03] p-4">
+          <Trash2 className="mt-0.5 size-5 shrink-0 text-destructive" />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Purge AI enrichment summaries</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Clears every cached “Enrich with AI” summary and verdict so cards re-enrich fresh.
+              Deep-run history and token-usage spend records on the Reports page are kept.
+            </p>
+          </div>
+          <Button variant="cancel" size="sm" disabled={busy !== null} onClick={() => setConfirm("enrich")}>
+            <Trash2 /> Purge
+          </Button>
+        </div>
+      </div>
+
+      <Dialog
+        open={confirm !== null}
+        onClose={() => busy === null && setConfirm(null)}
+        title={confirm === "enrich" ? "Purge AI summaries?" : "Purge indexed issues?"}
+        className="sm:max-w-md"
+      >
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {confirm === "enrich" ? (
+            <>
+              This deletes every cached AI enrichment summary and verdict. Cards will re-enrich on
+              demand. Deep-run history and token spend are not affected. This cannot be undone.
+            </>
+          ) : (
+            <>
+              This deletes the entire local issue index — including skip counts, snoozes, and triaged
+              marks — and immediately re-syncs from Linear. Your queue will be empty until the resync
+              finishes. This cannot be undone.
+            </>
+          )}
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" disabled={busy !== null} onClick={() => setConfirm(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={busy !== null}
+            onClick={() => (confirm === "enrich" ? void purgeEnrichments() : void purgeIndex())}
+          >
+            {busy !== null ? <Loader2 className="animate-spin" /> : <Trash2 />}
+            {confirm === "enrich" ? "Purge summaries" : "Purge & re-index"}
+          </Button>
+        </div>
+      </Dialog>
     </>
   );
 }
