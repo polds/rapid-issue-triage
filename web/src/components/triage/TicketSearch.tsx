@@ -104,8 +104,14 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
           placeholder="Search Linear by identifier or title…"
           className="w-full border-b border-border bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
         />
-        <div className="max-h-72 overflow-y-auto p-1.5">
-          {(loading || pulling) && (
+        <div className="max-h-72 min-h-[4.5rem] overflow-y-auto p-1.5">
+          {!trimmed && (
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+              Type an issue identifier (like <span className="font-mono text-foreground">CORE-123</span>) or part of a
+              title to search.
+            </p>
+          )}
+          {trimmed && (loading || pulling) && (
             <p className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin" /> {pulling ? "Pulling ticket…" : "Searching Linear…"}
             </p>
