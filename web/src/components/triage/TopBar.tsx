@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpCircle, BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Settings, TriangleAlert, Zap } from "lucide-react";
+import { ArrowUpCircle, BarChart3, Check, Filter as FilterIcon, Loader2, RefreshCw, Search as SearchIcon, Settings, TriangleAlert, Zap } from "lucide-react";
 import { useTriage } from "@/lib/triage-context";
 import { ThemeToggle } from "@/lib/theme";
 import { Select } from "@/components/ui/select";
@@ -100,11 +100,11 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-chrome/80 text-chrome-foreground backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-5">
-        <button onClick={() => navigate("triage")} className="flex cursor-pointer items-center gap-2 pr-1">
+        <button onClick={() => navigate("triage")} className="flex shrink-0 cursor-pointer items-center gap-2 pr-1">
           <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Zap className="size-4" />
           </span>
-          <span className="font-display text-sm font-extrabold tracking-tight">Rapid Triage</span>
+          <span className="whitespace-nowrap font-display text-sm font-extrabold tracking-tight">Rapid Triage</span>
         </button>
         <VersionBadge />
 
@@ -113,7 +113,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
           onChange={(e) =>
             setViewFilter({ ...viewFilter, teams: e.target.value ? [e.target.value] : [], excludeTeams: [] })
           }
-          className="w-[176px]"
+          className="w-[176px] shrink-0"
           aria-label="Team filter"
         >
           <option value="">All Teams</option>
@@ -127,21 +127,31 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
 
         <button
           onClick={() => setPanel(true)}
-          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <FilterIcon className="size-3.5" />
           Views
         </button>
 
-        <span className="hidden rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted-foreground sm:inline">
+        <button
+          onClick={() => window.dispatchEvent(new Event("rt:open-ticket-search"))}
+          title="Go to any Linear issue (G)"
+          aria-label="Go to any Linear issue"
+          className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:px-3"
+        >
+          <SearchIcon className="size-3.5" />
+          <span className="hidden xl:inline">Go to</span>
+        </button>
+
+        <span className="hidden shrink-0 whitespace-nowrap rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted-foreground sm:inline">
           {remaining} left
         </span>
 
-        <div className="hidden sm:block">
+        <div className="hidden shrink-0 sm:block">
           <SyncPill />
         </div>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           <NotificationBell navigate={navigate} />
           {navBtn("macros", <Zap className="size-4" />, "Macros")}
           {navBtn("reports", <BarChart3 className="size-4" />, "Reports")}
