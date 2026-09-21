@@ -15,6 +15,7 @@ const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ["U"], label: "Undo last action" },
   { keys: ["I"], label: "Enrich with AI" },
   { keys: ["O"], label: "Open in Linear" },
+  { keys: ["G"], label: "Go to / pull any issue" },
   { keys: ["?"], label: "Toggle this help" },
 ];
 

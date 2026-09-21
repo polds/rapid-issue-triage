@@ -8,6 +8,7 @@ import { HelpOverlay } from "@/components/triage/HelpOverlay";
 import { Confetti } from "@/components/triage/Confetti";
 import { LabelGroupPrompt } from "@/components/triage/LabelGroupPrompt";
 import { DuplicateOfPicker } from "@/components/triage/DuplicateOfPicker";
+import { TicketSearch } from "@/components/triage/TicketSearch";
 import { Button } from "@/components/ui/button";
 import { Undo2 as UndoIcon } from "lucide-react";
 
@@ -23,6 +24,7 @@ export function TriagePage() {
   const [expanded, setExpanded] = useState(false);
   const [picker, setPicker] = useState<PickerKey | null>(null);
   const [help, setHelp] = useState(false);
+  const [search, setSearch] = useState(false);
 
   const onKey = useCallback(
     (e: KeyboardEvent) => {
@@ -37,7 +39,12 @@ export function TriagePage() {
         setHelp((h) => !h);
         return;
       }
-      if (picker || help) return;
+      if (k.toLowerCase() === "g") {
+        e.preventDefault();
+        setSearch(true);
+        return;
+      }
+      if (picker || help || search) return;
 
       if (k === "ArrowRight") return void (e.preventDefault(), next());
       if (k === "ArrowLeft") return void (e.preventDefault(), prev());
@@ -68,13 +75,21 @@ export function TriagePage() {
         }
       }
     },
-    [picker, help, next, prev, skip, snooze, undo, macros, applyMacro, enrich, current],
+    [picker, help, search, next, prev, skip, snooze, undo, macros, applyMacro, enrich, current],
   );
 
   useEffect(() => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onKey]);
+
+  // The TopBar search button lives in a sibling component; it opens this
+  // overlay by dispatching a window event rather than lifting state up.
+  useEffect(() => {
+    const open = () => setSearch(true);
+    window.addEventListener("rt:open-ticket-search", open);
+    return () => window.removeEventListener("rt:open-ticket-search", open);
+  }, []);
 
   return (
     <>
@@ -186,6 +201,7 @@ export function TriagePage() {
         />
       )}
       <HelpOverlay open={help} onClose={() => setHelp(false)} />
+      {search && <TicketSearch onClose={() => setSearch(false)} />}
       <Confetti trigger={milestone} />
     </>
   );

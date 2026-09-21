@@ -59,6 +59,7 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/queue", s.handleQueue)
 	mux.HandleFunc("GET /api/linear/search", s.handleLinearSearch)
 	mux.HandleFunc("GET /api/issues/{id}", s.handleGetIssue)
+	mux.HandleFunc("POST /api/issues/pull", s.handlePullIssue)
 	mux.HandleFunc("GET /api/issues/{id}/context", s.handleIssueContext)
 	mux.HandleFunc("POST /api/issues/{id}/apply", s.handleApply)
 	mux.HandleFunc("POST /api/issues/{id}/macro/{macroId}", s.handleRunMacro)
