@@ -220,41 +220,6 @@
 
 ---
 
-## 🚀 Next phase
-
-**Goal:** Land the version/update-check branch (`claude/version-display-update-check-yxj8n8`), then cut the next release so a stamped binary actually exercises the update path end to end — every check so far ran against a local stub or an unstamped `dev` build, which by design reports no update.
-
-Carried forward from the pool work: **cancelling a queued run** is the obvious
-next ask and was deliberately left out — it needs a server endpoint that pulls a
-run out of `Orchestrator.queue` and finishes its row as `cancelled` (the status
-already exists in `EnrichRun` on the TS side), plus an X on queued bell entries.
-
-### Acceptance criteria
-1. CI green on the version/update PR; `web/dist` staged with the UI change (`make web-dist-check` reads the worktree column only).
-2. A released, ldflags-stamped binary reports its tag in the top bar and finds the published release through the real GitHub endpoint — the one path a stub cannot prove.
-3. Production `triage` on `:7333` restarted onto a build that carries all of this.
-4. Never hand-create a release in the UI — immutability burns the tag name.
-
-### Closed decisions
-- Deep runs are pooled server-side (not in `store.tsx`): the runs are server-owned goroutines that outlive the tab, and a browser-side limiter would be per-tab and would lie after a reload. Fast enrichment is deliberately not pooled.
-- A queue position reaches the browser as an SSE event, never as a field the UI recomputes — one source of truth for the card and the bell.
-- Repo rulesets: "Main" (branch) requires all 11 CI contexts; "Release Tags" (tag, ~ALL) blocks deletion, tag moves, and force pushes. Neither has bypass actors. Adding `creation` to the tag ruleset would break `release.yml` - see cerebrum.
-- Secrets live in sqlite, not rewritten `.env` files.
-- Enricher + orchestrator are created whenever `ai.enabled` is true, even if `claude` is missing, so a later Settings path can enable enrichment without a restart.
-- Native picker is a Go subprocess (osascript / zenity / PowerShell) because the browser cannot expose filesystem paths.
-- Coverage floor applies to `internal/config` + `internal/store` (70%), not the whole module.
-- The update check is server-side and in memory: no sqlite DDL for a value whose staleness costs one GET per restart, and one verdict (`internal/version.IsNewer`) rather than a second comparison in the frontend.
-- The app has exactly three outbound destinations — Linear, the local `claude` binary, and the switchable release check. A fourth needs a PR reason and a `SECURITY.md` line.
-
-### Open decisions
-- Dependabot majors are open and not safe to merge blind: #9 bumps TypeScript to 7.0.2, outside `typescript-eslint@8`'s peer range (`<6.1.0`), which would break the whole type-aware config. #7 (vite 8) and #8 are also majors.
-- Whether first-run should boot without `LINEAR_API_KEY` and force a Settings setup screen (still required at process start today).
-- The container path is unrehearsed end to end: no local Docker daemon was available, so it was validated with `goreleaser check`, GoReleaser v2.18's own source (context layout, template fields, base-image parsing), and actionlint/shellcheck/zizmor — not an actual image build. **Run a snapshot dispatch (empty `tag`) before the next real tag**; it builds the image locally and pushes nothing.
-- Whether the update check should also surface in the released container, where the user cannot edit a YAML file as easily (env var override? a Settings toggle alongside the Claude path?). Config-only for now.
-- Whether to make the GHCR package public. It is created private on first push; the `org.opencontainers.image.source` label links it to the repo, and the setting is a one-time manual toggle.
-
----
-
 ## 📁 Active architecture
 
 - **Stack:** Go 1.27 HTTP API + sqlite (`~/.rapid-triage/triage.db`) + embedded Vite/React UI
@@ -262,16 +227,6 @@ already exists in `EnrichRun` on the TS side), plus an X on queued bell entries.
 - **Patterns:** Toolbox never holds raw keys in JSON responses; Probe/Call resolve Settings then env/.env
 
 ---
-
-## ⚠️ External blockers (don't block coding)
-
-- **The `Main` ruleset still requires 11 contexts, not 14.** `SAST`,
-  `License scan` and `Code quality` run and report but cannot block a merge
-  until they are added to the ruleset's required checks
-  (`GET/PUT /repos/polds/rapid-issue-triage/rulesets/<id>`). Needs admin;
-  the session that added the jobs had no ruleset API access.
-
-- The existing `triage` process on `127.0.0.1:7333` is still the pre-change binary. Restart it (or `make build && ./triage`) to use these features. A verify instance was run on `:7334`.
 
 ---
 
