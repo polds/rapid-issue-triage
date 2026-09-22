@@ -118,9 +118,9 @@ Adding a matrix renames a job too — it then reports once per leg as
 `Job name (leg)`.
 
 The three checks added with the scanning work — **`SAST`**, **`License
-scan`**, **`Code quality`** — take the required set from 11 to 14. Adding a
-job to `ci.yml` does not make it required; until each is added to the ruleset
-it runs and reports but cannot block a merge.
+scan`**, **`Code quality`** — brought the required set to 14. All 14 are
+listed in the `Main` ruleset. Adding a job to `ci.yml` does not make it
+required; it must also be added to the ruleset or the gate is unenforced.
 
 **Read the ruleset before touching a `name:`**, and change the job and the
 ruleset in the same PR, or not at all:
@@ -254,7 +254,7 @@ specification.
 ## Dependabot auto-merge
 
 `workflows/dependabot-auto-merge.yml` calls `gh pr merge --auto` on Dependabot
-PRs. It **bypasses nothing**: `--auto` queues behind the same 11 required
+PRs. It **bypasses nothing**: `--auto` queues behind the same 14 required
 checks, and the `Main` ruleset requires 0 approving reviews, so the only thing
 removed is a human clicking merge on an already-green PR.
 
