@@ -12,7 +12,7 @@ import {
 import { api, ApiError } from "./api";
 import { getEnrichInfo } from "./enrichmode";
 import { labelGroupConflicts } from "./labelgroups";
-import { noticeIsActive } from "./notices";
+import { noticeIsActive, settledNoticesFor } from "./notices";
 import { useToast } from "@/components/ui/use-toast";
 import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type RunPlacement, type SyncStatus, type VersionInfo, type ViewFilter } from "./types";
 import {
@@ -241,6 +241,18 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     setCards((prev) => prev.map((c) => (c.issue.id === issueId ? { ...c, ...patch } : c)));
   }, []);
 
+  // retireNotices drops an issue's finished enrichment notices once the user
+  // has written to it in Linear (see settledNoticesFor). Declared above the
+  // actions that call it, for the same React Compiler reason as below.
+  const retireNotices = useCallback((issueId: string) => {
+    setNotices((n) => {
+      const gone = settledNoticesFor(n, issueId);
+      if (!gone.length) return n;
+      for (const id of gone) runEvents.current.delete(id);
+      return n.filter((x) => !gone.includes(x.runId));
+    });
+  }, []);
+
   // Declared here, above startWatcher, because startWatcher closes over it:
   // a forward reference stops React Compiler from preserving this memo.
   const setIssueEnrichment = useCallback(
@@ -402,6 +414,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           issue: { ...r.issue, enrichment: r.issue.enrichment ?? card.issue.enrichment },
         });
         pushUndo(r.activityId, card.issue.id, true);
+        retireNotices(card.issue.id);
         setSessionTriaged((n) => {
           const v = n + 1;
           if (v % 10 === 0) setMilestone(v);
@@ -411,7 +424,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         toast(`${m.name} → ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       }, (e) => raiseLabelPrompt(e, m.name, () => applyMacroRef.current(m, duplicateOfId, true)));
     },
-    [current, duration, swipeAway, updateCard, pushUndo, toast, needsDuplicateOf, labelClash, raiseLabelPrompt],
+    [current, duration, swipeAway, updateCard, pushUndo, retireNotices, toast, needsDuplicateOf, labelClash, raiseLabelPrompt],
   );
 
   const cancelDuplicatePrompt = useCallback(() => setDuplicatePrompt(null), []);
@@ -441,13 +454,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           activityId: r.activityId,
         });
         pushUndo(r.activityId, card.issue.id, false);
+        retireNotices(card.issue.id);
         toast(`${description} · ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       } catch (e) {
         if (raiseLabelPrompt(e, description, () => applyOpsRef.current(ops, description, true))) return;
         toast(`Edit failed: ${(e as Error).message}`, { tone: "error" });
       }
     },
-    [current, duration, updateCard, pushUndo, toast, labelClash, raiseLabelPrompt],
+    [current, duration, updateCard, pushUndo, retireNotices, toast, labelClash, raiseLabelPrompt],
   );
 
   const undo = useCallback(() => {

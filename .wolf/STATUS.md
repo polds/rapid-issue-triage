@@ -2,11 +2,20 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-12 (Linear-style custom theme: paste linear.style's six-hex string in Settings → Appearance, persisted in sqlite, whole UI recolored; previously 2026-08-31: deep enrichment runs are pooled — 2 at a time, the rest queue with a visible place in line — and a single notification can be dismissed on hover; AI-enrichment token usage captured from the Claude Code CLI and reported per responsibility on the reports page; version display in the top bar + Settings → About, with a daily background update check; a card the background sync pruned no longer fails Skip/Snooze with "not found"; Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
+> Last updated: 2026-10-07 (Go-to works from every page; actioning a card retires its finished enrichment notices); previously 2026-09-12 (Linear-style custom theme: paste linear.style's six-hex string in Settings → Appearance, persisted in sqlite, whole UI recolored; previously 2026-08-31: deep enrichment runs are pooled — 2 at a time, the rest queue with a visible place in line — and a single notification can be dismissed on hover; AI-enrichment token usage captured from the Claude Code CLI and reported per responsibility on the reports page; version display in the top bar + Settings → About, with a daily background update check; a card the background sync pruned no longer fails Skip/Snooze with "not found"; Linear label-group conflicts detected before the mutation and resolved by a replace prompt; previously 2026-08-28: starter-workflow survey → OSV-Scanner + Trivy adopted into the Security job; CI scanning tier: SAST, license scan, code quality, plus a ReDoS fix in Markdown.tsx; container image added to the release; lint fan-out merged and web/dist gated against a fresh build; directory-level CLAUDE.md tree + OpenWolf CLI bootstrap; repo hygiene PRs #31 + #35; first release cut as v0.1.1)
 
 ---
 
 ## ✅ Done
+
+- **Go-to fixed off the deck + notices retire when a card is actioned
+  (2026-10-07).** Branch `claude/ecstatic-mendel-txt5jf`, stacked on #68
+  (`feat/ticket-search-pull`, unmerged). Go-to (TicketSearch) is now owned by
+  `App.tsx`: the TopBar button and `G` work on every page, and a pull lands on
+  the deck. A successful macro or quick edit — posting the AI report included —
+  drops that issue's finished enrichment notices (`settledNoticesFor` in
+  `notices.ts`); skip/snooze don't, active runs never. Retire path is
+  unreachable offline (Linear writes 502), so unit-tested only.
 
 - **Linear-style custom theme (2026-09-12).** Settings → Appearance takes the
   six-color string Linear/linear.style use (base, text, sidebar, sidebar text,

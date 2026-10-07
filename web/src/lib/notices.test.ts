@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { noticeDetail, noticeIsActive, noticeWhen } from "./notices";
+import { noticeDetail, noticeIsActive, noticeWhen, settledNoticesFor } from "./notices";
 import type { EnrichNotice } from "./triage-context";
 
 const notice = (over: Partial<EnrichNotice>): EnrichNotice => ({
@@ -64,5 +64,28 @@ describe("noticeWhen", () => {
 
   it("ages a finished run", () => {
     expect(noticeWhen(notice({ status: "done", at: "2020-01-01T00:00:00Z" }))).toMatch(/ago$/);
+  });
+});
+
+describe("settledNoticesFor", () => {
+  it("retires every finished notice for the actioned issue, done or failed", () => {
+    const ns = [
+      notice({ runId: "a", issueId: "i1", status: "done" }),
+      notice({ runId: "b", issueId: "i1", status: "error", error: "boom" }),
+      notice({ runId: "c", issueId: "i2", status: "done" }),
+    ];
+    expect(settledNoticesFor(ns, "i1")).toEqual(["a", "b"]);
+  });
+
+  it("keeps an active run on the same issue, since dropping it would orphan the run", () => {
+    const ns = [
+      notice({ runId: "a", issueId: "i1", status: "running" }),
+      notice({ runId: "b", issueId: "i1", status: "queued", position: 1 }),
+    ];
+    expect(settledNoticesFor(ns, "i1")).toEqual([]);
+  });
+
+  it("finds nothing for an issue with no notices", () => {
+    expect(settledNoticesFor([notice({})], "other")).toEqual([]);
   });
 });
