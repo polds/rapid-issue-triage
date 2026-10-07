@@ -38,15 +38,6 @@ func (s *Server) handleDeepEnrich(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 202, placed)
 }
 
-func (s *Server) handleRunGet(w http.ResponseWriter, r *http.Request) {
-	run, err := s.store.GetEnrichRun(r.PathValue("id"))
-	if err != nil {
-		writeErr(w, 404, err)
-		return
-	}
-	writeJSON(w, 200, run)
-}
-
 func (s *Server) handleIssueLatestRun(w http.ResponseWriter, r *http.Request) {
 	run, err := s.store.LatestRunForIssue(r.PathValue("id"))
 	if err != nil {

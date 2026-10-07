@@ -71,7 +71,6 @@ func (s *Server) Handler(ui fs.FS) http.Handler {
 	mux.HandleFunc("PUT /api/enrich/settings", s.handlePutEnrichSettings)
 	mux.HandleFunc("PUT /api/secrets", s.handlePutSecret)
 	mux.HandleFunc("POST /api/pick", s.handlePick)
-	mux.HandleFunc("GET /api/enrich/runs/{id}", s.handleRunGet)
 	mux.HandleFunc("GET /api/enrich/runs/{id}/events", s.handleRunEvents)
 	mux.HandleFunc("GET /api/enrich/runs/{id}/log", s.handleRunLog)
 	mux.HandleFunc("POST /api/toolbox", s.handleToolbox)
