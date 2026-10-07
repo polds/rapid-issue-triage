@@ -61,6 +61,11 @@ the presentation half; changing the set means touching `internal/ai`,
   active run would orphan it, since the notice is what the card panel reads.
   A hover-revealed control still has to be reachable: keep `focus-visible`
   alongside `group-hover`.
+- **`TicketSearch` (Go to issue) is owned by `App.tsx`, not the triage page.**
+  The TopBar button and the `G` shortcut exist on every page, so the overlay
+  must too; a listener on `TriagePage` left the button dead on Settings,
+  Macros and Reports. A successful pull navigates to the deck. Deck shortcuts
+  stand down while any `[data-picker-open]` overlay is up.
 - **The Claude-missing banner is driven by the server's live probe**, not by
   local config. It must offer the Settings path, not just report failure.
 - **Issue text is rendered through `Markdown.tsx`**, never as HTML.
