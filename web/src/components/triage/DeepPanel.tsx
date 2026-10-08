@@ -2,7 +2,6 @@
 // feed streamed over SSE, then the fixed-schema report, plus the action log.
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity as ActivityIcon,
   Check,
   ChevronDown,
   ChevronUp,
@@ -479,5 +478,3 @@ function ActionLogDialog({ runId, open, onClose }: { runId: string; open: boolea
     </Dialog>
   );
 }
-
-export { ActivityIcon };
