@@ -130,7 +130,7 @@ dependency-light Vite + React + Tailwind v4 SPA embedded via `go:embed`.
 
 Every push and pull request to `main` runs `.github/workflows/ci.yml`:
 
-- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.13, `go test -race`
+- Go `gofmt`, `go fix`, `vet`, golangci-lint v2.14, `go test -race`
 - Coverage floor of 70% on `internal/config` and `internal/store`
 - Web ESLint, Vitest (90% floor on the pure `src/lib` modules), `tsc`, Vite build
 - Compile the embedded binary on Linux, macOS, and Windows
@@ -206,7 +206,7 @@ and fails when the two disagree. When it does, run `make web-build` and stage
 `web/dist` alongside your source change - the check ignores an already-staged
 rebuild, so it is satisfied in the same commit.
 
-`make lint` runs the same golangci-lint version CI pins (`v2.13.2`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
+`make lint` runs the same golangci-lint version CI pins (`v2.14.0`). Requires Go 1.27 (`asdf` via `.tool-versions`, or `go.mod`).
 `make vuln` runs the pinned govulncheck. zizmor and semgrep are optional
 locally (`pipx install zizmor==1.29.0`, `pipx install semgrep==1.175.0`) and
 required in CI, so a missing binary can never silently skip the audit.
