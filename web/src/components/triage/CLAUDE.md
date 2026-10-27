@@ -20,7 +20,6 @@ and their own local UI state only. The keyboard map itself lives in
 | `TopBar.tsx` | Painted with `bg-chrome`/`text-chrome-foreground` — the tokens a Linear-style theme routes its sidebar pair to; they default to the page colors. Nav + `SyncPill` (fresh / stale / syncing / reindexing / error) + `VersionBadge` (the running build; becomes a link to the release when the background check finds a newer one). |
 | `NotificationBell.tsx` | Background enrichment tracker; clicking an entry jumps to that issue, and hovering a **finished** one reveals its dismiss button. |
 | `HelpOverlay.tsx` | The `?` overlay. **Must match the real keyboard map** and the README table. |
-| `ShortcutBar.tsx` | Persistent hint strip. |
 | `Confetti.tsx` | Celebration on a cleared queue. |
 
 ## Two filters, two meanings

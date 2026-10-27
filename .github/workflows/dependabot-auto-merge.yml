@@ -96,7 +96,7 @@ jobs:
             echo "Auto-merge enabled: $UPDATE_TYPE for $DEPENDENCY_NAMES" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # --auto queues the merge behind the branch ruleset: all 11 required
+      # --auto queues the merge behind the branch ruleset: all 14 required
       # checks must report success first. This never bypasses a gate, it only
       # removes the human click at the end. Squash, so the Conventional Commit
       # subject Dependabot writes becomes the commit on main.

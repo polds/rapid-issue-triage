@@ -1,6 +1,6 @@
 BINARY := triage
 
-GOLANGCI_LINT_VERSION := v2.13.2
+GOLANGCI_LINT_VERSION := v2.14.0
 # Pinned, not @latest: a scanner whose version drifts between runs makes a red
 # build unreproducible and is itself an unpinned supply-chain dependency.
 GOVULNCHECK_VERSION := v1.7.0
