@@ -23,7 +23,7 @@ function isSection(v: string): v is SettingsSection {
 
 // Parse the section out of the current hash. `#/settings` (no section) and any
 // unknown section both resolve to the default.
-export function sectionFromHash(): SettingsSection {
+function sectionFromHash(): SettingsSection {
   const h = window.location.hash.replace(/^#\/?/, "");
   const rest = h.startsWith("settings/") ? h.slice("settings/".length) : "";
   return isSection(rest) ? rest : DEFAULT_SECTION;
