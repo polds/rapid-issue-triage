@@ -207,11 +207,6 @@ export const EMPTY_FILTER: ViewFilter = {
   teams: [], excludeTeams: [], labels: [], excludeLabels: [], priorities: [], search: "",
 };
 
-export function filterIsEmpty(f: ViewFilter): boolean {
-  return !f.teams.length && !f.excludeTeams.length && !f.labels.length &&
-    !f.excludeLabels.length && !f.priorities.length && !f.search.trim();
-}
-
 export interface IndexFilterInfo {
   filter: Record<string, unknown>;
   default: Record<string, unknown>;
