@@ -15,32 +15,15 @@ import {
 import type { Card } from "@/lib/store";
 import { useTriage } from "@/lib/triage-context";
 import { api } from "@/lib/api";
-import type { Comment, Enrichment } from "@/lib/types";
+import type { Comment } from "@/lib/types";
 import { LiveRun, QueuedRun, ReportView } from "./DeepPanel";
-import { formatReportComment } from "./report-format";
+import { formatReportComment, VERDICT_META } from "./report-format";
 
 import { Markdown, MarkdownInline } from "@/components/Markdown";
 import { PriorityIcon } from "@/components/PriorityIcon";
 import { Button } from "@/components/ui/button";
 import { teamColor, labelColor } from "@/lib/colors";
 import { cn, timeAgo } from "@/lib/utils";
-
-const VERDICT_META: Record<Enrichment["verdict"], { label: string; tone: string }> = {
-  actionable: { label: "Still actionable", tone: "border-success/35 bg-success/10 text-success" },
-  likely_obsolete: {
-    label: "Likely obsolete",
-    tone: "border-destructive/35 bg-destructive/10 text-destructive",
-  },
-  possibly_done: {
-    label: "Possibly already done",
-    tone: "border-info/35 bg-info/10 text-info",
-  },
-  needs_info: { label: "Needs more info", tone: "border-info/35 bg-info/10 text-info" },
-  duplicate_suspect: {
-    label: "Duplicate suspect",
-    tone: "border-warning/45 bg-warning/15 text-warning-foreground dark:text-warning",
-  },
-};
 
 function ClaudeMissingBanner({ detail }: { detail?: string }) {
   return (
