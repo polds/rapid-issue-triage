@@ -12,7 +12,7 @@ import {
 import { api, ApiError } from "./api";
 import { getEnrichInfo } from "./enrichmode";
 import { labelGroupConflicts } from "./labelgroups";
-import { noticeIsActive } from "./notices";
+import { noticeIsActive, settledNoticesFor } from "./notices";
 import { useToast } from "@/components/ui/use-toast";
 import { EMPTY_FILTER, type DeepReport, type Enrichment, type EnrichEvent, type Macro, type Meta, type Op, type RunPlacement, type SyncStatus, type VersionInfo, type ViewFilter } from "./types";
 import {
@@ -241,6 +241,18 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     setCards((prev) => prev.map((c) => (c.issue.id === issueId ? { ...c, ...patch } : c)));
   }, []);
 
+  // retireNotices drops an issue's finished enrichment notices once the user
+  // has written to it in Linear (see settledNoticesFor). Declared above the
+  // actions that call it, for the same React Compiler reason as below.
+  const retireNotices = useCallback((issueId: string) => {
+    setNotices((n) => {
+      const gone = settledNoticesFor(n, issueId);
+      if (!gone.length) return n;
+      for (const id of gone) runEvents.current.delete(id);
+      return n.filter((x) => !gone.includes(x.runId));
+    });
+  }, []);
+
   // Declared here, above startWatcher, because startWatcher closes over it:
   // a forward reference stops React Compiler from preserving this memo.
   const setIssueEnrichment = useCallback(
@@ -402,6 +414,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           issue: { ...r.issue, enrichment: r.issue.enrichment ?? card.issue.enrichment },
         });
         pushUndo(r.activityId, card.issue.id, true);
+        retireNotices(card.issue.id);
         setSessionTriaged((n) => {
           const v = n + 1;
           if (v % 10 === 0) setMilestone(v);
@@ -411,7 +424,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
         toast(`${m.name} → ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       }, (e) => raiseLabelPrompt(e, m.name, () => applyMacroRef.current(m, duplicateOfId, true)));
     },
-    [current, duration, swipeAway, updateCard, pushUndo, toast, needsDuplicateOf, labelClash, raiseLabelPrompt],
+    [current, duration, swipeAway, updateCard, pushUndo, retireNotices, toast, needsDuplicateOf, labelClash, raiseLabelPrompt],
   );
 
   const cancelDuplicatePrompt = useCallback(() => setDuplicatePrompt(null), []);
@@ -441,13 +454,14 @@ export function TriageProvider({ children }: { children: ReactNode }) {
           activityId: r.activityId,
         });
         pushUndo(r.activityId, card.issue.id, false);
+        retireNotices(card.issue.id);
         toast(`${description} · ${card.issue.identifier}`, { onUndo: () => undoRef.current() });
       } catch (e) {
         if (raiseLabelPrompt(e, description, () => applyOpsRef.current(ops, description, true))) return;
         toast(`Edit failed: ${(e as Error).message}`, { tone: "error" });
       }
     },
-    [current, duration, updateCard, pushUndo, toast, labelClash, raiseLabelPrompt],
+    [current, duration, updateCard, pushUndo, retireNotices, toast, labelClash, raiseLabelPrompt],
   );
 
   const undo = useCallback(() => {
@@ -649,6 +663,45 @@ export function TriageProvider({ children }: { children: ReactNode }) {
     focusIssueRef.current = focusIssue;
   }, [focusIssue]);
 
+  // pullIssue loads an arbitrary Linear ticket into the deck by id/identifier —
+  // the "skip the queue" search. If it's already in the deck we just jump to it;
+  // otherwise the server pulls it from Linear into the local index and we splice
+  // the full row in at the cursor and select it. Returns the loaded issue id, or
+  // null on failure (an error toast is raised).
+  const pullIssue = useCallback(async (idOrIdentifier: string): Promise<string | null> => {
+    const q = idOrIdentifier.trim();
+    if (!q) return null;
+    const existing = cardsRef.current.findIndex(
+      (c) => c.issue.id === q || c.issue.identifier.toLowerCase() === q.toLowerCase(),
+    );
+    if (existing >= 0) {
+      setIndex(existing);
+      return cardsRef.current[existing].issue.id;
+    }
+    try {
+      const r = await api.pullIssue(q);
+      // Recompute against the live deck: a concurrent fetch or a swipe may have
+      // moved things while the request was in flight.
+      const dupe = cardsRef.current.findIndex((c) => c.issue.id === r.issue.id);
+      if (dupe >= 0) {
+        setIndex(dupe);
+        return r.issue.id;
+      }
+      const at = Math.min(indexRef.current + (cardsRef.current.length ? 1 : 0), cardsRef.current.length);
+      setCards((prev) => {
+        const copy = [...prev];
+        copy.splice(Math.min(at, copy.length), 0, { issue: r.issue, status: "pending" });
+        return copy;
+      });
+      setIndex(at);
+      return r.issue.id;
+    } catch (e) {
+      const msg = e instanceof ApiError && e.code === "issue_gone" ? e.message : `Couldn't pull that ticket: ${(e as Error).message}`;
+      toast(msg, { tone: "error" });
+      return null;
+    }
+  }, [toast]);
+
   // Close all watchers on unmount.
   useEffect(() => {
     const w = watchers.current;
@@ -680,7 +733,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       reloadMeta: loadMeta, refreshDeck,
       setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,
-      activeRun, getRunEvents, eventsTick, focusIssue,
+      activeRun, getRunEvents, eventsTick, focusIssue, pullIssue,
       duplicatePrompt, cancelDuplicatePrompt,
       labelPrompt, cancelLabelPrompt,
     }),
@@ -690,7 +743,7 @@ export function TriageProvider({ children }: { children: ReactNode }) {
       cards, index, current, remaining, loading, swipe, busy, sessionTriaged, milestone,
       next, prev, skip, snooze, applyMacro, applyOps, undo, canUndo, enrich, enriching,
       loadMeta, setIssueEnrichment, notices, markNoticesRead, clearDoneNotices, dismissNotice,
-      activeRun, getRunEvents, eventsTick, focusIssue,
+      activeRun, getRunEvents, eventsTick, focusIssue, pullIssue,
       duplicatePrompt, cancelDuplicatePrompt,
       labelPrompt, cancelLabelPrompt,
       refreshDeck,

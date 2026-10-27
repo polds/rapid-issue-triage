@@ -106,6 +106,7 @@ update_check:
 | `Space` | expand description + comments |
 | `I` | enrich with AI |
 | `O` | open in Linear |
+| `G` | go to / pull any Linear issue into the deck |
 | `U` | undo last action |
 | `?` | help overlay |
 

@@ -79,6 +79,10 @@ export const api = {
     req<{ ok: boolean }>("/api/filter", { method: "PUT", body: JSON.stringify({ filter }) }),
   resetIndexFilter: () => req<{ ok: boolean }>("/api/filter", { method: "DELETE" }),
   getIssue: (id: string) => req<{ issue: Issue }>(`/api/issues/${id}`),
+  // Pull an arbitrary Linear ticket into the local index by id/identifier and
+  // return the full row, so it can be dropped into the deck (the "skip the
+  // queue" search). The ticket may already be triaged/closed.
+  pullIssue: (id: string) => req<{ issue: Issue }>("/api/issues/pull", { method: "POST", body: JSON.stringify({ id }) }),
   context: (id: string) => req<{ comments: Comment[] | null }>(`/api/issues/${id}/context`),
   apply: (id: string, ops: Op[], outcome: string, durationMs?: number, replaceGroupLabels?: boolean) =>
     req<{ issue: Issue; activityId: number }>(`/api/issues/${id}/apply`, {

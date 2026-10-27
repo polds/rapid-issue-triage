@@ -500,3 +500,9 @@
 |------|--------|---------|---------|--------|
 | 10:08 | Linear-style custom theme: six-hex string persisted in sqlite (`ui_theme`), GET/PUT /api/theme, pure `linearstyle.ts` derives every token, Settings → Appearance card, top bar takes the sidebar pair via new `--chrome` tokens | internal/store/uitheme.go, internal/server/theme.go, web/src/lib/linearstyle.ts, theme.tsx, theme-context.ts, pages/Settings.tsx, styles.css, TopBar.tsx, docs | go test + vitest (coverage 99%) + eslint green; verified in the real app via driver.mjs with the example theme and Nord | ~60k |
 | 10:11 | CI web-dist-check failed on #64 (stale bundle from a build that raced the docs edit); rebuilt from the settled tree, hash matches CI | web/dist, .wolf/buglog.json, .wolf/cerebrum.md | fixed, pushed | ~8k |
+
+## Session: 2026-10-07 16:09
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:30 | Go-to overlay lifted to App (button + G work on every page, pull navigates to deck); finished deep-enrichment notices retired when the issue is written to (macro, quick edit, posting the report) | web/src/App.tsx, TicketSearch.tsx, TopBar.tsx, Triage.tsx, lib/notices.ts, lib/store.tsx, docs | eslint + vitest green; verified Go-to on Settings/Reports/deck + pull-from-Settings in the real app; retire path is offline-unreachable (Linear writes 502) so covered by unit tests only | ~40k |

@@ -37,7 +37,9 @@ export function TriagePage() {
         setHelp((h) => !h);
         return;
       }
-      if (picker || help) return;
+      // `G` (go to issue) is handled app-wide in App.tsx. Its overlay is not
+      // this page's state, so check the DOM marker every overlay carries.
+      if (picker || help || document.querySelector("[data-picker-open]")) return;
 
       if (k === "ArrowRight") return void (e.preventDefault(), next());
       if (k === "ArrowLeft") return void (e.preventDefault(), prev());

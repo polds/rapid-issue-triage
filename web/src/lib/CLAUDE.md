@@ -24,7 +24,7 @@ component.
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |
 | `enrichmode.ts` | Module-level cache of enrichment settings so every card doesn't refetch. | ✔ |
 | `labelgroups.ts` | Pre-flight for Linear's mutually exclusive label groups: which groups a set of ops would put two labels into, and how to say so. | ✔ |
-| `notices.ts` | How an `EnrichNotice` reads: `noticeIsActive` (queued **or** running — the one definition every consumer shares), plus the dropdown's detail and timestamp lines. | ✔ |
+| `notices.ts` | How an `EnrichNotice` reads: `noticeIsActive` (queued **or** running — the one definition every consumer shares), plus the dropdown's detail and timestamp lines, and `settledNoticesFor` (which notices an action on an issue retires). | ✔ |
 | `version.ts` | How to *say* the build stamp and the update check — the display string, the tooltip, the Settings summary, the release link. Never *decides* whether an update exists; `internal/update` does. | ✔ |
 
 ## `store.tsx` — the contract
@@ -47,6 +47,12 @@ Optimistic, deck-shaped state:
   refuse to drop an active one, and `enrich` refuses to queue a second run for
   a card that already has one — a pooled run can wait minutes, and without
   that guard every extra keypress lands another run at the back of the line.
+- **Writing to an issue retires its finished notices.** A successful macro or
+  quick edit (posting the AI report is an `add_comment` quick edit) calls
+  `retireNotices`, which drops what `settledNoticesFor` picks: that issue's
+  finished notices, never an active one. Skip and snooze do not count — they
+  defer the card, so the notice is still the way back to the report. Undo does
+  not restore a retired notice; the report itself lives on the card.
 - **`labelGroupConflicts` gates the label-replace flow**, the same way
   `needsDuplicateOf` gates the duplicate one: it runs against synced metadata
   before the request, so a clash raises its prompt with no round trip and no

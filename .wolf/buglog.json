@@ -635,6 +635,25 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-12T10:11:37Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-10-07T16:18:39Z",
+      "error_message": "The 'Go to' modal doesn't load in the Settings page (TopBar Go to button does nothing off the triage page)",
+      "file": "web/src/App.tsx",
+      "root_cause": "TopBar dispatched a window event 'rt:open-ticket-search' that only TriagePage listened for, and TicketSearch was rendered by TriagePage; on Settings/Macros/Reports no listener was mounted, and the G shortcut lived in TriagePage's keymap too.",
+      "fix": "App owns the overlay state, renders TicketSearch, passes onGoTo to TopBar and binds G globally (input + [data-picker-open] guarded); a successful pull navigates to #/. TriagePage dropped its search state and now stands down while any [data-picker-open] overlay is mounted.",
+      "tags": [
+        "frontend",
+        "go-to",
+        "ticket-search",
+        "routing",
+        "window-event",
+        "settings"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T16:18:39Z"
     }
   ]
 }
