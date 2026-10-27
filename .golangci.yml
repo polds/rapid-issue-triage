@@ -99,6 +99,8 @@ linters:
       disabled-checks:
         - hugeParam
         - rangeValCopy
+        # v2.14+: wants %#q (Go syntax) in place of markdown `code` wraps.
+        - sprintfQuotedString
     gosec:
       includes:
         - G101
@@ -213,6 +215,10 @@ linters:
           disabled: true
         - name: unexported-naming
           disabled: false
+        # v2.14+ style-war: multi-line if-init. Existing sqlite/Linear scans
+        # already wrap Scan/Create args; reformatting them is churn.
+        - name: multiline-if-init
+          disabled: true
     goconst:
       min-len: 3
       min-occurrences: 3

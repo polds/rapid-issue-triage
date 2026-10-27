@@ -121,7 +121,6 @@ export const api = {
   enrich: (id: string) => req<{ enrichment: Enrichment }>(`/api/issues/${id}/enrich`, { method: "POST" }),
   deepEnrich: (id: string) => req<RunPlacement>(`/api/issues/${id}/enrich/deep`, { method: "POST" }),
   latestRun: (issueId: string) => req<{ run: EnrichRun | null }>(`/api/issues/${issueId}/runs/latest`),
-  getRun: (runId: string) => req<EnrichRun>(`/api/enrich/runs/${runId}`),
   enrichSettings: () => req<EnrichSettingsInfo>("/api/enrich/settings"),
   putEnrichSettings: (s: EnrichSettings) =>
     req<EnrichSettingsInfo>("/api/enrich/settings", { method: "PUT", body: JSON.stringify(s) }),
