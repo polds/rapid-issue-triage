@@ -38,11 +38,12 @@
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.72.0",
-    "vite": "^8.3.0",
+    "vite": "^8.3.5",
     "vitest": "^5.0.1"
   },
   "overrides": {
     "brace-expansion": "5.0.12",
-    "source-map-js": "1.2.2"
+    "source-map-js": "1.2.2",
+    "zod": "4.6.7"
   }
 }
