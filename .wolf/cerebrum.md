@@ -313,6 +313,17 @@ Two gotchas worth remembering:
 
 ## Do-Not-Repeat
 
+- [2026-10-07] Do not wire a TopBar control to an overlay that a *page* owns.
+  TopBar renders on every route, the pages do not: #68's Go-to button fired a
+  window event only `TriagePage` listened for, so it was dead on Settings,
+  Macros and Reports. Anything reachable from the TopBar or a global shortcut
+  is owned by `App.tsx` and passed down as a prop.
+- [2026-10-07] The run driver's `key` blurs focus first, so it cannot test an
+  overlay's own `onKeyDown` (Escape/Enter on TicketSearch, pickers): the event
+  never passes through the overlay. Dispatch a bubbling `KeyboardEvent` on the
+  overlay's input via `eval` instead, and read the result in a *separate* eval
+  — React has not re-rendered within the same expression.
+
 - [2026-09-12] Do not run `npm run build` (the `web/dist` rebuild) in the
   background while still editing anything in the repo, docs included.
   Tailwind v4 scans every non-ignored file for class candidates, so a

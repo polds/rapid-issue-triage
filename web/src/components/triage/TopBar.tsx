@@ -77,7 +77,15 @@ function VersionBadge() {
   );
 }
 
-export function TopBar({ page, navigate }: { page: string; navigate: (p: string) => void }) {
+export function TopBar({
+  page,
+  navigate,
+  onGoTo,
+}: {
+  page: string;
+  navigate: (p: string) => void;
+  onGoTo: () => void;
+}) {
   const { meta, viewFilter, setViewFilter, remaining } = useTriage();
   const [panel, setPanel] = useState(false);
 
@@ -134,7 +142,7 @@ export function TopBar({ page, navigate }: { page: string; navigate: (p: string)
         </button>
 
         <button
-          onClick={() => window.dispatchEvent(new Event("rt:open-ticket-search"))}
+          onClick={onGoTo}
           title="Go to any Linear issue (G)"
           aria-label="Go to any Linear issue"
           className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:px-3"

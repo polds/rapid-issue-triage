@@ -1,7 +1,8 @@
 // Ticket search: a command-palette overlay that live-searches Linear and pulls
 // the chosen ticket straight into the deck at the cursor — a way to jump to any
 // issue by identifier or title without waiting for it in the queue. Opened by
-// the `G` shortcut ("go to issue") or the TopBar search button.
+// the `G` shortcut ("go to issue") or the TopBar search button, from any page —
+// App owns it, and sends the user to the deck once a ticket is pulled.
 //
 // The searched ticket may already be triaged or closed; pulling is the point.
 // The pull itself lives in the store (`pullIssue`), which fetches the full row
@@ -16,7 +17,7 @@ import { parseLinearIssueIdentifier } from "@/lib/linear";
 import type { LinearSearchHit } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function TicketSearch({ onClose }: { onClose: () => void }) {
+export function TicketSearch({ onClose, onPulled }: { onClose: () => void; onPulled: () => void }) {
   const { pullIssue } = useTriage();
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<LinearSearchHit[]>([]);
@@ -67,7 +68,7 @@ export function TicketSearch({ onClose }: { onClose: () => void }) {
     setPulling(true);
     const id = await pullIssue(idOrIdentifier);
     setPulling(false);
-    if (id) onClose(); // failures raise their own toast; keep the palette open
+    if (id) onPulled(); // failures raise their own toast; keep the palette open
   };
 
   const onKey = (e: React.KeyboardEvent) => {

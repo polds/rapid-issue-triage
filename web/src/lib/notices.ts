@@ -43,3 +43,12 @@ export function noticeWhen(n: EnrichNotice): string {
   if (n.status !== "queued") return timeAgo(n.at);
   return n.position && n.position > 0 ? `queued · #${n.position}` : "queued";
 }
+
+// settledNoticesFor: the finished notices an action on this issue retires.
+// A notice exists to bring the user back to a report; once they have written
+// to the issue in Linear — a macro, a quick edit, posting the report as a
+// comment — it has done that job. Active runs stay, for the same reason
+// dismissal refuses them: the notice is the client's only handle on the run.
+export function settledNoticesFor(notices: EnrichNotice[], issueId: string): string[] {
+  return notices.filter((n) => n.issueId === issueId && !noticeIsActive(n)).map((n) => n.runId);
+}
