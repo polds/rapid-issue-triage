@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS enrich_runs (
   issue_id TEXT NOT NULL,
   issue_identifier TEXT NOT NULL,
   mode TEXT NOT NULL,              -- fast | deep
-  status TEXT NOT NULL,            -- running | done | error | cancelled
+  status TEXT NOT NULL,            -- queued | running | done | error
   sources_json TEXT,               -- enabled sources snapshot
   report_json TEXT,                -- final structured report
   error TEXT,

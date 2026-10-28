@@ -211,7 +211,7 @@
 - `triage-context.ts` — The triage context object, its accessor hook, and the deck types they (~1112 tok)
 - `types.ts` — One summed bucket of AI-enrichment token spend. (~2542 tok)
 - `utils.test.ts` — Declares enabled (~966 tok)
-- `utils.ts` — Exports cn, timeAgo, fmtMs, fmtTokens + 2 more (~531 tok)
+- `utils.ts` — Exports cn, timeAgo, fmtMs, fmtTokens, fmtUsd (~500 tok)
 - `version.test.ts` — Declares info (~1381 tok)
 - `version.ts` — Pure formatting for the build stamp and the update check. The server decides (~869 tok)
 

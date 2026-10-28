@@ -2,7 +2,7 @@
 
 > OpenWolf's learning memory. Updated automatically as the AI learns from interactions.
 > Do not edit manually unless correcting an error.
-> Last updated: 2026-08-31 (version display + background update check; previously 2026-08-28: directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
+> Last updated: 2026-10-28 (nightly audit: keyBinding is wire-dead but macros.key_binding stays; MarkTriaged deleted; enrich-run status has no cancelled); previously 2026-08-31 (version display + background update check; previously 2026-08-28: directory-level CLAUDE.md tree; cerebrum union policy reconciled; OpenWolf CLI bootstrap)
 
 ## User Preferences
 
@@ -12,6 +12,18 @@
 - Wants golangci-lint near-pedantic, with **gocyclo min-complexity 15** as a hard cap so agents cannot dump kitchen-sink functions. Style-war rules (lll, noctx, fieldalignment, forbidigo, revive exported comments) stay disabled so CI remains green.
 
 ## Key Learnings
+
+- **Nightly audit, 2026-10-28.** Macro keys 1–9 are the row's `position`.
+  `Macro.KeyBinding` / `keyBinding` were unread on the wire (the editor wrote
+  `""` and has no binding field). The sqlite column `macros.key_binding`
+  stays: this database ships on user machines and migrations never drop
+  columns. New inserts leave it NULL; updates do not touch it.
+  `Store.MarkTriaged` had no production caller — a successful triage stamps
+  `triaged_at` inside `ApplySyncedIssue(..., true)`. `PRIORITY_NAMES` duplicated
+  `PriorityIcon`'s `META` labels and was only imported by its own test.
+  `enrich_runs.status` is `queued|running|done|error`; `cancelled` was a
+  leftover comment and a TypeScript union member, not a state the store writes.
+  Macro *outcome* `cancelled` is a different field and still live.
 
 - **Project:** rapid-issue-triage
 - **Agent docs are a tree, not one file.** The root `CLAUDE.md` is an index

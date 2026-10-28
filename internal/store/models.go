@@ -48,12 +48,11 @@ type Enrichment struct {
 }
 
 type Macro struct {
-	ID         int64       `json:"id"`
-	Name       string      `json:"name"`
-	KeyBinding string      `json:"keyBinding"`
-	Outcome    string      `json:"outcome"`
-	Steps      []MacroStep `json:"steps"`
-	Position   int         `json:"position"`
+	ID       int64       `json:"id"`
+	Name     string      `json:"name"`
+	Outcome  string      `json:"outcome"`
+	Steps    []MacroStep `json:"steps"`
+	Position int         `json:"position"`
 }
 
 // MacroStep is one op in a macro. Name-based references (labelName, stateName)

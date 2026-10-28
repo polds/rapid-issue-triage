@@ -158,7 +158,11 @@ func TestIssueQueueSkipSnoozeTriageAndFilters(t *testing.T) {
 	if err != nil || n != 2 {
 		t.Fatalf("snoozed count %d %v", n, err)
 	}
-	if err := st.MarkTriaged("c"); err != nil {
+	issue, err := st.GetIssue("c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.ApplySyncedIssue(issue, true); err != nil {
 		t.Fatal(err)
 	}
 	n, err = st.QueueCount(QueueFilter{})
@@ -211,7 +215,7 @@ func TestIssueQueueSkipSnoozeTriageAndFilters(t *testing.T) {
 
 func TestMacrosCRUD(t *testing.T) {
 	st := testStore(t)
-	m, err := st.CreateMacro(Macro{Name: "Accept", KeyBinding: "1", Outcome: "accepted", Steps: []MacroStep{{Type: "set_state", StateType: "started"}}, Position: 0})
+	m, err := st.CreateMacro(Macro{Name: "Accept", Outcome: "accepted", Steps: []MacroStep{{Type: "set_state", StateType: "started"}}, Position: 0})
 	if err != nil || m.ID == 0 {
 		t.Fatalf("create: %+v %v", m, err)
 	}

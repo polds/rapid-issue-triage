@@ -177,11 +177,6 @@ func (s *Store) MarkSnoozed(id string, until time.Time) error {
 	return err
 }
 
-func (s *Store) MarkTriaged(id string) error {
-	_, err := s.db.Exec(`UPDATE issues SET triaged_at = ? WHERE id = ?`, now(), id)
-	return err
-}
-
 // RestoreIssue puts back pre-action field values after an undo.
 func (s *Store) RestoreIssue(r IssueRow) error {
 	_, err := s.db.Exec(`UPDATE issues SET state_id = ?, assignee_id = ?, project_id = ?,

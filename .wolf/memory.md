@@ -506,3 +506,9 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 16:30 | Go-to overlay lifted to App (button + G work on every page, pull navigates to deck); finished deep-enrichment notices retired when the issue is written to (macro, quick edit, posting the report) | web/src/App.tsx, TicketSearch.tsx, TopBar.tsx, Triage.tsx, lib/notices.ts, lib/store.tsx, docs | eslint + vitest green; verified Go-to on Settings/Reports/deck + pull-from-Settings in the real app; retire path is offline-unreachable (Linear writes 502) so covered by unit tests only | ~40k |
+
+## Session: 2026-10-28 11:27
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:40 | Nightly audit deletions: macro keyBinding off the wire (column kept), MarkTriaged deleted in favor of ApplySyncedIssue, PRIORITY_NAMES removed, enrich-run cancelled trimmed; G added to pages keyboard list | internal/store/{models,macros,issues,store,store_test}.go, web/src/lib/{types,utils,utils.test}.ts, web/src/pages/Macros.tsx, CLAUDE.md docs | deletions only; tests pending at log time | ~15k |

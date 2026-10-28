@@ -50,5 +50,3 @@ export function fmtUsd(n: number): string {
   if (n < 1) return `$${n.toFixed(3)}`;
   return `$${n.toFixed(2)}`;
 }
-
-export const PRIORITY_NAMES = ["No priority", "Urgent", "High", "Medium", "Low"];

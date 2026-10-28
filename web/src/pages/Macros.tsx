@@ -177,7 +177,7 @@ export function MacrosPage() {
           </p>
         </div>
         <Button
-          onClick={() => setDraft({ name: "", keyBinding: "", outcome: "accepted", steps: [], position: macros.length })}
+          onClick={() => setDraft({ name: "", outcome: "accepted", steps: [], position: macros.length })}
         >
           <Plus /> New macro
         </Button>
