@@ -18,7 +18,7 @@ component.
 | `theme.tsx` | `ThemeProvider` + `ThemeToggle`. Light/dark lives in localStorage; the Linear-style custom theme is fetched from `/api/theme` (localStorage is only a first-paint cache) and applied as inline custom properties on `<html>`, which also decides the `dark` class from the base color. | — |
 | `theme-context.ts` | The theme context object and `useTheme`, split out so `theme.tsx` exports only components. | — |
 | `linearstyle.ts` | Linear custom-theme strings → design tokens: `parseLinearTheme` (six hex slots: base, text, sidebar, sidebar text, accent, accent text), `themeVars` (every `--token` the stylesheet reads, derived with `color-mix`), `isDarkTheme` (WCAG luminance of the base), swatch labels. | ✔ |
-| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`, `PRIORITY_NAMES`. | ✔ |
+| `utils.ts` | `cn` (clsx + tailwind-merge), `timeAgo`, `fmtMs`, `fmtTokens`, `fmtUsd`. | ✔ |
 | `colors.ts` | Stable hue per team key (hashed → oklch); Linear label hex passthrough with a muted fallback. | ✔ |
 | `linear.ts` | `linearIssueHref` — build an issue URL from an identifier using the current issue's URL as a template. | ✔ |
 | `linearfilter.ts` | `decodeLinearFilterURL` — base64url `?filter=` from a linear.app view URL → `IssueFilter` JSON. | ✔ |

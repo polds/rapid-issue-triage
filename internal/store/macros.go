@@ -3,7 +3,7 @@ package store
 import "encoding/json"
 
 func (s *Store) ListMacros() ([]Macro, error) {
-	rows, err := s.db.Query(`SELECT id, name, COALESCE(key_binding,''), outcome, steps_json, position
+	rows, err := s.db.Query(`SELECT id, name, outcome, steps_json, position
 	  FROM macros ORDER BY position, id`)
 	if err != nil {
 		return nil, err
@@ -13,7 +13,7 @@ func (s *Store) ListMacros() ([]Macro, error) {
 	for rows.Next() {
 		var m Macro
 		var steps string
-		if err := rows.Scan(&m.ID, &m.Name, &m.KeyBinding, &m.Outcome, &steps, &m.Position); err != nil {
+		if err := rows.Scan(&m.ID, &m.Name, &m.Outcome, &steps, &m.Position); err != nil {
 			return nil, err
 		}
 		if err := json.Unmarshal([]byte(steps), &m.Steps); err != nil {
@@ -27,8 +27,8 @@ func (s *Store) ListMacros() ([]Macro, error) {
 func (s *Store) GetMacro(id int64) (Macro, error) {
 	var m Macro
 	var steps string
-	err := s.db.QueryRow(`SELECT id, name, COALESCE(key_binding,''), outcome, steps_json, position
-	  FROM macros WHERE id = ?`, id).Scan(&m.ID, &m.Name, &m.KeyBinding, &m.Outcome, &steps, &m.Position)
+	err := s.db.QueryRow(`SELECT id, name, outcome, steps_json, position
+	  FROM macros WHERE id = ?`, id).Scan(&m.ID, &m.Name, &m.Outcome, &steps, &m.Position)
 	if err != nil {
 		return m, errRow(err)
 	}
@@ -37,8 +37,8 @@ func (s *Store) GetMacro(id int64) (Macro, error) {
 }
 
 func (s *Store) CreateMacro(m Macro) (Macro, error) {
-	res, err := s.db.Exec(`INSERT INTO macros (name, key_binding, outcome, steps_json, position)
-	  VALUES (?, ?, ?, ?, ?)`, m.Name, m.KeyBinding, m.Outcome, mustJSON(m.Steps), m.Position)
+	res, err := s.db.Exec(`INSERT INTO macros (name, outcome, steps_json, position)
+	  VALUES (?, ?, ?, ?)`, m.Name, m.Outcome, mustJSON(m.Steps), m.Position)
 	if err != nil {
 		return m, err
 	}
@@ -47,9 +47,9 @@ func (s *Store) CreateMacro(m Macro) (Macro, error) {
 }
 
 func (s *Store) UpdateMacro(m Macro) error {
-	_, err := s.db.Exec(`UPDATE macros SET name = ?, key_binding = ?, outcome = ?,
+	_, err := s.db.Exec(`UPDATE macros SET name = ?, outcome = ?,
 	  steps_json = ?, position = ? WHERE id = ?`,
-		m.Name, m.KeyBinding, m.Outcome, mustJSON(m.Steps), m.Position, m.ID)
+		m.Name, m.Outcome, mustJSON(m.Steps), m.Position, m.ID)
 	return err
 }
 

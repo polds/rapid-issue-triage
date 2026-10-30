@@ -79,7 +79,7 @@ export interface EnrichRun {
   issueId: string;
   issueIdentifier: string;
   mode: string;
-  status: "queued" | "running" | "done" | "error" | "cancelled";
+  status: "queued" | "running" | "done" | "error";
   report?: string;
   error?: string;
   startedAt: string;
@@ -252,7 +252,6 @@ export interface Op {
 export interface Macro {
   id: number;
   name: string;
-  keyBinding: string;
   outcome: "accepted" | "cancelled" | "done" | "custom";
   steps: Op[];
   position: number;

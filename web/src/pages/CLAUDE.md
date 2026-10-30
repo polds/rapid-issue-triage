@@ -7,7 +7,7 @@ Pages own layout and page-local state; anything shared lives in
 | Page | Route | What it is |
 |---|---|---|
 | `Triage.tsx` | `#/` | The card deck. **Owns the global keyboard map** and renders `IssueCard` + `ActionBar` + `QuickEditRow`. |
-| `Macros.tsx` | `#/macros` | Macro CRUD: name, key binding, outcome, and the ordered op list. |
+| `Macros.tsx` | `#/macros` | Macro CRUD: name, outcome, and the ordered op list. |
 | `Reports.tsx` | `#/reports` | Gamified stats: tiles, per-day bar chart, outcome donut, streaks, plus the AI-enrichment usage panel. Charts are hand-rolled SVG (or plain divs) — no chart library. |
 | `Settings.tsx` | `#/settings` | Enrichment mode, per-source toggles with live availability, API keys, Advanced → Claude binary path, Appearance (a Linear-style six-color theme), and About (build stamp + update check). |
 
@@ -19,7 +19,7 @@ documented in three places that must agree: this page's handler,
 
 `←/→` prev/next · `S` skip · `Z` snooze 7d · `1–9` macro ·
 `L E C P A X` label/estimate/cycle/project/assignee/status pickers ·
-`Space` expand · `I` enrich · `O` open in Linear · `U` undo · `?` help.
+`Space` expand · `I` enrich · `O` open in Linear · `G` go to issue · `U` undo · `?` help.
 
 - **Suppress shortcuts while a text input or picker has focus**, or typing a
   search term fires macros. Every new shortcut needs that guard.

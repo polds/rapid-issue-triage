@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { cn, fmtMs, fmtTokens, fmtUsd, timeAgo, PRIORITY_NAMES } from "./utils";
+import { cn, fmtMs, fmtTokens, fmtUsd, timeAgo } from "./utils";
 
 describe("cn", () => {
   it("joins conditional classes and drops falsy ones", () => {
@@ -98,13 +98,5 @@ describe("fmtUsd", () => {
   it("uses ordinary currency precision from a dollar up", () => {
     expect(fmtUsd(1.5)).toBe("$1.50");
     expect(fmtUsd(12.345)).toBe("$12.35");
-  });
-});
-
-describe("PRIORITY_NAMES", () => {
-  it("is indexed by Linear's numeric priority", () => {
-    expect(PRIORITY_NAMES[0]).toBe("No priority");
-    expect(PRIORITY_NAMES[1]).toBe("Urgent");
-    expect(PRIORITY_NAMES).toHaveLength(5);
   });
 });
